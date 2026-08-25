@@ -178,13 +178,13 @@ already exists at level-authoring time:
 Eaters are ordinary glyphs, incidentally — one sitting on its own color activates and
 clears like anything else. They absorb shoves; they are not permanent furniture.
 
-### An emptied square cannot simply vanish
+### What an emptied square vanishing would cost
 
-Tempting as a global rule, and it would collapse the two void states into one. It cannot:
+Tempting as a global rule, and it would collapse the two void states into one. The price:
 an alive-but-empty cell is the only ending where a shove line advances without eating its
 front glyph. Every other ending — edge, dead cell, eater — costs one. Over 200 levels,
-shove lines end on an empty cell **17.2%** of the time. Making empty squares vanish
-globally deletes that case and quietly taxes every pusher in the game.
+shove lines end on an empty cell **17.2%** of the time, so the rule would tax roughly a
+sixth of every pusher's work. Measured, not forbidden.
 
 ### The inflow pool
 
@@ -215,7 +215,8 @@ single solver, re-scored 30 times with the pool live, returned 28 and 1 every ti
 movement at any pool weighting.
 
 That invariant is doing double duty: it keeps every activation player-caused, and it is
-the reason the pool is safe for `tools/trapBoards.js`. Do not drop it.
+what makes the pool safe for `tools/trapBoards.js`. Dropping it costs both at once, which
+is worth knowing before it goes.
 
 **The pool sets kind, not color.** Colour is still derived from the cell the glyph lands
 on, which is what guarantees the no-pre-match rule. Weighting colours as well would be a
@@ -225,7 +226,7 @@ The pool is where the progression layer lives: weight it toward pushers and the 
 re-arms, toward eaters and the player's own voids clog their edges. A curse the player
 loads themselves.
 
-### Wild cannot be authored against
+### What a wild costs an authored board
 
 A wild has no fixed outcome, so a board carrying one has no fixed best line. Scoring one
 board 25 times with wilds at 25% of glyphs, the best line moves between 24 and 25 cells and
@@ -233,7 +234,8 @@ the solver count swings between 1 and 3 — the trap generator would be optimizi
 that is not a property of the board. At 12.5% it held still across those runs, but by luck
 rather than guarantee.
 
-Keep wilds out of authored levels. `tools/trapBoards.js` warns when `--wilds` is non-zero.
+`tools/trapBoards.js` says as much when `--wilds` is non-zero. Generated and endless play
+never needed a fixed answer, so a wild costs nothing there.
 
 ## Swap-budget results
 
@@ -420,8 +422,8 @@ are tabulated above and carried as data in `data/glyphs.json`.
 | Match | glyph lands on its own color → activates → cell gone |
 | Movement | no gravity, no refill; shoves chain down a line |
 | Sinks | edge, dead cell, eater — each eats the front of the line, rest advance |
-| Swap budget | 6 (the yield curve flattens there) |
-| Palette size | the difficulty curve; 4 and up, 2 collapses the game |
+| Swap budget | 6, held fixed across a run. It was chosen where the yield curve flattened under neighbour swaps; with total reach on this board the curve keeps paying past twelve, so six is now a choice rather than a measured floor |
+| Palette size | the difficulty curve once pushers are on the board. With no pushers and total reach it stops mattering — a double hit is always somewhere |
 | Palette | six hues 60 degrees apart — three primaries, three secondaries, off the pure corners |
 | Level goal | score target |
 

@@ -101,8 +101,8 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 
 <section>
   <div class="head">
-    <h2>What has to be taught, in dependency order</h2>
-    <span class="aside">Each rung is unteachable until the one above it is installed.</span>
+    <h2>What the levels teach, in dependency order</h2>
+    <span class="aside">Each rung leans on the one above it, so this is the order they were laid out in.</span>
   </div>
   <div class="ladder">
     <div class="rung"><span class="n">01</span><span class="what">A glyph on its own color activates</span><span class="why">The single rule everything else modifies. Nothing can be shown before this.</span></div>
@@ -157,7 +157,7 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
           <tr><td class="num">7</td><td class="num">4</td><td class="teach">A shoved glyph can activate — the combo</td><td class="num">0.72</td><td class="num">12</td><td class="note">Author this one; a random board rarely chains this early.</td></tr>
           <tr><td class="num">8</td><td class="num">4</td><td class="teach">A glyph shoved off the edge is gone</td><td class="num">0.80</td><td class="num">14</td><td class="note">The first sink, framed as a loss. It becomes a tool in Act III.</td></tr>
           <tr><td class="num">9</td><td class="num">4</td><td class="teach">A shove leaves an empty cell — and you can move into it</td><td class="num">0.88</td><td class="num">15</td><td class="note">The board could not offer this before pushers existed. Author a board whose only line needs a piece parked in a hole a shove just opened.</td></tr>
-          <tr><td class="num">10</td><td class="num">5</td><td class="teach">Side count is the verb — circle radiates, triangle points</td><td class="num">0.80</td><td class="num">13</td><td class="note">Two shapes only. Resist showing the rest.</td></tr>
+          <tr><td class="num">10</td><td class="num">5</td><td class="teach">Side count is the verb — circle radiates, triangle points</td><td class="num">0.80</td><td class="num">13</td><td class="note">Two shapes only; the other four have nothing to contrast against yet.</td></tr>
           <tr><td class="num">11</td><td class="num">5</td><td class="teach">Rotation is the direction</td><td class="num">0.88</td><td class="num">14</td><td class="note">Four triangles, four headings, one board.</td></tr>
           <tr><td class="num">12</td><td class="num">5</td><td class="teach">Fill is magnitude — how far it shoves</td><td class="num">0.95</td><td class="num">15</td><td class="note">Hollow, half, solid side by side so the ramp reads at a glance.</td></tr>
           <tr><td class="num">13</td><td class="num">5</td><td class="teach">Nothing — first real test</td><td class="num">1.05</td><td class="num">17</td><td class="note">Above the measured mean, so it needs a chain rather than six clean singles.</td></tr>
@@ -282,9 +282,10 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
   <div class="body">
     <p>
       Every target above is the measured six-swap mean for that configuration multiplied by
-      the level's factor, rounded. The factor is the whole difficulty curve; the swap
-      budget never changes. The factor is the design and the mean is a measurement, so when
-      a rule changes and the means move, the factors stay and the targets follow them.
+      the level's factor, rounded. The factor carries the difficulty curve here, and the
+      swap budget is held at six across the run so that it does. The factor is the design
+      and the mean is a measurement, so when a rule changes and the means move, the factors
+      stay and the targets follow them.
     </p>
   </div>
   <div class="scroll">
@@ -321,8 +322,9 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
       rewarding it while quietly making it an approximation.
     </p>
     <p>
-      Spring the trap in Act I and it reads as an unfair board. Spring it in Act IV and it
-      reads as the game revealing what it has actually been about. Same board, different
+      Sprung in Act I it would likely read as an unfair board; sprung in Act IV the guess is
+      that it reads as the game revealing what it has been about. Which of those a player
+      feels is a playtest question, not something the sweeps can answer. Same board, different
       meaning, and the only difference is how much practice the player has at being right.
     </p>
   </div>
@@ -367,12 +369,12 @@ node tools/swapBudget.js --colors 6 --pushers 0.5 --blockers 0.125 --trials 300<
   </div>
   <div class="body">
     <p>
-      <strong>⊘ Void</strong> has levels 19 and 20 in Act III — it is the mirror of a
-      push, so it belongs beside the shove rules rather than in an act of its own.
-      <strong>⬠ Wild</strong> deliberately has no level. It fires a random one of sixteen
-      subsets, which makes a board carrying one impossible to author against: the best line
-      is not a property of the board. A taught level needs one unambiguous answer, so Wild
-      belongs in generated or endless play, after the curriculum ends.
+      <strong>⊘ Void</strong> sits at levels 19 and 20 in Act III rather than in an act of
+      its own, because it is the mirror of a push and reads against the shove rules.
+      <strong>⬠ Wild</strong> has no level in this run. It fires a random one of sixteen
+      subsets, so a board carrying one has no fixed best line to author toward, and a taught
+      level wants one unambiguous answer. Generated and endless play do not, which is where
+      a wild would cost nothing.
     </p>
     <p>
       The <strong>upgrade tree</strong> sits outside this run entirely. This is the
