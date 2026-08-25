@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Glyph Tracer &mdash; board shape</title>
+<title>Glyph Tracer &mdash; why the board is 5&#215;8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Martian+Mono:wght@400;600&display=swap">
@@ -86,15 +86,22 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 <div class="wrap">
 
 <header>
-  <span class="eyebrow">Glyph Tracer &middot; open question</span>
-  <h1>How big should the board be?</h1>
+  <span class="eyebrow">Glyph Tracer &middot; settled</span>
+  <h1>Why the board is 5&#215;8</h1>
   <p class="lede">
     Any two cells may be swapped, which puts 780 pairs in front of a player on a
     5&#215;8 board. Around thirty of them tie for the best payoff anyone can see, so the
     move a player picks out of that tie is close to a guess. Shrinking the board is the
     obvious fix. It works, and it is not free &mdash; the same thing that makes the
-    choice legible takes the runway the ability layer needs. <strong>Nothing here is
-    decided.</strong> This page is the measurement, so the decision can be made on it.
+    choice legible takes the runway the ability layer needs.
+  </p>
+  <p class="lede">
+    <strong>The board stays 5&#215;8 at six colors.</strong> That is the owner's call,
+    and this page is the measurement behind it rather than an argument still running.
+    It was measured well ahead of needing an answer, which is a deliberate exception to
+    building only what is needed &mdash; the numbers cost an afternoon and the same
+    afternoon spent after a shape was already committed to would have been worth much
+    less.
   </p>
 </header>
 
@@ -249,7 +256,7 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 
 <section>
   <div class="head">
-    <h2>What is actually being traded</h2>
+    <h2>What was traded, and for what</h2>
   </div>
   <div class="body">
     <p>
@@ -272,6 +279,15 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
       colors the glyph grammar and the specimen plate are drawn against.
     </p>
     <p>
+      <strong>What was chosen, and why.</strong> 5&#215;8 at six colors &mdash; the shape
+      already in <span class="mono">SPEC.md</span>. It keeps the full shove runway, the
+      deepest cascades, the largest trap ceiling and no dead turns, and it pays for that
+      with the widest tie pool of any shape here. The combo layer is what the rules put at
+      the centre of the game, and every alternative buys a legible choice by taking room
+      away from it. The tie pool is a real cost and it is on the record above; it is not a
+      cost worth paying with the cascade.
+    </p>
+    <p>
       A fourth route exists and is not measured here: keep the board and the palette, and
       change what the player is choosing between rather than how many things they are
       choosing between. The tie pool is only a problem because immediate payoff is the
@@ -284,7 +300,8 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 </section>
 
 <footer>
-  All figures from <span class="mono">node tools/boardShapes.js</span> &mdash; 400 boards per
+  Kept as the record behind a settled decision, not as a question in progress. All
+  figures from <span class="mono">node tools/boardShapes.js</span> &mdash; 400 boards per
   row, greedy play, six swaps, 50% pushers, 12.5% eaters, any two cells swappable. Trap
   figures from <span class="mono">tools/trapBoards.js</span>. Rules in
   <span class="mono">SPEC.md</span>; the level run in <span class="mono">teaching.html</span>.

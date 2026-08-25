@@ -406,7 +406,7 @@ best line 14 against a greedy pick of 2 and a typical swap of 1, still one solve
 | `docs/specimen.html` | the 108-combination glyph plate |
 | `docs/trapping.html` | writeup of how trap boards are generated |
 | `docs/teaching.html` | 25-level structure introducing every mechanic in dependency order |
-| `docs/board-size.html` | how big the board should be — measured, open |
+| `docs/board-size.html` | why the board is 5x8, and what every other shape would have cost |
 
 `ABILITIES.md` is referenced by neither the code nor the tests; the sixteen abilities
 are tabulated above and carried as data in `data/glyphs.json`.
@@ -415,7 +415,7 @@ are tabulated above and carried as data in `data/glyphs.json`.
 
 | | |
 |---|---|
-| Board | 5 wide, 8 tall |
+| Board | 5 wide, 8 tall. The wide tie pool that comes with total reach is a weighed and accepted cost, not an oversight — `docs/board-size.html` has what every other shape would have cost |
 | Swap | any two live cells exchange pieces — colour, ability and drawing together |
 | Match | glyph lands on its own color → activates → cell gone |
 | Movement | no gravity, no refill; shoves chain down a line |
