@@ -1,0 +1,272 @@
+// Animate — turning a resolved settle back into something you can watch.
+//
+// The engine resolves a swap to its final board in one go; a recorder collects the
+// ordered events that got it there (see settle() in board.js). This module folds
+// those events into phases and samples a phase at a moment in time. It is pure:
+// positions come out in cell space, and render.js turns them into pixels.
+//
+// Within one step a glyph can be shoved more than once, so the events are folded
+// down to net movement per glyph before anything is drawn — otherwise a piece that
+// travelled two cells would be tweened twice from the same start.
+
+const key = ([r, c]) => `${r},${c}`;
+
+/**
+ * Fold one recorded step into what happened to each piece and each cell.
+ * @returns {{deadCells: Array<[number, number]>, fates: Array<object>}}
+ *   A fate is {origin, end, kind}; kind is held, moved, eaten or destroyed.
+ */
+export function collapseStep({ snapshot, events }) {
+  const occupant = new Map(); // where a piece is now -> where it started the step
+  for (let r = 0; r < snapshot.height; r++) {
+    for (let c = 0; c < snapshot.width; c++) {
+      if (snapshot.alive[r][c] && snapshot.glyph[r][c] !== null) {
+        occupant.set(key([r, c]), [r, c]);
+      }
+    }
+  }
+  const fates = [];
+  const deadCells = [];
+  const seenDead = new Set();
+  for (const event of events) {
+    if (event.type === 'fire') continue; // recorded for the log; nothing moves yet
+    if (event.type === 'move') {
+      const origin = occupant.get(key(event.from));
+      occupant.delete(key(event.from));
+      if (origin) occupant.set(key(event.to), origin);
+      continue;
+    }
+    const at = key(event.at);
+    const origin = occupant.get(at);
+    occupant.delete(at);
+    if (event.type === 'eat') {
+      // It travels into whatever ate it while it goes, so a void reads as pulling its
+      // neighbours in and an edge reads as shoving one off.
+      if (!event.into) throw new Error(`an eat at ${at} recorded no sink`); // boundary
+      if (origin) fates.push({ origin, end: event.into, kind: 'eaten' });
+      continue;
+    }
+    // A void kills its own cell and the settle kills it again on the way out, so
+    // the same cell can be reported twice; it only dies once on screen.
+    if (!seenDead.has(at)) {
+      seenDead.add(at);
+      deadCells.push(event.at);
+    }
+    if (origin) fates.push({ origin, end: event.at, kind: 'destroyed' });
+  }
+  for (const [where, origin] of occupant) {
+    const end = where.split(',').map(Number);
+    const moved = origin[0] !== end[0] || origin[1] !== end[1];
+    fates.push({ origin, end, kind: moved ? 'moved' : 'held' });
+  }
+  return { deadCells, fates };
+}
+
+/**
+ * How long a piece waits before it starts moving. A shove is a wave travelling away
+ * from whatever fired, so pieces further from the cells that activated start later —
+ * without that, a run of five slides as one rigid block and reads as nothing.
+ */
+function delayFor(cell, activated, staggerMs) {
+  if (!staggerMs || !activated.length) return 0;
+  const reach = Math.min(...activated.map(([r, c]) => Math.abs(r - cell[0]) + Math.abs(c - cell[1])));
+  return Math.max(0, reach - 1) * staggerMs;
+}
+
+/** Every piece standing on a board, as a sprite that does not move. */
+function restingSprites(board, timing) {
+  const sprites = [];
+  for (let r = 0; r < board.height; r++) {
+    for (let c = 0; c < board.width; c++) {
+      if (!board.alive[r][c] || board.glyph[r][c] === null) continue;
+      sprites.push({
+        art: board.art[r][c],
+        ink: board.glyph[r][c],
+        from: [r, c],
+        to: [r, c],
+        scaleFrom: 1,
+        scaleTo: 1,
+        shake: false,
+        delay: 0,
+        ...timing,
+      });
+    }
+  }
+  return sprites;
+}
+
+function tilesOf(board, dead = [], activated = [], staggerMs = 0, shrinkMs = 1) {
+  const dying = new Set(dead.map(key));
+  const tiles = [];
+  for (let r = 0; r < board.height; r++) {
+    for (let c = 0; c < board.width; c++) {
+      if (!board.alive[r][c]) continue;
+      tiles.push({
+        r,
+        c,
+        bg: board.bg[r][c],
+        dying: dying.has(key([r, c])),
+        delay: delayFor([r, c], activated, staggerMs),
+        shrinkMs,
+      });
+    }
+  }
+  return tiles;
+}
+
+/** What a board looks like when nothing is happening. */
+export function staticFrame(board) {
+  const at_rest = { moveMs: 1, shrinkMs: 1 };
+  const phase = {
+    tweenMs: 1,
+    holdMs: 0,
+    tiles: tilesOf(board),
+    sprites: restingSprites(board, at_rest),
+  };
+  return sampleFrame(phase, phase.tweenMs, null);
+}
+
+/**
+ * Build the phases for one swap and everything it set off.
+ * @param {object} args
+ * @param {object} args.before - the board as it stood before the swap.
+ * @param {Array} args.swap - the two cells the player exchanged.
+ * @param {{steps: Array}} args.recorder - what settle() collected.
+ * @param {object} args.timing - swapMs, stepMs, holdMs, staggerMs, splitBeats.
+ *   `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how
+ *   far it sits from what fired; `splitBeats` plays a step's movement and its
+ *   destruction as two beats instead of one, which is the order the rules resolve in.
+ * @returns {{phases: Array, totalMs: number}}
+ */
+export function buildTimeline({ before, swap, recorder, timing }) {
+  const {
+    swapMs, stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs,
+  } = timing;
+  const [a, z] = swap;
+  const phases = [
+    phaseOf({
+      holdMs,
+      // The swap is the player's own beat, so it lasts as long as it is given
+      // whether or not the two pieces differ.
+      floorMs: swapMs,
+      tiles: tilesOf(before),
+      sprites: restingSprites(before, { moveMs: swapMs, shrinkMs }).map((sprite) => {
+        if (key(sprite.from) === key(a)) return { ...sprite, to: z };
+        if (key(sprite.from) === key(z)) return { ...sprite, to: a };
+        return sprite;
+      }),
+    }),
+  ];
+
+  for (const step of recorder.steps) {
+    const { deadCells, fates } = collapseStep(step);
+    const { snapshot, activated } = step;
+    const sprite = ({ origin, end, kind }) => ({
+      art: snapshot.art[origin[0]][origin[1]],
+      ink: snapshot.glyph[origin[0]][origin[1]],
+      from: origin,
+      to: end,
+      scaleFrom: 1,
+      scaleTo: kind === 'eaten' || kind === 'destroyed' ? 0 : 1,
+      shake: kind === 'destroyed',
+      delay: delayFor(origin, activated, staggerMs),
+      moveMs: stepMs,
+      shrinkMs,
+    });
+
+    if (!splitBeats) {
+      phases.push(phaseOf({
+        holdMs,
+        tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
+        sprites: fates.map(sprite),
+      }));
+      continue;
+    }
+
+    // Beat one: everything travels, nothing dies yet. Beat two: what the step
+    // destroyed goes, from where it ended up. Two beats say the shove caused the
+    // clearing; one beat only says they happened together.
+    phases.push(phaseOf({
+      holdMs,
+      tiles: tilesOf(snapshot, [], activated, staggerMs, shrinkMs),
+      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, shake: false })),
+    }));
+    phases.push(phaseOf({
+      holdMs,
+      tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
+      sprites: fates.map(sprite).map((s) => ({ ...s, from: s.to, delay: 0, moveMs: 1 })),
+    }));
+  }
+  return { phases, totalMs: phases.reduce((sum, p) => sum + p.tweenMs + p.holdMs, 0) };
+}
+
+/**
+ * A phase runs until its slowest piece has finished, then holds still.
+ *
+ * Every piece keeps its own duration: a delayed one starts later and takes just as
+ * long, which is what makes a stagger read as a wave. Deriving each piece's duration
+ * from the phase instead would make the ones at the front of the run travel slower
+ * than the ones behind them.
+ */
+function phaseOf(phase) {
+  // A piece only spends the clocks it actually uses. Counting a resting sprite's
+  // shrink time would pad every phase out to the slowest thing nothing is doing.
+  const spriteEnd = (s) => {
+    const travels = s.from[0] !== s.to[0] || s.from[1] !== s.to[1];
+    const shrinks = s.scaleTo !== s.scaleFrom;
+    return s.delay + Math.max(travels ? s.moveMs : 0, shrinks ? s.shrinkMs : 0);
+  };
+  const ends = [
+    ...phase.sprites.map(spriteEnd),
+    ...phase.tiles.map((t) => (t.dying ? t.delay + t.shrinkMs : 0)),
+  ];
+  return { ...phase, tweenMs: Math.max(phase.floorMs ?? 1, ...ends) };
+}
+
+const lerp = (from, to, t) => from + (to - from) * t;
+const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
+
+/** Sample one phase at `elapsed` ms into it, in cell space. */
+function sampleFrame(phase, elapsed, shake) {
+  const at = (delay, duration) => clamp01((elapsed - delay) / Math.max(1, duration));
+  const wobbleAt = (t) => (shake ? shake.amplitude * Math.sin(t * shake.cycles * 2 * Math.PI) : 0);
+  return {
+    tiles: phase.tiles.map((tile) => {
+      const t = at(tile.delay, tile.shrinkMs);
+      return {
+        bg: tile.bg,
+        x: tile.c + (tile.dying ? wobbleAt(t) : 0),
+        y: tile.r,
+        scale: tile.dying ? 1 - t : 1,
+      };
+    }),
+    sprites: phase.sprites.map((sprite) => {
+      // Travel and shrink are separate clocks: a piece can slide at one speed and
+      // vanish at another, which is the difference between a shove and a pop.
+      const moved = at(sprite.delay, sprite.moveMs);
+      const shrunk = at(sprite.delay, sprite.shrinkMs);
+      return {
+        art: sprite.art,
+        ink: sprite.ink,
+        x: lerp(sprite.from[1], sprite.to[1], moved) + (sprite.shake ? wobbleAt(shrunk) : 0),
+        y: lerp(sprite.from[0], sprite.to[0], moved),
+        scale: lerp(sprite.scaleFrom, sprite.scaleTo, shrunk),
+      };
+    }),
+  };
+}
+
+/**
+ * The frame at `elapsed` milliseconds into a timeline. Linear throughout.
+ * @returns {?object} null once the timeline has run out, so the caller knows to
+ *   go back to drawing the board itself.
+ */
+export function sampleTimeline(timeline, elapsed, shake) {
+  let remaining = elapsed;
+  for (const phase of timeline.phases) {
+    const span = phase.tweenMs + phase.holdMs;
+    if (remaining < span) return sampleFrame(phase, Math.min(remaining, phase.tweenMs), shake);
+    remaining -= span;
+  }
+  return null;
+}

@@ -1,0 +1,393 @@
+<meta charset="utf-8">
+<title>Teaching Glyph Tracer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root{
+  --paper:#E7E8EA; --panel:#F3F4F5; --sunk:#DBDDE0;
+  --ink1:#16171A; --ink2:#53565C; --ink3:#83868D;
+  --rule:#C5C7CB; --rule-hard:#9BA0A6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111215; --panel:#191B1F; --sunk:#0C0D0F;
+    --ink1:#E3E4E7; --ink2:#9FA3AA; --ink3:#6C7078;
+    --rule:#2B2E34; --rule-hard:#414650;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111215; --panel:#191B1F; --sunk:#0C0D0F;
+  --ink1:#E3E4E7; --ink2:#9FA3AA; --ink3:#6C7078;
+  --rule:#2B2E34; --rule-hard:#414650;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink1);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1060px;margin:0 auto;padding:60px 28px 110px;display:flex;flex-direction:column;gap:52px}
+.mono{font-family:"Martian Mono","SFMono-Regular",Consolas,monospace;font-variant-numeric:tabular-nums}
+
+.eyebrow{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;
+  letter-spacing:.17em;text-transform:uppercase;color:var(--ink3)}
+h1{font-size:clamp(36px,5.6vw,58px);font-weight:800;letter-spacing:-.035em;line-height:1;margin:12px 0 0;text-wrap:balance}
+h2{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:0;color:var(--ink1)}
+p{margin:0}
+.lede{margin-top:20px;max-width:64ch;color:var(--ink2);font-size:17.5px}
+header{border-bottom:2px solid var(--ink1);padding-bottom:30px}
+
+section{display:flex;flex-direction:column;gap:16px}
+.head{border-bottom:1px solid var(--rule);padding-bottom:9px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.head .aside{font-size:13px;color:var(--ink3);flex:1 1 240px;min-width:0}
+.body{max-width:68ch;display:flex;flex-direction:column;gap:14px;color:var(--ink2)}
+.body strong{color:var(--ink1);font-weight:600}
+
+/* dependency ladder */
+.ladder{display:flex;flex-direction:column;border:1px solid var(--rule-hard);background:var(--rule-hard);gap:1px}
+.rung{background:var(--panel);padding:13px 18px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+.rung .n{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;color:var(--ink3);flex:0 0 26px}
+.rung .what{font-weight:600;flex:0 0 auto;min-width:190px}
+.rung .why{font-size:13.5px;color:var(--ink2);flex:1 1 300px;min-width:0}
+
+/* act blocks */
+.act{border:1px solid var(--rule-hard);display:flex;flex-direction:column}
+.actbar{background:var(--ink1);color:var(--paper);padding:14px 20px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+.actbar .no{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.14em;opacity:.65}
+.actbar .nm{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.actbar .cfg{font-family:"Martian Mono",monospace;font-size:11px;margin-left:auto;opacity:.75}
+.actbody{background:var(--panel);padding:0}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th{text-align:left;font-family:"Martian Mono",monospace;font-size:9.5px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);
+  padding:12px 14px 8px;border-bottom:1px solid var(--rule-hard);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums;vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.num{font-family:"Martian Mono",monospace;color:var(--ink3);white-space:nowrap}
+td.teach{color:var(--ink1);font-weight:600}
+td.note{color:var(--ink2);font-size:13.5px}
+.actfoot{background:var(--sunk);padding:13px 20px;font-size:13.5px;color:var(--ink2);border-top:1px solid var(--rule)}
+.actfoot strong{color:var(--ink1)}
+
+pre{background:var(--sunk);border:1px solid var(--rule);margin:0;padding:16px 18px;
+  overflow-x:auto;font-family:"Martian Mono",monospace;font-size:12px;line-height:1.7;color:var(--ink1)}
+code{font-family:"Martian Mono",monospace;font-size:.88em;background:var(--sunk);padding:1px 5px;border:1px solid var(--rule)}
+pre code{background:none;border:none;padding:0}
+.flags{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2px;background:var(--rule-hard);border:1px solid var(--rule-hard)}
+.flags div{background:var(--panel);padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.flags .k{font-family:"Martian Mono",monospace;font-size:11px;font-weight:600;color:var(--ink1)}
+.flags p{font-size:13.5px;color:var(--ink2);line-height:1.5}
+footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:var(--ink3)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Glyph Tracer · Level structure</span>
+  <h1>Teaching a game with no tutorial text</h1>
+  <p class="lede">
+    There are sixteen glyphs but only four primitives. Side count is the verb, fill is the
+    magnitude, the inner mark is the targeting, nesting is the range — so the curriculum
+    is not sixteen lessons, it is four, and the shapes carry the rest. What the levels
+    have to teach is the primitives, one at a time, in the order the rules depend on them —
+    plus the two things total reach adds: that the whole board is always in play, and that
+    a shove leaves holes worth moving into.
+  </p>
+</header>
+
+<section>
+  <div class="head">
+    <h2>What has to be taught, in dependency order</h2>
+    <span class="aside">Each rung is unteachable until the one above it is installed.</span>
+  </div>
+  <div class="ladder">
+    <div class="rung"><span class="n">01</span><span class="what">A glyph on its own color activates</span><span class="why">The single rule everything else modifies. Nothing can be shown before this.</span></div>
+    <div class="rung"><span class="n">02</span><span class="what">Swapping moves glyphs, not cells</span><span class="why">Backgrounds are terrain. Until this lands, players read the board as movable tiles.</span></div>
+    <div class="rung"><span class="n">03</span><span class="what">Any two cells swap</span><span class="why">Reach is total. The board is not a set of local choices, it is one field — which is what makes the later acts about picking rather than finding.</span></div>
+    <div class="rung"><span class="n">04</span><span class="what">The cell is gone afterward</span><span class="why">No refill. Sets up the whole economy — material is finite and spending it is the game.</span></div>
+    <div class="rung"><span class="n">05</span><span class="what">A budget, and a target</span><span class="why">Turns the drain into a level. Meaningless before the player knows what a swap yields.</span></div>
+    <div class="rung"><span class="n">06</span><span class="what">Activating shoves neighbors</span><span class="why">The first ability. Needs the rules above, because a shove is only legible once you know why a cell vanished.</span></div>
+    <div class="rung"><span class="n">07</span><span class="what">A shoved glyph can activate</span><span class="why">The combo. This is the moment the game stops being one move at a time.</span></div>
+    <div class="rung"><span class="n">08</span><span class="what">A shove leaves an empty cell behind</span><span class="why">Only shoving makes them — an activated cell dies, it does not empty. So this rung is unreachable until the one above it lands, and moving a piece onto one is a real move the board did not have before.</span></div>
+    <div class="rung"><span class="n">09</span><span class="what">Shape tells you the ability</span><span class="why">Only worth teaching once shoves exist — before that there is nothing for a verb to differ about.</span></div>
+    <div class="rung"><span class="n">10</span><span class="what">Sinks: edge, hole, eater</span><span class="why">One rule, three faces. Introduce the edge first — it is always visible and always present.</span></div>
+    <div class="rung"><span class="n">11</span><span class="what">The visible payoff sorts almost nothing</span><span class="why">Last, and only last. Thirty swaps show two matches and one of them pays; that reads as a betrayal rather than a puzzle until the habit is twenty levels old.</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>Act I — The match</h2>
+    <span class="aside">Five levels. No abilities on the board at all.</span>
+  </div>
+  <div class="act" data-means='{"2":12.0,"3":12.0,"4":12.0}'>
+    <div class="actbar"><span class="no">ACT I</span><span class="nm">The match</span><span class="cfg">0% pushers · 0% eaters · 6 swaps</span></div>
+    <div class="actbody scroll">
+      <table>
+        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td class="num">2</td><td class="teach">A glyph on its own color activates</td><td class="num">0.33</td><td class="num">4</td><td class="note">At two colors every glyph is the opposite of its cell, so every swap that lands at all is a double hit. The player cannot fail to see the rule.</td></tr>
+          <tr><td class="num">2</td><td class="num">2</td><td class="teach">You move glyphs, not cells</td><td class="num">0.42</td><td class="num">5</td><td class="note">Same trivial palette, so attention is on what moved. The ground stays put and the shape travels.</td></tr>
+          <tr><td class="num">3</td><td class="num">2</td><td class="teach">Any two cells swap — the whole board is in reach</td><td class="num">0.50</td><td class="num">6</td><td class="note">Put the only two useful pieces in opposite corners. A rule taught by letting the move work is cheaper than one taught by refusing it.</td></tr>
+          <tr><td class="num">4</td><td class="num">3</td><td class="teach">A swap can miss</td><td class="num">0.55</td><td class="num">7</td><td class="note">The third color is where choosing begins — two openings in three now pay once instead of twice.</td></tr>
+          <tr><td class="num">5</td><td class="num">4</td><td class="teach">The cell is gone; the board drains, and the budget bites</td><td class="num">0.67</td><td class="num">8</td><td class="note">First level where a wasted swap costs the target. Set it high enough that the player runs the board low and feels it thin out.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="actfoot">Measured yield over six swaps: <strong>12.0</strong>, at every palette size from two colors to eight. The act is flat by construction and that is now a property of the rules, not a choice — with total reach and nothing to chain, a greedy player finds a double hit every turn no matter how rare doubles are. The factor column is the entire ramp here.</div>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>Act II — The shove</h2>
+    <span class="aside">Eight levels. Pushers arrive; the board starts moving on its own.</span>
+  </div>
+  <div class="act" data-means='{"4":17.0,"5":16.2}'>
+    <div class="actbar"><span class="no">ACT II</span><span class="nm">The shove</span><span class="cfg">50% pushers · 0% eaters · 6 swaps</span></div>
+    <div class="actbody scroll">
+      <table>
+        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="num">6</td><td class="num">4</td><td class="teach">Activating shoves its neighbors</td><td class="num">0.62</td><td class="num">11</td><td class="note">One pusher, hand-placed, in an otherwise inert board. The player should see exactly one thing move.</td></tr>
+          <tr><td class="num">7</td><td class="num">4</td><td class="teach">A shoved glyph can activate — the combo</td><td class="num">0.72</td><td class="num">12</td><td class="note">Author this one; a random board rarely chains this early.</td></tr>
+          <tr><td class="num">8</td><td class="num">4</td><td class="teach">A glyph shoved off the edge is gone</td><td class="num">0.80</td><td class="num">14</td><td class="note">The first sink, framed as a loss. It becomes a tool in Act III.</td></tr>
+          <tr><td class="num">9</td><td class="num">4</td><td class="teach">A shove leaves an empty cell — and you can move into it</td><td class="num">0.88</td><td class="num">15</td><td class="note">The board could not offer this before pushers existed. Author a board whose only line needs a piece parked in a hole a shove just opened.</td></tr>
+          <tr><td class="num">10</td><td class="num">5</td><td class="teach">Side count is the verb — circle radiates, triangle points</td><td class="num">0.80</td><td class="num">13</td><td class="note">Two shapes only. Resist showing the rest.</td></tr>
+          <tr><td class="num">11</td><td class="num">5</td><td class="teach">Rotation is the direction</td><td class="num">0.88</td><td class="num">14</td><td class="note">Four triangles, four headings, one board.</td></tr>
+          <tr><td class="num">12</td><td class="num">5</td><td class="teach">Fill is magnitude — how far it shoves</td><td class="num">0.95</td><td class="num">15</td><td class="note">Hollow, half, solid side by side so the ramp reads at a glance.</td></tr>
+          <tr><td class="num">13</td><td class="num">5</td><td class="teach">Nothing — first real test</td><td class="num">1.05</td><td class="num">17</td><td class="note">Above the measured mean, so it needs a chain rather than six clean singles.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="actfoot">Measured six-swap yield: <strong>17.0</strong> at four colors, <strong>16.2</strong> at five. Cascade depth is <strong>1.49</strong> and <strong>1.39</strong>. This is the act where palette size starts costing anything at all — it does not gate whether you find a match, it gates how far the chain runs after you do.</div>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>Act III — The sink</h2>
+    <span class="aside">Seven levels. The edge generalizes into one rule with three faces.</span>
+  </div>
+  <div class="act" data-means='{"5":14.7,"6":14.1}'>
+    <div class="actbar"><span class="no">ACT III</span><span class="nm">The sink</span><span class="cfg">50% pushers · 12.5% eaters · 6 swaps</span></div>
+    <div class="actbody scroll">
+      <table>
+        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="num">14</td><td class="num">5</td><td class="teach">The square eats what is shoved into it</td><td class="num">0.88</td><td class="num">13</td><td class="note">One eater, placed where the player will push into it by accident.</td></tr>
+          <tr><td class="num">15</td><td class="num">5</td><td class="teach">The eater takes the front of the line</td><td class="num">0.96</td><td class="num">14</td><td class="note">The ABCD case, staged literally: A eats, D fires, the player watches B disappear and C step into its place.</td></tr>
+          <tr><td class="num">16</td><td class="num">6</td><td class="teach">Feeding an eater on purpose</td><td class="num">0.92</td><td class="num">13</td><td class="note">The turn from hazard to tool. Author a board where the only line runs through one.</td></tr>
+          <tr><td class="num">17</td><td class="num">6</td><td class="teach">The inner mark is targeting — ⊞ orthogonal, ⊠ diagonal</td><td class="num">1.02</td><td class="num">14</td><td class="note">Third primitive. The two marks side by side make the distinction self-evident.</td></tr>
+          <tr><td class="num">18</td><td class="num">6</td><td class="teach">Nesting is range — it acts at distance two</td><td class="num">1.02</td><td class="num">14</td><td class="note">Fourth and last primitive. Everything after this is combination, not new rules.</td></tr>
+          <tr><td class="num">19</td><td class="num">6</td><td class="teach">⊘ Void pulls its four neighbors inward</td><td class="num">1.02</td><td class="num">14</td><td class="note">Stage it on a cross: the player watches four glyphs fall in and two get eaten. The mirror of a push, and the first ability that compacts rather than scatters.</td></tr>
+          <tr><td class="num">20</td><td class="num">6</td><td class="teach">Pulling on purpose — compacting the rim</td><td class="num">1.12</td><td class="num">16</td><td class="note">A board whose only line needs material dragged inward before it connects.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="actfoot">Measured six-swap yield: <strong>14.7</strong> at five colors, <strong>14.1</strong> at six. Eaters cut cascade depth from 1.39 to <strong>1.29</strong> — they are a brake, and this act is where the player learns to route around one, then to aim at it.</div>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>Act IV — The haystack</h2>
+    <span class="aside">Five levels. No new rules; the rules turn on the player.</span>
+  </div>
+  <div class="act" data-means='{"6":14.1,"8":13.1}'>
+    <div class="actbar"><span class="no">ACT IV</span><span class="nm">The haystack</span><span class="cfg">50% pushers · 12.5% eaters · 6 swaps</span></div>
+    <div class="actbody scroll">
+      <table>
+        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="num">21</td><td class="num">6</td><td class="teach">Thirty moves show two matches; one of them pays</td><td class="num">1.02</td><td class="num">14</td><td class="note">The reach rule's bill, presented plainly. Not a lure and a line — a field of identical-looking moves with one line hidden in it.</td></tr>
+          <tr><td class="num">22</td><td class="num">6</td><td class="teach">The greedy read costs you</td><td class="num">1.12</td><td class="num">16</td><td class="note">Now the shape the generator is good at: the tempting move is not merely average, it is actively poor.</td></tr>
+          <tr><td class="num">23</td><td class="num">8</td><td class="teach">The palette opens</td><td class="num">1.06</td><td class="num">14</td><td class="note">Matches get rarer; the same swap budget now has to be spent well.</td></tr>
+          <tr><td class="num">24</td><td class="num">8</td><td class="teach">The winning move looks worse</td><td class="num">1.18</td><td class="num">15</td><td class="note">The inverted case — the line shows one match, thirty others show two.</td></tr>
+          <tr><td class="num">25</td><td class="num">8</td><td class="teach">Nothing — the full set, unassisted</td><td class="num">1.29</td><td class="num">17</td><td class="note">Well above the mean of 13.1. Reachable only by finding a line.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="actfoot">Measured six-swap yield: <strong>14.1</strong> at six colors, <strong>13.1</strong> at eight. On a generated board around <strong>thirty</strong> swaps tie for the best visible payoff and picking among them averages <strong>5–6</strong> cells against a best line of <strong>22–29</strong>. The habit is not merely punished, it is close to uninformative.</div>
+  </div>
+</section>
+
+
+<section>
+  <div class="head">
+    <h2>What total reach changed</h2>
+    <span class="aside">Measured, not assumed — the run above is built on these.</span>
+  </div>
+  <div class="body">
+    <p>
+      Letting any two cells swap does not simply make the game easier. It moves which
+      dial the difficulty is on, and it changes what a trap is.
+    </p>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Fresh board, 6 colors</th><th>Neighbors only</th><th>Any two cells</th></tr></thead>
+      <tbody>
+        <tr><td class="teach">Productive openings</td><td class="num">19.4</td><td class="num">234.2</td></tr>
+        <tr><td class="teach">Swaps tied for the best visible payoff</td><td class="num">4.5</td><td class="num">26.4</td></tr>
+        <tr><td class="teach">Best visible payoff available</td><td class="num">1.87</td><td class="num">2.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="body">
+    <p>
+      <strong>Palette size no longer decides whether you can match.</strong> Under the old
+      rule the best payoff on a fresh six-color board averaged 1.87, meaning a double hit
+      was sometimes not on offer at all, and at eight colors it fell to 1.70. Under total
+      reach it is exactly 2.00 at every palette size from two colors to eight — a double
+      is always somewhere. That is why Act I is flat at 12.0 whatever palette it uses, and
+      why palette only starts costing anything in Act II: it stopped gating whether you
+      find a match and now only gates how far the chain runs after you do.
+    </p>
+    <p>
+      <strong>The dials, ranked by what they are worth over a six-swap level.</strong>
+      Palette across 2–8 colors moves the yield by 8.5 cells (22.1 down to 13.6); eater
+      density across 0–50% moves it by 2.6; pusher density across 0–100% moves it by 3.7
+      and saturates early — going from half the board pushing to all of it buys 0.7. So
+      palette remains the difficulty curve, eaters are a usable second dial, and pusher
+      density is close to a switch rather than a slider.
+    </p>
+    <p>
+      <strong>A trap is now a haystack rather than a decoy.</strong> On an annealed board
+      about thirty swaps tie for the best visible payoff instead of three or four. The
+      generator still lands a single solver every time and the best line is still worth
+      ten to fifteen times the tempting move, but the mechanism has changed: the player is
+      no longer choosing between a lure and a line, they are choosing one of thirty moves
+      that look identical, twenty-nine of which are duds. Picking among them averages 5–6
+      cells against a best of 22–29.
+    </p>
+    <p>
+      That is why <span class="mono">tools/trapBoards.js</span> now reports how many swaps
+      tie and what picking among them is worth. <span class="mono">deception</span> is
+      measured against the <em>worst</em> swap in that tied pool, which was a fair summary
+      when the pool held three moves and flatters the generator when it holds thirty.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>Setting the target</h2>
+    <span class="aside">One policy, applied to the measured mean for each configuration.</span>
+  </div>
+  <div class="body">
+    <p>
+      Every target above is the measured six-swap mean for that configuration multiplied by
+      the level's factor, rounded. The factor is the whole difficulty curve; the swap
+      budget never changes. The factor is the design and the mean is a measurement, so when
+      a rule changes and the means move, the factors stay and the targets follow them.
+    </p>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Stage</th><th>Factor</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td class="teach">Teaching a rule</td><td class="num">0.33 – 0.55</td><td class="note">Effectively unlosable. The player is watching a mechanic, not being tested on it.</td></tr>
+        <tr><td class="teach">Practising it</td><td class="num">0.60 – 0.96</td><td class="note">Clean play passes; wasted swaps do not.</td></tr>
+        <tr><td class="teach">Testing it</td><td class="num">1.00 – 1.30</td><td class="note">Above the mean, so the level cannot be passed with six unrelated singles. Requires a chain.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="body">
+    <p>
+      <strong>No dead boards to design around.</strong> The sweeps found zero boards with no
+      legal swap at any configuration in this document, so no level in the run needs a
+      reshuffle rule or a soft-lock escape.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>When to spring the trap</h2>
+  </div>
+  <div class="body">
+    <p>
+      Act IV is last for a reason that is not difficulty pacing. A trap works by punishing a
+      habit, and the habit it punishes — <em>take the swap that shows the most immediate
+      matches</em> — is one the first three acts spend twenty levels installing. Every
+      Act I level rewards it, because with no pushers on the board the visible payoff
+      <em>is</em> the real payoff — and under total reach a maximal-looking swap is always
+      on offer, so the habit never once fails the player before Act IV. Acts II and III keep
+      rewarding it while quietly making it an approximation.
+    </p>
+    <p>
+      Spring the trap in Act I and it reads as an unfair board. Spring it in Act IV and it
+      reads as the game revealing what it has actually been about. Same board, different
+      meaning, and the only difference is how much practice the player has at being right.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>Authoring the levels</h2>
+    <span class="aside">Act I and II boards can be random. Act III and IV need generating.</span>
+  </div>
+  <pre><code># a mild trap for level 20 — a real line, but not a board wipe
+node tools/trapBoards.js --colors 6 --target 12 --payoff 8 --json lvl20.json
+
+# level 23: the inverted case, tighter palette pressure
+node tools/trapBoards.js --colors 8 --target 14 --payoff 10 --iters 4000 --json lvl23.json
+
+# confirm a hand-tuned config's yield before setting its target
+node tools/swapBudget.js --colors 6 --pushers 0.5 --blockers 0.125 --trials 300</code></pre>
+  <div class="flags">
+    <div>
+      <span class="k">--target</span>
+      <p>Caps how much a bigger cascade keeps scoring. Low for teaching levels so the payoff stays legible; high for finales.</p>
+    </div>
+    <div>
+      <span class="k">--payoff</span>
+      <p>Floor on the best line. Guarantees the level is winnable by the intended route.</p>
+    </div>
+    <div>
+      <span class="k">--pushers / --blockers</span>
+      <p>Set to zero for Act I. The generator honors them, so an act's config is also its authoring config.</p>
+    </div>
+    <div>
+      <span class="k">solvers</span>
+      <p>Reported per board. Keep it at 1 for teaching levels — a single answer is what makes the lesson unambiguous.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>Left out</h2>
+  </div>
+  <div class="body">
+    <p>
+      <strong>⊘ Void</strong> has levels 19 and 20 in Act III — it is the mirror of a
+      push, so it belongs beside the shove rules rather than in an act of its own.
+      <strong>⬠ Wild</strong> deliberately has no level. It fires a random one of sixteen
+      subsets, which makes a board carrying one impossible to author against: the best line
+      is not a property of the board. A taught level needs one unambiguous answer, so Wild
+      belongs in generated or endless play, after the curriculum ends.
+    </p>
+    <p>
+      The <strong>upgrade tree</strong> sits outside this run entirely. This is the
+      curriculum for the base rules; a progression layer on top of it is a separate
+      structure and a separate document.
+    </p>
+  </div>
+</section>
+
+<footer>
+  All yields measured with <span class="mono">tools/swapBudget.js</span>, 300 levels per
+  configuration, greedy play, 5×8 board, six swaps, any two cells swappable. Each act
+  carries the means its targets were built from. Trap figures from
+  <span class="mono">tools/trapBoards.js</span>. Rules in <span class="mono">SPEC.md</span>;
+  generation method in <span class="mono">trapping.html</span>.
+</footer>
+
+</div>

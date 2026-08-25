@@ -1,0 +1,218 @@
+/* Glyph Tracer's own look, taken from the specimen plate in docs/: light plate,
+   near-black ink, one monospace face. The house phosphor default is not this
+   game's aesthetic.
+
+   The two flanking panels are dev instruments — a palette editor and a move log.
+   They are deliberately quiet so the board stays the thing you look at. */
+:root {
+  --paper: #E7E8EA;
+  --panel: #F3F4F5;
+  --sunk: #DBDDE0;
+  --ink: #16171A;
+  --ink-dim: #53565C;
+  --ink-faint: #83868D;
+  --rule: #C5C7CB;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Martian Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  overscroll-behavior: none;
+}
+
+.app {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+.stage {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+canvas {
+  /* A 5x8 board, so the field is portrait. Capped so a wide window does not
+     stretch the cells past the render spec's readable size. */
+  width: min(100%, 52vh);
+  height: min(160%, 96vh);
+  touch-action: none;
+}
+
+/* --- panels ---------------------------------------------------------------- */
+
+.panel {
+  flex: 0 0 232px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 16px;
+  background: var(--panel);
+  font-size: 11px;
+  overflow: hidden;
+}
+
+.panel-left { flex-basis: 248px; border-right: 1px solid var(--rule); overflow-y: auto; }
+.panel-right { flex-basis: 340px; border-left: 1px solid var(--rule); }
+
+.panel-title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+button {
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 4px 9px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) { border-color: var(--ink); }
+button:disabled { color: var(--ink-faint); cursor: default; }
+
+/* --- palette editor -------------------------------------------------------- */
+
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  padding: 5px;
+  background: var(--paper);
+}
+
+.swatch.is-selected {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.swatch-chip {
+  display: block;
+  height: 34px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 2px;
+}
+
+.swatch-name {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+}
+
+.readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.hex {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 14px 1fr 30px;
+  align-items: center;
+  gap: 8px;
+}
+
+.slider-label { font-size: 10px; color: var(--ink-faint); }
+.slider-value { font-size: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+.slider-row input { width: 100%; }
+
+.state-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--sunk);
+  border: 1px solid var(--rule);
+  padding: 7px 6px;
+}
+
+.state-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-dim);
+}
+
+.state-row.is-changed { color: var(--ink); font-weight: 600; }
+
+.state-chip {
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+}
+
+.state-text {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  white-space: pre;
+}
+
+.panel-hint {
+  margin: 0;
+  font-size: 9.5px;
+  line-height: 1.45;
+  color: var(--ink-faint);
+}
+
+/* --- move log -------------------------------------------------------------- */
+
+.log {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: var(--sunk);
+  border: 1px solid var(--rule);
+  padding: 8px 6px;
+  font-size: 10.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.log-line { color: var(--ink-dim); }
+.log-line.depth-0 {
+  color: var(--ink);
+  font-weight: 600;
+  margin-top: 10px;
+  border-top: 1px solid var(--rule);
+  padding-top: 8px;
+}
+.log-line.depth-1 { color: var(--ink); padding-left: 10px; }
+.log-line.depth-2 { padding-left: 22px; }
+.log-line.depth-3 { padding-left: 34px; color: var(--ink-faint); }
+.log-line.depth-0:first-child { margin-top: 0; border-top: 0; padding-top: 0; }

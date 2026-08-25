@@ -1,0 +1,13 @@
+{
+  "note": "Six hues 60 degrees apart — three primaries, three secondaries — pulled in off the pure RGB corners so they sit closer in weight to each other. Ink and ground are drawn from the same list, so the even hue spacing is what keeps any pair of them apart.",
+  "colors": [
+    { "name": "red", "hex": "#EC3334" },
+    { "name": "yellow", "hex": "#FFF627" },
+    { "name": "green", "hex": "#52DE52" },
+    { "name": "cyan", "hex": "#00E0DF" },
+    { "name": "blue", "hex": "#8382FF" },
+    { "name": "magenta", "hex": "#B82CBB" }
+  ],
+  "core": "#101216",
+  "key": "#000000"
+}

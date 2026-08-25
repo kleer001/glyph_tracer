@@ -1,0 +1,11 @@
+{
+  "name": "glyph-tracer",
+  "version": "0.0.1",
+  "description": "A grid puzzle where a glyph landing on its own color fires its ability and takes its cell off the board.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test",
+    "start": "./run.sh"
+  }
+}

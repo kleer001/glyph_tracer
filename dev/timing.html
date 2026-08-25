@@ -1,0 +1,383 @@
+<meta charset="utf-8">
+<title>Glyph Tracer — timing sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Martian+Mono:wght@400;600&display=swap">
+<style>
+:root{--paper:#E7E8EA;--panel:#F3F4F5;--sunk:#DBDDE0;--ink1:#16171A;--ink2:#53565C;--ink3:#83868D;--rule:#C5C7CB}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink1);font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:14px}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 24px 70px}
+.mono{font-family:"Martian Mono","SFMono-Regular",Consolas,monospace}
+.eyebrow{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--ink3)}
+h1{font-size:32px;font-weight:800;letter-spacing:-.03em;margin:10px 0 0}
+.lede{margin:12px 0 0;max-width:74ch;color:var(--ink2)}
+header{border-bottom:2px solid var(--ink1);padding-bottom:20px;margin-bottom:24px}
+h2{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin:0 0 11px}
+.cols{display:grid;grid-template-columns:274px minmax(0,1fr) 232px;gap:20px;align-items:start}
+@media (max-width:1040px){.cols{grid-template-columns:274px minmax(0,1fr)}}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--rule);padding:16px 15px}
+.row{display:grid;grid-template-columns:74px 1fr 44px;align-items:center;gap:8px;margin-bottom:7px}
+.row label{font-size:11px;color:var(--ink2)}
+.row output{font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums}
+.row input[type=range]{width:100%}
+.grp{margin-bottom:18px}.grp:last-child{margin-bottom:0}
+.check{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink2);margin:10px 0}
+button{font:inherit;font-size:11px;padding:5px 10px;background:#fff;border:1px solid var(--rule);border-radius:3px;cursor:pointer}
+button:hover{border-color:var(--ink1)}
+button.on{background:var(--ink1);color:var(--paper);border-color:var(--ink1)}
+.scenarios{display:flex;flex-direction:column;gap:5px}
+.scenarios button{text-align:left}
+.stage{background:var(--sunk);border:1px solid var(--rule);padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
+canvas{display:block}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.readout{font-family:"Martian Mono",monospace;font-size:10.5px;color:var(--ink2);text-align:center;line-height:1.7}
+pre{background:var(--sunk);border:1px solid var(--rule);padding:11px;font-family:"Martian Mono",monospace;font-size:10px;line-height:1.6;overflow-x:auto;margin:0}
+.hint{font-size:11px;color:var(--ink3);margin:8px 0 0;line-height:1.5}
+.track{width:100%;height:16px;background:var(--sunk);border:1px solid var(--rule);position:relative;overflow:hidden}
+.track .seg{position:absolute;top:0;bottom:0;border-right:1px solid var(--rule)}
+.track .head{position:absolute;top:0;bottom:0;width:2px;background:var(--ink1)}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Glyph Tracer · scratch</span>
+  <h1>Timing sandbox</h1>
+  <p class="lede">
+    Every scenario below is a real board resolved by <span class="mono">src/board.js</span>
+    and played back by <span class="mono">src/animate.js</span> — the same code the game
+    runs. Pick a cascade, drag the timing, watch it again. <strong>hold</strong> is a still
+    beat after each step; <strong>stagger</strong> delays each piece by how far it sits from
+    whatever fired; <strong>split beats</strong> plays the shoving and the clearing as two
+    separate beats instead of at once. <strong>shrink</strong> runs on its own clock, so
+    a piece can slide at one speed and vanish at another.
+  </p>
+</header>
+
+<div class="cols">
+  <div class="panel">
+    <div class="grp">
+      <h2>Timing</h2>
+      <div class="row"><label for="swapMs">swap</label><input type="range" id="swapMs" min="60" max="700" step="10"><output id="swapMs-o"></output></div>
+      <div class="row"><label for="stepMs">step</label><input type="range" id="stepMs" min="60" max="700" step="10"><output id="stepMs-o"></output></div>
+      <div class="row"><label for="shrinkMs">shrink</label><input type="range" id="shrinkMs" min="40" max="900" step="10"><output id="shrinkMs-o"></output></div>
+      <div class="row"><label for="holdMs">hold</label><input type="range" id="holdMs" min="0" max="500" step="10"><output id="holdMs-o"></output></div>
+      <div class="row"><label for="staggerMs">stagger</label><input type="range" id="staggerMs" min="0" max="160" step="5"><output id="staggerMs-o"></output></div>
+      <label class="check"><input type="checkbox" id="splitBeats"> split beats — move, then clear</label>
+    </div>
+    <div class="grp">
+      <h2>Shake</h2>
+      <div class="row"><label for="amplitude">amplitude</label><input type="range" id="amplitude" min="0" max="30" step="1"><output id="amplitude-o"></output></div>
+      <div class="row"><label for="cycles">cycles</label><input type="range" id="cycles" min="0" max="8" step="1"><output id="cycles-o"></output></div>
+    </div>
+    <div class="grp">
+      <h2>Presets</h2>
+      <div class="bar">
+        <button type="button" data-preset="shipped">shipped</button>
+        <button type="button" data-preset="slower">+20%</button>
+        <button type="button" data-preset="breath">+20% &amp; breath</button>
+        <button type="button" data-preset="beats">full beats</button>
+      </div>
+      <p class="hint">shipped is what <span class="mono">data/animation.json</span> holds now.
+      Sliders and presets rebuild but do not play &mdash; press a scenario, or
+      <span class="mono">replay</span>, to watch it.</p>
+    </div>
+  </div>
+
+  <div class="stage">
+    <canvas id="screen" width="360" height="576"></canvas>
+    <div class="track" id="track"></div>
+    <div class="bar">
+      <button type="button" id="replay">replay</button>
+      <button type="button" id="loop">loop</button>
+      <button type="button" id="slowmo">¼ speed</button>
+    </div>
+    <div class="readout" id="readout"></div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Scenario</h2>
+      <div class="scenarios" id="scenarios"></div>
+      <p class="hint" id="scenario-note"></p>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>Settings</h2>
+      <pre id="dump"></pre>
+      <div class="bar" style="margin-top:9px"><button type="button" id="copy">copy settings</button></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script type="module">
+import { blankBoard, createRecorder, applySwap, copyBoard, BLOCK, PUSH, VOID } from '../src/board.js';
+import { buildTimeline, sampleTimeline, staticFrame } from '../src/animate.js';
+import { createCompositor } from '../src/compositor.js';
+import { playableGlyphs } from '../src/level.js';
+import { mulberry32 } from '../src/rng.js';
+import { boardLayout, createGlyphLayer, createGroundLayer, VIEW } from '../src/render.js';
+
+const PALETTE = await (await fetch('../data/palette.json')).json();
+const GLOSS = await (await fetch('../data/gloss.json')).json();
+const SHIPPED = await (await fetch('../data/animation.json')).json();
+const GLYPHS = playableGlyphs((await (await fetch('../data/glyphs.json')).json()).glyphs);
+const RULES = await (await fetch('../data/rules.json')).json();
+const byId = new Map(GLYPHS.map((g) => [g.id, g]));
+const rand = mulberry32(7);
+
+const KEYS = ['swapMs', 'stepMs', 'shrinkMs', 'holdMs', 'staggerMs'];
+const PRESETS = {
+  shipped: { ...pick(SHIPPED), splitBeats: !!SHIPPED.splitBeats,
+             amplitude: Math.round(SHIPPED.shake.amplitude * 100), cycles: SHIPPED.shake.cycles },
+  slower:  { swapMs: 216, stepMs: 240, shrinkMs: 240, holdMs: 0,   staggerMs: 0,  splitBeats: false, amplitude: 7, cycles: 3 },
+  breath:  { swapMs: 216, stepMs: 240, shrinkMs: 280, holdMs: 110, staggerMs: 35, splitBeats: false, amplitude: 7, cycles: 3 },
+  beats:   { swapMs: 216, stepMs: 220, shrinkMs: 200, holdMs: 90,  staggerMs: 30, splitBeats: true,  amplitude: 8, cycles: 3 },
+};
+function pick(o) { return Object.fromEntries(KEYS.map((k) => [k, o[k] ?? 0])); }
+
+const state = { ...PRESETS.shipped };
+
+// --- scenarios: each builds a board and names the swap that sets it off -------
+const bare = () => {
+  const b = blankBoard(RULES);
+  for (let r = 0; r < b.height; r++) for (let c = 0; c < b.width; c++) b.bg[r][c] = 5;
+  return b;
+};
+const put = (b, r, c, glyph, kind = '', art = 'pulse') => {
+  b.glyph[r][c] = glyph; b.kind[r][c] = kind; b.art[r][c] = art;
+};
+
+const SCENARIOS = {
+  'one match': {
+    note: 'A plain glyph lands on its colour. One cell shakes and goes; nothing else moves. The floor case for the shake.',
+    build() { const b = bare();
+      put(b, 3, 1, 0); b.bg[3][2] = 0; put(b, 3, 2, 4, '', 'anchor');
+      return { board: b, swap: [[3, 1], [3, 2]] }; },
+  },
+  'clean line': {
+    note: 'A pusher fires into a run of three with an empty cell behind them, so the whole line advances and nothing is eaten. The best test for stagger — with it at zero this reads as one rigid block.',
+    build() { const b = bare();
+      put(b, 4, 1, 1); put(b, 4, 2, 2); put(b, 4, 3, 3);
+      b.bg[4][4] = 0; put(b, 4, 4, 4, '', 'anchor'); put(b, 7, 0, 0, PUSH, 'slam-down');
+      return { board: b, swap: [[7, 0], [4, 4]] }; },
+  },
+  'line of four': {
+    note: 'The ABCD sink: an eater at the left end, a pusher firing into it. The front piece is eaten where it stands and the rest advance one.',
+    build() { const b = bare();
+      put(b, 2, 0, 1, BLOCK, 'wall'); put(b, 2, 1, 2); put(b, 2, 2, 3);
+      b.bg[2][3] = 0; put(b, 2, 3, 4, '', 'anchor'); put(b, 2, 4, 0, PUSH, 'slam-down');
+      return { board: b, swap: [[2, 4], [2, 3]] }; },
+  },
+  'one shove': {
+    note: 'A pusher activating in open board. Two pieces slide, two go off the edge.',
+    build() { const b = bare();
+      put(b, 4, 0, 1); put(b, 4, 1, 2); put(b, 4, 2, 3);
+      b.bg[4][3] = 0; put(b, 4, 3, 4, '', 'anchor'); put(b, 4, 4, 0, PUSH, 'slam-down');
+      return { board: b, swap: [[4, 4], [4, 3]] }; },
+  },
+  'void pulls in': {
+    note: 'A void on a cross. Its own cell dies first and becomes the sink the four arms fall into — two cells die in one step, which is where split beats earn their keep.',
+    build() { const b = bare();
+      for (const [r, c] of [[1, 2], [2, 2], [4, 2], [5, 2], [3, 0], [3, 1], [3, 3], [3, 4]]) put(b, r, c, 1);
+      b.bg[3][2] = 0; put(b, 3, 2, 2, '', 'anchor'); put(b, 0, 0, 0, VOID, 'void');
+      return { board: b, swap: [[0, 0], [3, 2]] }; },
+  },
+  'two-step chain': {
+    note: 'A shove carries a piece onto its own colour, which fires in turn. The first case where the hold has two beats to separate.',
+    build() { const b = bare();
+      b.bg[1][2] = 3; put(b, 1, 2, 1);
+      put(b, 1, 3, 2); b.bg[1][4] = 2; put(b, 1, 4, 1, '', 'anchor');
+      put(b, 5, 3, 3, PUSH, 'push-right');
+      return { board: b, swap: [[5, 3], [1, 2]] }; },
+  },
+  'three-step chain': {
+    note: 'Three activations, each caused by the one before it. If the timing is right you should be able to say which shove caused which match.',
+    build() { const b = bare();
+      b.bg[1][1] = 3; put(b, 1, 1, 1);
+      put(b, 1, 2, 2, PUSH, 'push-right'); b.bg[1][3] = 2;
+      put(b, 2, 3, 4); b.bg[3][3] = 4;
+      put(b, 6, 0, 3, PUSH, 'push-right');
+      return { board: b, swap: [[6, 0], [1, 1]] }; },
+  },
+  'deep cascade': {
+    note: 'A dense board of pushers — four steps, dozens of pieces moving at once. The worst case, and the one that decides whether the whole thing needs a skip.',
+    build() { const b = blankBoard(RULES);
+      const r2 = mulberry32(20260825);
+      for (let r = 0; r < b.height; r++) {
+        for (let c = 0; c < b.width; c++) {
+          b.bg[r][c] = Math.floor(r2() * 4);
+          const g = Math.floor(r2() * 3);
+          put(b, r, c, g >= b.bg[r][c] ? g + 1 : g, r2() < 0.7 ? PUSH : '', r2() < 0.5 ? 'slam-down' : 'push-right');
+        }
+      }
+      b.bg[0][0] = 1; put(b, 7, 4, 1, PUSH, 'slam-down');
+      return { board: b, swap: [[7, 4], [0, 0]] }; },
+  },
+};
+
+// --- playback ---------------------------------------------------------------
+const canvas = document.getElementById('screen');
+const ctx = canvas.getContext('2d');
+const scene = createCompositor().add(createGroundLayer()).add(createGlyphLayer());
+
+let current = 'clean line';
+let timeline = null;
+let startedAt = 0;
+let looping = false;
+let slowmo = false;
+let finalBoard = null;
+
+const timing = () => ({
+  swapMs: state.swapMs, stepMs: state.stepMs, shrinkMs: state.shrinkMs,
+  holdMs: state.holdMs, staggerMs: state.staggerMs, splitBeats: state.splitBeats,
+});
+const shake = () => ({ amplitude: state.amplitude / 100, cycles: state.cycles });
+
+function paint(drawList) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  scene.render(ctx, {
+    width: canvas.width, height: canvas.height, ...drawList,
+    layout: boardLayout(finalBoard, canvas.width, canvas.height, { ...VIEW, hudHeight: 0 }),
+    palette: PALETTE, gloss: GLOSS, glyphsById: byId,
+  });
+}
+
+function build() {
+  const { board, swap } = SCENARIOS[current].build();
+  const before = copyBoard(board);
+  const recorder = createRecorder();
+  const out = applySwap(board, swap[0], swap[1], rand, recorder);
+  finalBoard = board;
+  timeline = buildTimeline({ before, swap, recorder, timing: timing() });
+  document.getElementById('readout').textContent =
+    `${recorder.steps.length} step${recorder.steps.length === 1 ? '' : 's'} · ` +
+    `${out.activated} cleared · ${timeline.phases.length} phases · ` +
+    `${(timeline.totalMs / 1000).toFixed(2)}s${slowmo ? ' (¼ speed)' : ''}`;
+  drawTrack();
+}
+
+function drawTrack() {
+  const track = document.getElementById('track');
+  track.replaceChildren();
+  let at = 0;
+  for (const phase of timeline.phases) {
+    for (const [ms, shade] of [[phase.tweenMs, 'rgba(22,23,26,.16)'], [phase.holdMs, 'rgba(22,23,26,.04)']]) {
+      if (ms <= 0) continue;
+      const seg = document.createElement('div');
+      seg.className = 'seg';
+      seg.style.left = `${(100 * at) / timeline.totalMs}%`;
+      seg.style.width = `${(100 * ms) / timeline.totalMs}%`;
+      seg.style.background = shade;
+      track.append(seg);
+      at += ms;
+    }
+  }
+  const head = document.createElement('div');
+  head.className = 'head';
+  head.id = 'head';
+  track.append(head);
+}
+
+let frameId = 0;
+let loopId = 0;
+
+/** Stop whatever is playing. Dragging a slider should not fight an animation. */
+function halt() {
+  cancelAnimationFrame(frameId);
+  clearTimeout(loopId);
+}
+
+/**
+ * Rebuild for the current settings and rest on the opening frame, so the board shows
+ * the setup you are about to watch rather than the wreckage of the last run.
+ */
+function refresh() {
+  halt();
+  build();
+  paint(sampleTimeline(timeline, 0, shake()) ?? staticFrame(finalBoard));
+  const head = document.getElementById('head');
+  if (head) head.style.left = '0%';
+}
+
+function tick(now) {
+  const elapsed = (now - startedAt) / (slowmo ? 4 : 1);
+  const drawList = sampleTimeline(timeline, elapsed, shake());
+  const head = document.getElementById('head');
+  if (head) head.style.left = `${Math.min(100, (100 * elapsed) / timeline.totalMs)}%`;
+  if (!drawList) {
+    paint(staticFrame(finalBoard));
+    if (looping) loopId = setTimeout(play, 600);
+    return;
+  }
+  paint(drawList);
+  frameId = requestAnimationFrame(tick);
+}
+
+function play() {
+  halt();
+  build();
+  startedAt = performance.now();
+  frameId = requestAnimationFrame(tick);
+}
+
+// --- wiring -----------------------------------------------------------------
+const ALL = [...KEYS, 'amplitude', 'cycles'];
+function writeControls() {
+  for (const k of ALL) {
+    document.getElementById(k).value = String(state[k]);
+    document.getElementById(`${k}-o`).textContent = String(state[k]);
+  }
+  document.getElementById('splitBeats').checked = state.splitBeats;
+  document.getElementById('dump').textContent = JSON.stringify({
+    swapMs: state.swapMs, stepMs: state.stepMs, shrinkMs: state.shrinkMs,
+    holdMs: state.holdMs, staggerMs: state.staggerMs, splitBeats: state.splitBeats,
+    shake: { amplitude: state.amplitude / 100, cycles: state.cycles },
+  }, null, 2);
+}
+// Controls never start the animation — they rebuild it and leave it at the start.
+for (const k of ALL) {
+  document.getElementById(k).addEventListener('input', (e) => {
+    state[k] = Number(e.target.value); writeControls(); refresh();
+  });
+}
+document.getElementById('splitBeats').addEventListener('change', (e) => {
+  state.splitBeats = e.target.checked; writeControls(); refresh();
+});
+for (const b of document.querySelectorAll('[data-preset]')) {
+  b.addEventListener('click', () => {
+    Object.assign(state, PRESETS[b.dataset.preset]); writeControls(); refresh();
+  });
+}
+const list = document.getElementById('scenarios');
+for (const name of Object.keys(SCENARIOS)) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = name;
+  b.addEventListener('click', () => {
+    current = name;
+    for (const other of list.children) other.classList.toggle('on', other === b);
+    document.getElementById('scenario-note').textContent = SCENARIOS[name].note;
+    play();
+  });
+  list.append(b);
+  if (name === current) { b.classList.add('on'); document.getElementById('scenario-note').textContent = SCENARIOS[name].note; }
+}
+document.getElementById('replay').addEventListener('click', play);
+document.getElementById('loop').addEventListener('click', (e) => {
+  looping = !looping;
+  e.target.classList.toggle('on', looping);
+  if (looping) play(); else halt();
+});
+document.getElementById('slowmo').addEventListener('click', (e) => {
+  slowmo = !slowmo; e.target.classList.toggle('on', slowmo); refresh();
+});
+document.getElementById('copy').addEventListener('click', async (e) => {
+  await navigator.clipboard.writeText(document.getElementById('dump').textContent);
+  e.target.textContent = 'copied';
+  setTimeout(() => { e.target.textContent = 'copy settings'; }, 1200);
+});
+
+writeControls();
+refresh();
+</script>

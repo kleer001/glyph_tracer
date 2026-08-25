@@ -1,0 +1,13 @@
+{
+  "note": "Linear tweens, in milliseconds. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `shake` is the wobble on a cell being destroyed. Tune in dev/timing.html.",
+  "swapMs": 180,
+  "stepMs": 200,
+  "shake": {
+    "amplitude": 0.07,
+    "cycles": 3
+  },
+  "holdMs": 0,
+  "staggerMs": 0,
+  "splitBeats": false,
+  "shrinkMs": 200
+}

@@ -1,0 +1,14 @@
+{
+  "note": "Highlight and shadow, tuned in dev/gloss.html. Lengths are in the render spec's 100-unit cell and scale with the board; alphas and sheen are percentages.",
+  "radius": 6,
+  "cellShadowY": 6,
+  "cellShadowBlur": 4,
+  "cellShadowA": 45,
+  "sheen": 34,
+  "sheenStop": 16,
+  "bevel": 24,
+  "glyphShadowY": 3,
+  "glyphShadowBlur": 3,
+  "glyphShadowA": 62,
+  "spec": 62
+}

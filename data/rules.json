@@ -1,0 +1,8 @@
+{
+  "width": 5,
+  "height": 8,
+  "colors": 6,
+  "swapBudget": 6,
+  "adjacentOnly": false,
+  "mix": { "block": 0.125, "push": 0.5 }
+}

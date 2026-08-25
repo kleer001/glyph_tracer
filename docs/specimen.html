@@ -1,0 +1,455 @@
+<meta charset="utf-8">
+<title>Glyph Tracer Specimen Plate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root{
+  --paper:#E7E8EA;
+  --panel:#F3F4F5;
+  --plate:#D6D8DB;
+  --ink1:#16171A;
+  --ink2:#53565C;
+  --ink3:#83868D;
+  --rule:#C5C7CB;
+  --rule-hard:#9BA0A6;
+  --shadow:rgba(20,22,26,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111215;
+    --panel:#191B1F;
+    --plate:#24272D;
+    --ink1:#E3E4E7;
+    --ink2:#9FA3AA;
+    --ink3:#6C7078;
+    --rule:#2B2E34;
+    --rule-hard:#414650;
+    --shadow:rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111215;
+  --panel:#191B1F;
+  --plate:#24272D;
+  --ink1:#E3E4E7;
+  --ink2:#9FA3AA;
+  --ink3:#6C7078;
+  --rule:#2B2E34;
+  --rule-hard:#414650;
+  --shadow:rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink1);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:56px 28px 96px;display:flex;flex-direction:column;gap:44px}
+
+/* ---- type ---- */
+.mono{font-family:"Martian Mono","SFMono-Regular",Consolas,monospace;font-variant-numeric:tabular-nums}
+.eyebrow{
+  font-family:"Martian Mono","SFMono-Regular",Consolas,monospace;
+  font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink3);
+}
+h1{
+  font-size:clamp(34px,5.2vw,54px);
+  font-weight:800;letter-spacing:-.03em;line-height:1.02;
+  margin:10px 0 0;text-wrap:balance;
+}
+.standfirst{margin:16px 0 0;max-width:62ch;color:var(--ink2);font-size:16.5px}
+h2{
+  font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  margin:0;color:var(--ink1);
+}
+
+/* ---- header rule ---- */
+header{border-bottom:2px solid var(--ink1);padding-bottom:28px}
+
+/* ---- fixed pair bar ---- */
+.pair{
+  display:flex;flex-wrap:wrap;gap:2px;
+  border:1px solid var(--rule-hard);
+  background:var(--rule-hard);
+}
+.pair > div{
+  flex:1 1 150px;background:var(--panel);padding:14px 16px;
+  display:flex;flex-direction:column;gap:7px;
+}
+.chip{width:100%;height:34px;border:1px solid rgba(0,0,0,.35)}
+.pair .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-family:"Martian Mono",monospace;font-weight:600}
+.pair .v{font-size:12px;color:var(--ink1);font-family:"Martian Mono",monospace}
+
+/* ---- anatomy ---- */
+.anatomy{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:2px;background:var(--rule-hard);border:1px solid var(--rule-hard)}
+.anatomy figure{margin:0;background:var(--panel);padding:18px 16px 16px;display:flex;flex-direction:column;align-items:center;gap:11px}
+.anatomy svg{width:88px;height:88px;display:block}
+.anatomy figcaption{text-align:center;font-size:11.5px;color:var(--ink2);line-height:1.4}
+.anatomy .step{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--ink3);display:block;margin-bottom:3px}
+
+/* ---- matrix ---- */
+.block{display:flex;flex-direction:column;gap:12px}
+.blockhead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:9px}
+.blockhead .verb{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.13em;color:var(--ink3);text-transform:uppercase}
+.blockhead .why{font-size:13px;color:var(--ink2);flex:1 1 320px;min-width:0}
+
+.scroller{overflow-x:auto;padding-bottom:4px}
+.grid{
+  display:grid;
+  grid-template-columns:52px repeat(6,minmax(94px,1fr));
+  gap:8px;min-width:640px;
+}
+.colhead,.rowhead{
+  font-family:"Martian Mono",monospace;font-size:9.5px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);
+  display:flex;align-items:center;
+}
+.colhead{justify-content:center;padding-bottom:2px}
+.rowhead{justify-content:flex-end;padding-right:4px;text-align:right;line-height:1.25}
+
+.cell{position:relative;background:var(--plate);padding:7px;border:1px solid transparent}
+.cell svg{width:100%;height:auto;display:block}
+.cell.ship{border-color:var(--ink1)}
+.cell .tag{
+  position:absolute;left:-1px;bottom:-1px;
+  background:var(--ink1);color:var(--paper);
+  font-family:"Martian Mono",monospace;font-size:9px;font-weight:600;
+  padding:2px 5px;letter-spacing:.04em;white-space:nowrap;
+}
+.cell .tag b{font-family:"Archivo",sans-serif;font-weight:400;font-size:11px;margin-right:3px}
+
+/* ---- ramp ---- */
+.ramp{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;background:var(--plate);padding:24px;overflow-x:auto}
+.ramp figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:9px;flex:0 0 auto}
+.ramp figcaption{font-family:"Martian Mono",monospace;font-size:9.5px;color:var(--ink3);letter-spacing:.06em}
+.ramp .floor figcaption{color:var(--ink1);font-weight:600}
+
+/* ---- notes ---- */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2px;background:var(--rule-hard);border:1px solid var(--rule-hard)}
+.notes section{background:var(--panel);padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.notes p{margin:0;font-size:14px;color:var(--ink2)}
+.notes strong{color:var(--ink1);font-weight:600}
+footer{border-top:1px solid var(--rule);padding-top:20px;font-size:12.5px;color:var(--ink3)}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <span class="eyebrow">Glyph Tracer · Specimen 01 · Moss ground / Ember ink</span>
+    <h1>Every shape, every fill, every mark</h1>
+    <p class="standfirst">
+      108 combinations: 6 polygons × 3 fill states × 6 inner marks. Every cell is a moss
+      ground carrying an ember glyph with a black interior, so shape is the only variable
+      across the plate. Geometry is generated from the render spec, not hand-drawn.
+    </p>
+  </header>
+
+  <div class="pair">
+    <div>
+      <span class="k">Ground (placeholder)</span>
+      <span class="chip" style="background:#588859"></span>
+      <span class="v">#588859</span>
+      <span class="v" style="color:var(--ink3)">moss</span>
+    </div>
+    <div>
+      <span class="k">Ink (placeholder)</span>
+      <span class="chip" style="background:#A86756"></span>
+      <span class="v">#A86756</span>
+      <span class="v" style="color:var(--ink3)">ember</span>
+    </div>
+    <div>
+      <span class="k">Interior / core</span>
+      <span class="chip" style="background:#101216"></span>
+      <span class="v">#101216</span>
+      <span class="v" style="color:var(--ink3)">keyline #000000</span>
+    </div>
+    <div>
+      <span class="k">Measured</span>
+      <span class="v">ink : core &nbsp;4.23</span>
+      <span class="v">ground : core &nbsp;4.54</span>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="blockhead">
+      <h2>Layer anatomy</h2>
+      <span class="why">One path, painted four times. A 14-wide black stroke under an 8-wide ink stroke leaves three units of keyline outside the ring.</span>
+    </div>
+    <div class="anatomy" id="anatomy"></div>
+  </div>
+
+  <div id="matrix" style="display:flex;flex-direction:column;gap:44px"></div>
+
+  <div class="block">
+    <div class="blockhead">
+      <h2>Size ramp</h2>
+      <span class="why">Square / mag 1 / orthogonal cross — the busiest cell in the set. 44px is the spec floor, where the ink ring is 3.5px.</span>
+    </div>
+    <div class="ramp" id="ramp"></div>
+  </div>
+
+  <div class="notes">
+    <section>
+      <h2>Reading a glyph</h2>
+      <p><strong>Side count</strong> gives the verb. <strong>Fill</strong> gives magnitude 1–3. <strong>Inner mark</strong> gives targeting. <strong>Nesting</strong> gives range. Every ability is decodable from the drawing.</p>
+    </section>
+    <section>
+      <h2>The ship set</h2>
+      <p>Fifteen cells are outlined and tagged with their Unicode reference. Those carry the proposed 16 glyphs — △ and ▷ share a cell, since rotation is not an axis on this plate.</p>
+    </section>
+    <section>
+      <h2>Not shown</h2>
+      <p><strong>Rotation.</strong> A fourth axis: the triangle at four rotations is four glyphs, not one. Including it would quadruple the plate without adding a new shape.</p>
+    </section>
+  </div>
+
+  <footer>
+    Rendered from <span class="mono">glyph_tracer/RENDER_SPEC.md</span>. Geometry is generated, not hand-drawn: regular n-gons inscribed at r=36 in a 100×100 viewBox, keyline stroke 14, ink ring stroke 8, mark stroke 6.
+  </footer>
+
+</div>
+
+<script>
+// Placeholder values -- swap these two for whatever the palette turns out to be.
+const GROUND = '#588859', INK = '#A86756', CORE = '#101216', KEY = '#000000';
+const SVGNS = 'http://www.w3.org/2000/svg';
+let uid = 0;
+
+const POLYS = [
+  { key:'circle',   name:'Circle',   verb:'Radiate', sides:null, off:0,
+    why:'No sides, so direction is meaningless to it. Affects all eight neighbors.' },
+  { key:'triangle', name:'Triangle', verb:'Push',    sides:3, off:-90,
+    why:'Odd count and a point. The apex is the direction it pushes.' },
+  { key:'square',   name:'Square',   verb:'Hold',    sides:4, off:-45,
+    why:'Flat sides to the grid — it agrees with the 4-fold symmetry, so it reads as stable.' },
+  { key:'diamond',  name:'Diamond',  verb:'Swap',    sides:4, off:-90,
+    why:'The same square rotated off the grid. Disagreement reads as instability, hence exchange.' },
+  { key:'pentagon', name:'Pentagon', verb:'Wild',    sides:5, off:-90,
+    why:'Five sides cannot align to an orthogonal grid at any rotation. The disruptor.' },
+  { key:'hexagon',  name:'Hexagon',  verb:'Flow',    sides:6, off:0,
+    why:'Tessellates. Reads as continuation — the effect carries to the next match.' }
+];
+
+const MARKS = ['none','dot','cross','ex','slash','nest'];
+const MARK_LABEL = { none:'—', dot:'Dot', cross:'Cross', ex:'Ex', slash:'Slash', nest:'Nest' };
+const MAGS = [
+  { n:1, label:'Mag 1<br>hollow' },
+  { n:2, label:'Mag 2<br>half' },
+  { n:3, label:'Mag 3<br>solid' }
+];
+
+const SHIP = {
+  'circle-1-none':   ['○','Pulse'],
+  'circle-3-none':   ['●','Detonate'],
+  'circle-1-dot':    ['⊙','Charged'],
+  'circle-1-nest':   ['◎','Echo'],
+  'circle-1-slash':  ['⊘','Void'],
+  'square-1-none':   ['□','Anchor'],
+  'square-3-none':   ['■','Wall'],
+  'square-1-cross':  ['⊞','Bind·o'],
+  'square-1-ex':     ['⊠','Bind·d'],
+  'triangle-1-none': ['△▷','Push'],
+  'triangle-3-none': ['▼','Slam'],
+  'triangle-1-dot':  ['◬','Double'],
+  'diamond-1-none':  ['◇','Swap'],
+  'pentagon-1-none': ['⬠','Wild'],
+  'hexagon-1-none':  ['⬡','Flow']
+};
+
+function el(name, attrs){
+  const n = document.createElementNS(SVGNS, name);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+
+function polyPath(sides, r, offDeg){
+  const pts = [];
+  for (let i = 0; i < sides; i++){
+    const a = (offDeg + i * 360 / sides) * Math.PI / 180;
+    pts.push((50 + r * Math.cos(a)).toFixed(2) + ' ' + (50 + r * Math.sin(a)).toFixed(2));
+  }
+  return 'M' + pts.join('L') + 'Z';
+}
+
+/* one shape, painted at radius r — returns an element */
+function shapeEl(poly, r, attrs){
+  if (poly.sides === null) return el('circle', Object.assign({ cx:50, cy:50, r:r }, attrs));
+  return el('path', Object.assign({ d: polyPath(poly.sides, r, poly.off) }, attrs));
+}
+
+function markGroup(poly, mark, paint){
+  const g = el('g', { fill:'none', stroke:paint, 'stroke-width':6, 'stroke-linecap':'round' });
+  if (mark === 'dot'){
+    g.appendChild(el('circle', { cx:50, cy:50, r:8, fill:paint, stroke:'none' }));
+  } else if (mark === 'cross'){
+    g.appendChild(el('line', { x1:36, y1:50, x2:64, y2:50 }));
+    g.appendChild(el('line', { x1:50, y1:36, x2:50, y2:64 }));
+  } else if (mark === 'ex'){
+    g.appendChild(el('line', { x1:40, y1:40, x2:60, y2:60 }));
+    g.appendChild(el('line', { x1:60, y1:40, x2:40, y2:60 }));
+  } else if (mark === 'slash'){
+    g.appendChild(el('line', { x1:38, y1:62, x2:62, y2:38 }));
+  } else if (mark === 'nest'){
+    g.appendChild(shapeEl(poly, 15, { fill:'none' }));
+  }
+  return g;
+}
+
+/* Build one specimen. mag: 1 hollow | 2 half-ink | 3 full ink */
+function specimen(poly, mag, mark, opts){
+  opts = opts || {};
+  const svg = el('svg', { viewBox:'0 0 100 100', role:'img' });
+  const upTo = opts.upTo === undefined ? 4 : opts.upTo; // 1 silhouette, 2 +ring, 3 +fill, 4 +mark
+
+  const id = 'c' + (++uid);
+  const defs = el('defs', {});
+
+  // clip: the ink-filled region of the interior
+  const inkClip = el('clipPath', { id: id + 'i' });
+  if (mag === 2) inkClip.appendChild(el('rect', { x:0, y:50, width:100, height:50 }));
+  else if (mag === 3) inkClip.appendChild(el('rect', { x:0, y:0, width:100, height:100 }));
+  else inkClip.appendChild(el('rect', { x:0, y:0, width:0, height:0 }));
+  defs.appendChild(inkClip);
+
+  // clip: the core (black) region of the interior — the complement
+  const coreClip = el('clipPath', { id: id + 'k' });
+  if (mag === 2) coreClip.appendChild(el('rect', { x:0, y:0, width:100, height:50 }));
+  else if (mag === 3) coreClip.appendChild(el('rect', { x:0, y:0, width:0, height:0 }));
+  else coreClip.appendChild(el('rect', { x:0, y:0, width:100, height:100 }));
+  defs.appendChild(coreClip);
+
+  svg.appendChild(defs);
+
+  // 0 — cell ground
+  svg.appendChild(el('rect', { x:0, y:0, width:100, height:100, rx:8, fill:GROUND }));
+
+  // 1 — silhouette: core fill under a 14-wide black keyline
+  svg.appendChild(shapeEl(poly, 36, {
+    fill: CORE, stroke: KEY, 'stroke-width':14, 'stroke-linejoin':'round'
+  }));
+
+  // 3 — fill state (drawn before the ring so the ring stays crisp on top)
+  if (upTo >= 3 && mag > 1){
+    const fillG = el('g', { 'clip-path':'url(#' + id + 'i)' });
+    fillG.appendChild(shapeEl(poly, 36, { fill: INK, stroke:'none' }));
+    svg.appendChild(fillG);
+  }
+
+  // 2 — ink ring, 8 wide, centered on the same path
+  if (upTo >= 2){
+    svg.appendChild(shapeEl(poly, 36, {
+      fill:'none', stroke: INK, 'stroke-width':8, 'stroke-linejoin':'round'
+    }));
+  }
+
+  // 4 — inner mark: always the opposite of whatever interior it sits on
+  if (upTo >= 4 && mark !== 'none'){
+    const overCore = el('g', { 'clip-path':'url(#' + id + 'k)' });
+    overCore.appendChild(markGroup(poly, mark, INK));
+    svg.appendChild(overCore);
+
+    const overInk = el('g', { 'clip-path':'url(#' + id + 'i)' });
+    overInk.appendChild(markGroup(poly, mark, CORE));
+    svg.appendChild(overInk);
+  }
+
+  return svg;
+}
+
+/* ---------- anatomy strip ---------- */
+const ANATOMY = [
+  [1, 'Silhouette', 'Core fill under a 14-wide black stroke. Seven units of black sit either side of the path.'],
+  [2, 'Ink ring',   'An 8-wide ink stroke on the same path covers four. Three units of black survive on the outside.'],
+  [3, 'Fill state', 'Magnitude 2 clips ink to the lower half — a gauge, not Unicode’s left-half convention.'],
+  [4, 'Mark',       'Ink where it crosses core, core where it crosses ink. One rule, no per-glyph art.']
+];
+const anatomyHost = document.getElementById('anatomy');
+ANATOMY.forEach(function(a){
+  const fig = document.createElement('figure');
+  fig.appendChild(specimen(POLYS[2], 2, 'cross', { upTo: a[0] }));
+  const cap = document.createElement('figcaption');
+  cap.innerHTML = '<span class="step">Layer ' + a[0] + '</span><strong>' + a[1] + '</strong><br>' + a[2];
+  fig.appendChild(cap);
+  anatomyHost.appendChild(fig);
+});
+
+/* ---------- the 108 ---------- */
+const matrix = document.getElementById('matrix');
+POLYS.forEach(function(poly){
+  const block = document.createElement('div');
+  block.className = 'block';
+
+  const head = document.createElement('div');
+  head.className = 'blockhead';
+  head.innerHTML =
+    '<h2>' + poly.name + '</h2>' +
+    '<span class="verb">' + poly.verb + '</span>' +
+    '<span class="why">' + poly.why + '</span>';
+  block.appendChild(head);
+
+  const scroller = document.createElement('div');
+  scroller.className = 'scroller';
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  grid.appendChild(document.createElement('div'));
+  MARKS.forEach(function(m){
+    const h = document.createElement('div');
+    h.className = 'colhead';
+    h.textContent = MARK_LABEL[m];
+    grid.appendChild(h);
+  });
+
+  MAGS.forEach(function(mag){
+    const rh = document.createElement('div');
+    rh.className = 'rowhead';
+    rh.innerHTML = mag.label;
+    grid.appendChild(rh);
+
+    MARKS.forEach(function(mark){
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.appendChild(specimen(poly, mag.n, mark));
+
+      const shipKey = poly.key + '-' + mag.n + '-' + mark;
+      if (SHIP[shipKey]){
+        cell.classList.add('ship');
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.innerHTML = '<b>' + SHIP[shipKey][0] + '</b>' + SHIP[shipKey][1];
+        cell.appendChild(tag);
+      }
+      grid.appendChild(cell);
+    });
+  });
+
+  scroller.appendChild(grid);
+  block.appendChild(scroller);
+  matrix.appendChild(block);
+});
+
+/* ---------- size ramp ---------- */
+const ramp = document.getElementById('ramp');
+[128, 96, 72, 56, 44, 32, 24].forEach(function(px){
+  const fig = document.createElement('figure');
+  if (px === 44) fig.className = 'floor';
+  const s = specimen(POLYS[2], 1, 'cross');
+  s.setAttribute('width', px);
+  s.setAttribute('height', px);
+  s.style.width = px + 'px';
+  s.style.height = px + 'px';
+  fig.appendChild(s);
+  const cap = document.createElement('figcaption');
+  cap.textContent = px === 44 ? px + 'px · floor' : px + 'px';
+  fig.appendChild(cap);
+  ramp.appendChild(fig);
+});
+</script>

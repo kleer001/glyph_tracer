@@ -1,0 +1,293 @@
+<meta charset="utf-8">
+<title>Glyph Tracer &mdash; board shape</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root{
+  --paper:#E7E8EA; --panel:#F3F4F5; --sunk:#DBDDE0;
+  --ink1:#16171A; --ink2:#53565C; --ink3:#83868D;
+  --rule:#C5C7CB; --rule-hard:#9BA0A6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111215; --panel:#191B1F; --sunk:#0C0D0F;
+    --ink1:#E3E4E7; --ink2:#9FA3AA; --ink3:#6C7078;
+    --rule:#2B2E34; --rule-hard:#414650;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111215; --panel:#191B1F; --sunk:#0C0D0F;
+  --ink1:#E3E4E7; --ink2:#9FA3AA; --ink3:#6C7078;
+  --rule:#2B2E34; --rule-hard:#414650;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink1);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1060px;margin:0 auto;padding:60px 28px 110px;display:flex;flex-direction:column;gap:52px}
+.mono{font-family:"Martian Mono","SFMono-Regular",Consolas,monospace;font-variant-numeric:tabular-nums}
+
+.eyebrow{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;
+  letter-spacing:.17em;text-transform:uppercase;color:var(--ink3)}
+h1{font-size:clamp(36px,5.6vw,58px);font-weight:800;letter-spacing:-.035em;line-height:1;margin:12px 0 0;text-wrap:balance}
+h2{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:0;color:var(--ink1)}
+p{margin:0}
+.lede{margin-top:20px;max-width:64ch;color:var(--ink2);font-size:17.5px}
+header{border-bottom:2px solid var(--ink1);padding-bottom:30px}
+
+section{display:flex;flex-direction:column;gap:16px}
+.head{border-bottom:1px solid var(--rule);padding-bottom:9px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.head .aside{font-size:13px;color:var(--ink3);flex:1 1 240px;min-width:0}
+.body{max-width:68ch;display:flex;flex-direction:column;gap:14px;color:var(--ink2)}
+.body strong{color:var(--ink1);font-weight:600}
+
+/* dependency ladder */
+.ladder{display:flex;flex-direction:column;border:1px solid var(--rule-hard);background:var(--rule-hard);gap:1px}
+.rung{background:var(--panel);padding:13px 18px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+.rung .n{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;color:var(--ink3);flex:0 0 26px}
+.rung .what{font-weight:600;flex:0 0 auto;min-width:190px}
+.rung .why{font-size:13.5px;color:var(--ink2);flex:1 1 300px;min-width:0}
+
+/* act blocks */
+.act{border:1px solid var(--rule-hard);display:flex;flex-direction:column}
+.actbar{background:var(--ink1);color:var(--paper);padding:14px 20px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+.actbar .no{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.14em;opacity:.65}
+.actbar .nm{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.actbar .cfg{font-family:"Martian Mono",monospace;font-size:11px;margin-left:auto;opacity:.75}
+.actbody{background:var(--panel);padding:0}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th{text-align:left;font-family:"Martian Mono",monospace;font-size:9.5px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);
+  padding:12px 14px 8px;border-bottom:1px solid var(--rule-hard);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums;vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.num{font-family:"Martian Mono",monospace;color:var(--ink3);white-space:nowrap}
+td.teach{color:var(--ink1);font-weight:600}
+td.note{color:var(--ink2);font-size:13.5px}
+.actfoot{background:var(--sunk);padding:13px 20px;font-size:13.5px;color:var(--ink2);border-top:1px solid var(--rule)}
+.actfoot strong{color:var(--ink1)}
+
+pre{background:var(--sunk);border:1px solid var(--rule);margin:0;padding:16px 18px;
+  overflow-x:auto;font-family:"Martian Mono",monospace;font-size:12px;line-height:1.7;color:var(--ink1)}
+code{font-family:"Martian Mono",monospace;font-size:.88em;background:var(--sunk);padding:1px 5px;border:1px solid var(--rule)}
+pre code{background:none;border:none;padding:0}
+.flags{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2px;background:var(--rule-hard);border:1px solid var(--rule-hard)}
+.flags div{background:var(--panel);padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.flags .k{font-family:"Martian Mono",monospace;font-size:11px;font-weight:600;color:var(--ink1)}
+.flags p{font-size:13.5px;color:var(--ink2);line-height:1.5}
+footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:var(--ink3)}
+</style>
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Glyph Tracer &middot; open question</span>
+  <h1>How big should the board be?</h1>
+  <p class="lede">
+    Any two cells may be swapped, which puts 780 pairs in front of a player on a
+    5&#215;8 board. Around thirty of them tie for the best payoff anyone can see, so the
+    move a player picks out of that tie is close to a guess. Shrinking the board is the
+    obvious fix. It works, and it is not free &mdash; the same thing that makes the
+    choice legible takes the runway the ability layer needs. <strong>Nothing here is
+    decided.</strong> This page is the measurement, so the decision can be made on it.
+  </p>
+</header>
+
+<section>
+  <div class="head">
+    <h2>The quantity that matters</h2>
+    <span class="aside">Reproduce with <span class="mono">node tools/boardShapes.js</span>.</span>
+  </div>
+  <div class="body">
+    <p>
+      A player cannot simulate a cascade. What they can see is a swap&rsquo;s immediate
+      payoff, so the question is how many swaps share the best one on offer. At three or
+      four, picking between them is a decision. At thirty it is a lottery, and a trap
+      built on it punishes a coin toss rather than a habit.
+    </p>
+    <p>
+      That count tracks <strong>pairs &divide; colors&sup2;</strong> closely enough to
+      design against. Board size and palette size are not two dials, they are one.
+    </p>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Board</th><th>Cells</th><th>Pairs</th><th>Colors</th><th>pairs/c&sup2;</th><th>Openings</th><th>Tied at max</th><th>Best payoff</th></tr></thead>
+      <tbody>
+          <tr><td class="teach">4x4</td><td class="num">16</td><td class="num">120</td><td class="num">4</td><td class="num">7.5</td><td class="num">49.9</td><td class="num"><strong>10.0</strong></td><td class="num">2.00</td></tr>
+          <tr><td class="teach">4x4</td><td class="num">16</td><td class="num">120</td><td class="num">6</td><td class="num">3.3</td><td class="num">35.8</td><td class="num"><strong>5.2</strong></td><td class="num">1.96</td></tr>
+          <tr><td class="teach">4x4</td><td class="num">16</td><td class="num">120</td><td class="num">8</td><td class="num">1.9</td><td class="num">27.4</td><td class="num"><strong>5.4</strong></td><td class="num">1.88</td></tr>
+          <tr><td class="teach">5x5</td><td class="num">25</td><td class="num">300</td><td class="num">4</td><td class="num">18.8</td><td class="num">124.9</td><td class="num"><strong>25.1</strong></td><td class="num">2.00</td></tr>
+          <tr><td class="teach">5x5</td><td class="num">25</td><td class="num">300</td><td class="num">6</td><td class="num">8.3</td><td class="num">90.2</td><td class="num"><strong>10.1</strong></td><td class="num">2.00</td></tr>
+          <tr><td class="teach">5x5</td><td class="num">25</td><td class="num">300</td><td class="num">8</td><td class="num">4.7</td><td class="num">69.3</td><td class="num"><strong>5.9</strong></td><td class="num">1.99</td></tr>
+          <tr><td class="teach">4x8</td><td class="num">32</td><td class="num">496</td><td class="num">4</td><td class="num">31.0</td><td class="num">206.7</td><td class="num"><strong>41.5</strong></td><td class="num">2.00</td></tr>
+          <tr><td class="teach">4x8</td><td class="num">32</td><td class="num">496</td><td class="num">6</td><td class="num">13.8</td><td class="num">149.1</td><td class="num"><strong>16.5</strong></td><td class="num">2.00</td></tr>
+          <tr><td class="teach">4x8</td><td class="num">32</td><td class="num">496</td><td class="num">8</td><td class="num">7.8</td><td class="num">115.1</td><td class="num"><strong>8.9</strong></td><td class="num">2.00</td></tr>
+          <tr><td class="teach">5x8</td><td class="num">40</td><td class="num">780</td><td class="num">4</td><td class="num">48.8</td><td class="num">324.9</td><td class="num"><strong>65.5</strong></td><td class="num">2.00</td></tr>
+          <tr><td class="teach">5x8</td><td class="num">40</td><td class="num">780</td><td class="num">6</td><td class="num">21.7</td><td class="num">234.6</td><td class="num"><strong>26.2</strong></td><td class="num">2.00</td></tr>
+          <tr><td class="teach">5x8</td><td class="num">40</td><td class="num">780</td><td class="num">8</td><td class="num">12.2</td><td class="num">180.9</td><td class="num"><strong>14.1</strong></td><td class="num">2.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="body">
+    <p>
+      Read down the <span class="mono">pairs/c&sup2;</span> column and the tied count
+      follows it, across four board sizes and three palettes. A 4&#215;4 board at six
+      colors and a 5&#215;8 board at twelve land in the same place by different routes.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>What each shape costs</h2>
+    <span class="aside">Six swaps, 50% pushers, 12.5% eaters, 400 boards each.</span>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Config</th><th>Tied at max</th><th>Cleared</th><th>% board</th><th>Cascade</th><th>Deepest</th><th>Dead turns</th><th>Shove runway</th><th>Trap best line</th></tr></thead>
+      <tbody>
+          <tr><td class="teach">5&#215;8 @ 6 &mdash; today</td><td class="num">26.2</td><td class="num">14.1</td><td class="num">35%</td><td class="num">1.29</td><td class="num">2.15</td><td class="num">0.00</td><td class="num">1.98</td><td class="num">22&ndash;29</td></tr>
+          <tr><td class="teach">4&#215;4 @ 6</td><td class="num">5.2</td><td class="num">8.0</td><td class="num">50%</td><td class="num">1.08</td><td class="num">1.37</td><td class="num">0.66</td><td class="num">1.19</td><td class="num">7&ndash;11</td></tr>
+          <tr><td class="teach">5&#215;5 @ 8</td><td class="num">5.9</td><td class="num">10.0</td><td class="num">40%</td><td class="num">1.12</td><td class="num">1.62</td><td class="num">0.01</td><td class="num">1.56</td><td class="num">15&ndash;21</td></tr>
+          <tr><td class="teach">5&#215;8 @ 12</td><td class="num">6.1</td><td class="num">11.1</td><td class="num">28%</td><td class="num">1.15</td><td class="num">1.68</td><td class="num">0.00</td><td class="num">1.98</td><td class="num">&mdash;</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="body">
+    <p>
+      <strong>The ability layer is what a small board spends.</strong> A shove on
+      5&#215;8 travels 1.98 cells before it meets something; on 4&#215;4 it travels 1.19.
+      The deepest cascade in a level falls from 2.15 steps to 1.37 &mdash; which is barely
+      a chain. The rules put the combo layer at the centre of the game on purpose, and
+      4&#215;4 is the shape that has nowhere to put it.
+    </p>
+    <p>
+      <strong>Small boards run out of moves.</strong> A 4&#215;4 level spends 0.66 of its
+      six swaps on turns where no productive swap exists at all. That is not a soft lock
+      &mdash; no configuration measured here produced a board with no legal swap, at any
+      size &mdash; but it is a wasted tap the player did not cause. On 5&#215;5 and larger
+      it rounds to zero.
+    </p>
+    <p>
+      <strong>Traps get smaller with the board.</strong> The generator finds a single
+      solver on every shape it was given. What changes is the ceiling: a best line of
+      7&ndash;11 cells on 4&#215;4 against 22&ndash;29 on 5&#215;8. The structure survives;
+      the spectacle does not.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>The budget stopped biting</h2>
+    <span class="aside">Marginal cells gained by swap number.</span>
+  </div>
+  <div class="body">
+    <p>
+      Six swaps was chosen because that is where the yield curve flattened. It flattened
+      there under a rule where only neighbors could swap. With total reach a useful pair
+      is always somewhere on a large board, so the curve stopped flattening and the budget
+      became an arbitrary cap rather than the point of exhaustion.
+    </p>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Config</th><th>Swaps 1&ndash;6</th><th>Swaps 7&ndash;12</th><th>Tail total</th></tr></thead>
+      <tbody>
+          <tr><td class="teach">5&#215;8 @ 6</td><td class="num mono">3.0 2.6 2.3 2.2 2.1 1.9</td><td class="num mono">1.7 1.5 1.2 1.1 1.1 1.0</td><td class="num"><strong>7.5</strong></td></tr>
+          <tr><td class="teach">4&#215;4 @ 6</td><td class="num mono">2.2 1.8 1.4 1.1 0.9 0.6</td><td class="num mono">0.3 0.1 0.0 0.0 0.0 0.0</td><td class="num"><strong>0.3</strong></td></tr>
+          <tr><td class="teach">5&#215;5 @ 8</td><td class="num mono">2.4 2.1 1.8 1.4 1.2 1.1</td><td class="num mono">1.0 1.0 0.7 0.5 0.3 0.2</td><td class="num"><strong>3.7</strong></td></tr>
+          <tr><td class="teach">5&#215;8 @ 12</td><td class="num mono">2.5 2.3 2.0 1.8 1.4 1.3</td><td class="num mono">1.2 1.1 1.1 1.1 1.0 1.0</td><td class="num"><strong>6.5</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="body">
+    <p>
+      This is the one measurement that argues for a small board on its own terms. On
+      4&#215;4 the board is genuinely spent by swap seven &mdash; the tail is 0.3 cells
+      &mdash; so a six-swap budget describes the game rather than truncating it. On
+      5&#215;8 swaps seven through twelve are still worth 7.5 cells, half a level again.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>Why opening the palette runs out</h2>
+    <span class="aside">5&#215;8, fresh board.</span>
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Colors</th><th>Best payoff on offer</th><th>Boards where the best is a single</th><th>Tied at max</th></tr></thead>
+      <tbody>
+          <tr><td class="num">6</td><td class="num">2.00</td><td class="num">0%</td><td class="num">26.2</td></tr>
+          <tr><td class="num">8</td><td class="num">2.00</td><td class="num">0%</td><td class="num">14.1</td></tr>
+          <tr><td class="num">10</td><td class="num">2.00</td><td class="num">0%</td><td class="num">8.9</td></tr>
+          <tr><td class="num">12</td><td class="num">2.00</td><td class="num">0%</td><td class="num">6.1</td></tr>
+          <tr><td class="num">16</td><td class="num">1.97</td><td class="num">3%</td><td class="num">6.5</td></tr>
+          <tr><td class="num">20</td><td class="num">1.90</td><td class="num">10%</td><td class="num">9.5</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="body">
+    <p>
+      The tied count falls to 6.1 at twelve colors and then climbs again, which looks like
+      the dial reversing and is not. Past twelve, some boards no longer offer a double hit
+      anywhere &mdash; 3% at sixteen colors, 10% at twenty &mdash; and on those boards the
+      best visible payoff is a single, so the tie is counted among the far more numerous
+      single-hit swaps. The measure changes meaning rather than the board getting better.
+      Twelve is where the palette lever runs out on this board size.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>What is actually being traded</h2>
+  </div>
+  <div class="body">
+    <p>
+      Every route to a legible choice costs something different, and none of them is free:
+    </p>
+    <p>
+      <strong>4&#215;4 at six colors</strong> buys the smallest tie pool and the only
+      honest six-swap budget, and pays with the cascade &mdash; a 1.37 deepest chain, a
+      1.19 shove runway, a trap ceiling of eleven cells, and a wasted turn in two levels
+      out of three. It is also square, and a phone in portrait is not.
+    </p>
+    <p>
+      <strong>5&#215;5 at eight colors</strong> gets the tie pool to 5.9 while keeping
+      three quarters of the shove runway and losing no turns. It clears 40% of the board
+      per level, which keeps the drain readable. The budget half-bites: a 3.7 tail.
+    </p>
+    <p>
+      <strong>5&#215;8 at twelve colors</strong> keeps the full runway and the current
+      board, and fixes only the tie pool. It does not fix the budget, and it costs the six
+      colors the glyph grammar and the specimen plate are drawn against.
+    </p>
+    <p>
+      A fourth route exists and is not measured here: keep the board and the palette, and
+      change what the player is choosing between rather than how many things they are
+      choosing between. The tie pool is only a problem because immediate payoff is the
+      only signal a board gives. A glyph whose ability is legible from its drawing is a
+      second signal, and the run in <span class="mono">teaching.html</span> spends eight
+      levels teaching it. How much of the tie pool that actually resolves is a question
+      for a playtest, not a sweep.
+    </p>
+  </div>
+</section>
+
+<footer>
+  All figures from <span class="mono">node tools/boardShapes.js</span> &mdash; 400 boards per
+  row, greedy play, six swaps, 50% pushers, 12.5% eaters, any two cells swappable. Trap
+  figures from <span class="mono">tools/trapBoards.js</span>. Rules in
+  <span class="mono">SPEC.md</span>; the level run in <span class="mono">teaching.html</span>.
+</footer>
+
+</div>

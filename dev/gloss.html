@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Glyph Tracer — gloss sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Martian+Mono:wght@400;600&display=swap">
+<style>
+:root{--paper:#E7E8EA;--panel:#F3F4F5;--sunk:#DBDDE0;--ink1:#16171A;--ink2:#53565C;--ink3:#83868D;--rule:#C5C7CB}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink1);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:14px}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 26px 80px}
+.mono{font-family:"Martian Mono","SFMono-Regular",Consolas,monospace}
+.eyebrow{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;
+  letter-spacing:.17em;text-transform:uppercase;color:var(--ink3)}
+h1{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:10px 0 0}
+.lede{margin:12px 0 0;max-width:70ch;color:var(--ink2)}
+header{border-bottom:2px solid var(--ink1);padding-bottom:22px;margin-bottom:26px}
+h2{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin:0 0 12px;color:var(--ink1)}
+.cols{display:grid;grid-template-columns:300px 1fr;gap:26px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--rule);padding:18px 16px}
+.row{display:grid;grid-template-columns:88px 1fr 40px;align-items:center;gap:9px;margin-bottom:7px}
+.row label{font-size:11px;color:var(--ink2)}
+.row output{font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink1)}
+.row input[type=range]{width:100%}
+.grp{margin-bottom:20px}
+.grp:last-child{margin-bottom:0}
+select{font:inherit;font-size:12px;padding:3px 5px;background:#fff;border:1px solid var(--rule);width:100%}
+.selrow{display:grid;grid-template-columns:88px 1fr;align-items:center;gap:9px;margin-bottom:7px}
+.selrow label{font-size:11px;color:var(--ink2)}
+.stagepanel{background:var(--sunk);border:1px solid var(--rule);padding:26px;display:flex;
+  flex-direction:column;align-items:center;gap:22px}
+.presets{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:7px}
+figcaption{font-family:"Martian Mono",monospace;font-size:9.5px;letter-spacing:.06em;color:var(--ink2)}
+figure.active figcaption{color:var(--ink1);font-weight:600}
+button{font:inherit;font-size:11px;padding:5px 11px;background:#fff;border:1px solid var(--rule);
+  border-radius:3px;cursor:pointer}
+button:hover{border-color:var(--ink1)}
+.settings{margin-top:20px}
+pre{background:var(--sunk);border:1px solid var(--rule);padding:13px;font-family:"Martian Mono",monospace;
+  font-size:10.5px;line-height:1.6;overflow-x:auto;margin:0}
+.hint{font-size:11.5px;color:var(--ink2);margin:9px 0 0}
+canvas{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Glyph Tracer · scratch</span>
+  <h1>Gloss sandbox</h1>
+  <p class="lede">
+    One cell, one glyph, every highlight and shadow knob on a slider. The glyph itself is
+    drawn by the real <span class="mono">src/render.js</span>, so what you see here is the
+    shipped paint order with gloss composited around it — nothing is faked for the demo.
+    Pick a look, hit <strong>copy settings</strong>, and hand the block back to have it
+    folded into <span class="mono">data/gloss.json</span>. The <strong>shipped</strong>
+    preset is whatever that file holds right now.
+  </p>
+</header>
+
+<div class="cols">
+  <div>
+    <div class="panel">
+      <div class="grp">
+        <h2>Subject</h2>
+        <div class="selrow"><label for="form">form</label><select id="form"></select></div>
+        <div class="selrow"><label for="mark">mark</label><select id="mark"></select></div>
+        <div class="selrow"><label for="mag">fill</label><select id="mag">
+          <option value="1">1 — hollow</option><option value="2">2 — half</option>
+          <option value="3" selected>3 — solid</option></select></div>
+        <div class="selrow"><label for="ground">ground</label><select id="ground"></select></div>
+        <div class="selrow"><label for="ink">ink</label><select id="ink"></select></div>
+      </div>
+
+      <div class="grp">
+        <h2>Cell</h2>
+        <div class="row"><label for="radius">corner</label><input type="range" id="radius" min="0" max="26" step="1"><output id="radius-o"></output></div>
+        <div class="row"><label for="cellShadowY">shadow y</label><input type="range" id="cellShadowY" min="0" max="18" step="1"><output id="cellShadowY-o"></output></div>
+        <div class="row"><label for="cellShadowBlur">shadow blur</label><input type="range" id="cellShadowBlur" min="0" max="40" step="1"><output id="cellShadowBlur-o"></output></div>
+        <div class="row"><label for="cellShadowA">shadow α</label><input type="range" id="cellShadowA" min="0" max="70" step="1"><output id="cellShadowA-o"></output></div>
+        <div class="row"><label for="sheen">top sheen</label><input type="range" id="sheen" min="0" max="70" step="1"><output id="sheen-o"></output></div>
+        <div class="row"><label for="sheenStop">sheen reach</label><input type="range" id="sheenStop" min="10" max="100" step="1"><output id="sheenStop-o"></output></div>
+        <div class="row"><label for="bevel">bevel</label><input type="range" id="bevel" min="0" max="60" step="1"><output id="bevel-o"></output></div>
+      </div>
+
+      <div class="grp">
+        <h2>Glyph</h2>
+        <div class="row"><label for="glyphShadowY">shadow y</label><input type="range" id="glyphShadowY" min="0" max="14" step="1"><output id="glyphShadowY-o"></output></div>
+        <div class="row"><label for="glyphShadowBlur">shadow blur</label><input type="range" id="glyphShadowBlur" min="0" max="30" step="1"><output id="glyphShadowBlur-o"></output></div>
+        <div class="row"><label for="glyphShadowA">shadow α</label><input type="range" id="glyphShadowA" min="0" max="80" step="1"><output id="glyphShadowA-o"></output></div>
+        <div class="row"><label for="spec">specular</label><input type="range" id="spec" min="0" max="80" step="1"><output id="spec-o"></output></div>
+      </div>
+
+      <button id="copy" type="button">copy settings</button>
+      <button id="reset" type="button">reset</button>
+    </div>
+
+    <div class="settings">
+      <h2>Current settings</h2>
+      <pre id="dump"></pre>
+      <p class="hint">These are the numbers the sandbox is drawing with right now.</p>
+    </div>
+  </div>
+
+  <div class="stagepanel">
+    <figure>
+      <canvas id="hero" width="300" height="300"></canvas>
+      <figcaption>live — your sliders</figcaption>
+    </figure>
+    <div class="presets" id="presets"></div>
+    <p class="hint" style="text-align:center">
+      Click a preset to load it into the sliders. <strong>shipped</strong> is the live
+      file; <strong>flat</strong> is every knob at zero, for comparison.
+    </p>
+  </div>
+</div>
+
+</div>
+
+<script type="module">
+import { drawGlyph, drawTile } from '../src/render.js';
+import { FORMS, MARKS, CELL } from '../src/glyphShapes.js';
+
+const PALETTE = await (await fetch('../data/palette.json')).json();
+const SHIPPED = await (await fetch('../data/gloss.json')).json();
+
+// `flat` is the renderer with every knob at zero; `shipped` is what data/gloss.json
+// currently holds, so you can always see what you are changing away from.
+const PRESETS = {
+  flat:    { radius:8,  cellShadowY:0, cellShadowBlur:0, cellShadowA:0, sheen:0, sheenStop:55, bevel:0,
+             glyphShadowY:0, glyphShadowBlur:0, glyphShadowA:0, spec:0 },
+  shipped: Object.fromEntries(Object.entries(SHIPPED).filter(([k]) => k !== 'note')),
+  soft:    { radius:10, cellShadowY:3, cellShadowBlur:9,  cellShadowA:22, sheen:14, sheenStop:52, bevel:12,
+             glyphShadowY:2, glyphShadowBlur:5, glyphShadowA:28, spec:12 },
+  deep:    { radius:8,  cellShadowY:9, cellShadowBlur:22, cellShadowA:45, sheen:20, sheenStop:60, bevel:38,
+             glyphShadowY:5, glyphShadowBlur:12, glyphShadowA:52, spec:20 },
+};
+
+const KEYS = Object.keys(PRESETS.flat);
+const state = { ...PRESETS.shipped, form:'circle', mark:'none', mag:3, ground:0, ink:1 };
+
+// --- populate the selects ---------------------------------------------------
+const fill = (id, values, labeller = (v) => v) => {
+  const sel = document.getElementById(id);
+  sel.replaceChildren(...values.map((v, i) => new Option(labeller(v, i), typeof v === 'string' ? v : i)));
+  return sel;
+};
+fill('form', Object.keys(FORMS));
+fill('mark', MARKS);
+fill('ground', PALETTE.colors, (c) => c.name);
+fill('ink', PALETTE.colors, (c) => c.name);
+document.getElementById('ink').value = '1';
+
+/**
+ * One glossed cell, drawn by the shipping renderer. Nothing here reimplements the
+ * look — that is the point of the page.
+ */
+function paint(ctx, s, size, pad) {
+  const gloss = Object.fromEntries(KEYS.map((k) => [k, s[k]]));
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  drawTile(ctx, { x: pad, y: pad, size }, PALETTE.colors[s.ground].hex, gloss);
+  ctx.save();
+  ctx.translate(pad, pad);
+  ctx.scale(size / CELL, size / CELL);
+  drawGlyph(
+    ctx,
+    { form: s.form, mag: Number(s.mag), mark: s.mark, rotation: 0 },
+    { ink: PALETTE.colors[s.ink].hex, core: PALETTE.core, key: PALETTE.key },
+    gloss,
+  );
+  ctx.restore();
+}
+
+// --- wiring -----------------------------------------------------------------
+const hero = document.getElementById('hero').getContext('2d');
+
+function readControls() {
+  for (const key of KEYS) state[key] = Number(document.getElementById(key).value);
+  state.form = document.getElementById('form').value;
+  state.mark = document.getElementById('mark').value;
+  state.mag = Number(document.getElementById('mag').value);
+  state.ground = Number(document.getElementById('ground').value);
+  state.ink = Number(document.getElementById('ink').value);
+}
+
+function writeControls() {
+  for (const key of KEYS) {
+    document.getElementById(key).value = String(state[key]);
+    document.getElementById(`${key}-o`).textContent = String(state[key]);
+  }
+}
+
+function settingsText() {
+  const gloss = Object.fromEntries(KEYS.map((k) => [k, state[k]]));
+  return JSON.stringify(gloss, null, 2);
+}
+
+function render() {
+  writeControls();
+  paint(hero, state, 220, 40);
+  document.getElementById('dump').textContent = settingsText();
+  for (const [name, fig] of Object.entries(presetFigures)) {
+    fig.figure.classList.toggle('active', KEYS.every((k) => state[k] === PRESETS[name][k]));
+  }
+}
+
+const presetFigures = {};
+const presetRow = document.getElementById('presets');
+for (const [name, preset] of Object.entries(PRESETS)) {
+  const figure = document.createElement('figure');
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 150;
+  const caption = document.createElement('figcaption');
+  caption.textContent = name;
+  figure.append(canvas, caption);
+  figure.addEventListener('click', () => { Object.assign(state, preset); render(); renderPresets(); });
+  presetRow.append(figure);
+  presetFigures[name] = { figure, ctx: canvas.getContext('2d') };
+}
+
+function renderPresets() {
+  for (const [name, { ctx }] of Object.entries(presetFigures)) {
+    paint(ctx, { ...state, ...PRESETS[name] }, 104, 23);
+  }
+}
+
+for (const id of [...KEYS, 'form', 'mark', 'mag', 'ground', 'ink']) {
+  document.getElementById(id).addEventListener('input', () => { readControls(); render(); renderPresets(); });
+}
+document.getElementById('reset').addEventListener('click', () => {
+  Object.assign(state, PRESETS.flat); render(); renderPresets();
+});
+document.getElementById('copy').addEventListener('click', async (e) => {
+  await navigator.clipboard.writeText(settingsText());
+  e.target.textContent = 'copied';
+  setTimeout(() => { e.target.textContent = 'copy settings'; }, 1200);
+});
+
+Object.assign(state, PRESETS.shipped);
+render();
+renderPresets();
+</script>
+</body>
+</html>
