@@ -43,9 +43,11 @@ node tools/boardShapes.js --curve     # what board size and palette size trade o
 ## Layout
 
 - `index.html` / `styles.css` — the page and the look.
-- `src/` — `board.js` is the rules, `level.js` the target policy, `glyphShapes.js` and
-  `render.js` the drawing, `animate.js` the playback, `main.js` the only module that
+- `src/` — `board.js` is the rules, `levels.js` the shipped run, `level.js` the target
+  policy, `glyphShapes.js` and `render.js` the drawing, `animate.js` the playback,
+  `progress.js` and `picker.js` the run's chrome, `main.js` the only module that
   touches a browser.
+- `LEVELS.md` — the shipped run as a list; the levels themselves are `data/levels.json`.
 - `data/` — rules, palette, the sixteen glyphs, stage factors, the example board.
 - `tools/` — the measurement sweeps and the trap generator.
 - `dev/` — browser pages for tuning the look and the animation timing.
@@ -60,7 +62,10 @@ node tools/boardShapes.js --curve     # what board size and palette size trade o
 
 ## Where it is
 
-Prototype. The slice plays: a dealt board, a measured target, six swaps, and the
+Prototype, and playable end to end: twenty-five levels in four acts, a picker that
+remembers what you have finished, and a star per level for the swaps you had left over.
+
+The slice plays: a dealt board, a measured target, six swaps, and the
 sink rules resolving underneath. The palette is placeholder, two of the sixteen
 abilities are drawn but not yet run, and the level run in `docs/teaching.html` is
 structure rather than content.

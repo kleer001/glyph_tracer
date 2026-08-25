@@ -32,16 +32,132 @@ html, body {
 .stage {
   flex: 1 1 auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   min-width: 0;
+  padding: 12px;
 }
+
+/* --- where you are in the run ---------------------------------------------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 52vh);
+}
+
+.picker {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 10px;
+}
+
+.picker b { font-size: 15px; font-weight: 600; }
+.picker span { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+
+.where {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+#level-act { letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+#level-teaches { color: var(--ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* --- the level sheet -------------------------------------------------------- */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(22, 23, 26, 0.45);
+}
+
+.sheetbox {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(460px, 100%);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+}
+
+.sheethead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.acts { display: flex; flex-direction: column; gap: 8px; }
+
+.act-group { border: 1px solid var(--rule); background: var(--paper); }
+.act-group[open] > summary { border-bottom: 1px solid var(--rule); }
+.act-group.finished > summary .tally { color: var(--ink); font-weight: 600; }
+
+.act-group summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.act-no {
+  min-width: 22px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+}
+
+.act-name { font-weight: 600; }
+.range { margin-left: auto; font-size: 9.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.tally { font-size: 9.5px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+
+.lvlgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 5px;
+  padding: 9px 10px 11px;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 4px 5px;
+  background: var(--paper);
+}
+
+.cell .no { font-size: 13px; font-variant-numeric: tabular-nums; }
+.cell .stars { font-size: 8px; letter-spacing: 0.5px; color: var(--ink-dim); min-height: 10px; }
+.cell.done { background: var(--sunk); border-color: var(--ink-faint); }
+.cell[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 
 canvas {
   /* A 5x8 board, so the field is portrait. Capped so a wide window does not
      stretch the cells past the render spec's readable size. */
   width: min(100%, 52vh);
-  height: min(160%, 96vh);
+  height: min(160%, 88vh);
   touch-action: none;
 }
 

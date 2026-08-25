@@ -394,15 +394,20 @@ best line 14 against a greedy pick of 2 and a typical swap of 1, still one solve
 | `SPEC.md` | this file — rules, glyph grammar, measurements |
 | `RENDER_SPEC.md` | how to draw a glyph: geometry and paint order |
 | `src/board.js` | board, shove, settle, swap resolution — the rules themselves |
-| `src/level.js` | greedy measurement, the target policy, dealing a level |
+| `src/level.js` | greedy measurement, the target policy, dealing a board |
+| `src/levels.js` | the shipped run: acts, level specs, win and loss |
+| `src/progress.js` | what the player has finished, and how well |
+| `src/picker.js` | the level sheet, one fold per act |
 | `src/glyphShapes.js` | the render spec's geometry, as pure functions |
 | `src/render.js` | the compositor layers that paint a board to canvas |
 | `src/animate.js` | folding a resolved settle back into phases you can watch |
 | `src/main.js` | canvas, pointer and data loading — the only browser-facing module |
-| `data/` | rules, palette, gloss, the 16 glyphs, stage factors, animation timings, the example board |
+| `data/` | rules, palette, gloss, the 16 glyphs, the level pack, stage factors, animation timings, the example board |
 | `tools/swapBudget.js` | palette and budget sweeps |
 | `tools/trapBoards.js` | trap generation, `--json` to dump boards |
 | `tools/boardShapes.js` | what board size and palette size do to the same dial |
+| `tools/makeLevels.js` | builds `data/levels.json` from the run in `docs/teaching.html` |
+| `LEVELS.md` | the shipped run as a list |
 | `dev/` | browser pages that tune `data/gloss.json` and `data/animation.json` |
 | `tests/` | `node --test`; `exampleBoard.test.js` also fails if `docs/trapping.html`'s embedded board has drifted from `data/example_board.json` |
 | `docs/specimen.html` | the 108-combination glyph plate |

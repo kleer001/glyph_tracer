@@ -58,7 +58,8 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 | `SPEC.md` | the rules, the glyph grammar, and every measurement behind them |
 | `RENDER_SPEC.md` | how one glyph is drawn — geometry and paint order |
 | `src/board.js` | the rules as code: shove, sink, settle, swap resolution |
-| `src/level.js` | greedy measurement, the target policy, dealing a level |
+| `src/level.js` | greedy measurement, the target policy, dealing a board |
+| `src/levels.js`, `src/progress.js`, `src/picker.js` | the run, what is finished, and the level sheet |
 | `src/glyphShapes.js`, `src/render.js` | the render spec's geometry, and the canvas layers that paint it |
 | `src/animate.js` | folding a resolved settle back into phases you can watch |
 | `data/` | rules, palette, gloss, the sixteen glyphs, stage factors, animation timings — the tuning |

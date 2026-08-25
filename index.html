@@ -12,9 +12,19 @@
 <body>
   <div class="app">
     <aside id="palette-panel" class="panel panel-left"></aside>
-    <main class="stage"><canvas id="screen"></canvas></main>
+    <main class="stage">
+      <div class="topbar">
+        <button id="level-open" class="picker" type="button" aria-haspopup="dialog">
+          <b id="level-no">01</b><span>levels</span>
+        </button>
+        <span class="where"><span id="level-act"></span><span id="level-teaches"></span></span>
+      </div>
+      <canvas id="screen"></canvas>
+    </main>
     <aside id="debug-panel" class="panel panel-right"></aside>
   </div>
+  <!-- The picker is markup-free until it is built: src/picker.js fills it from the pack. -->
+  <div id="sheet-root"></div>
   <script type="module" src="src/main.js"></script>
 </body>
 </html>
