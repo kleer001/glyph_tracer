@@ -16,11 +16,14 @@ a swap exchanges **any two live cells** (not orthogonal neighbours), and a swap 
 
 ### Parallel
 
-- [ ] #1 Settle animation timing. `data/animation.json` still ships the pre-tuning values
-      (swapMs 180, stepMs 200, shrinkMs 200) with `holdMs`, `staggerMs` and `splitBeats`
-      at no-op zeros. `dev/timing.html` tunes them against 8 real cascades; copy settings
-      and paste into the data file. Owner's stated want: ~20% slower plus "breath" between
-      movements.
+- [ ] #1 Settle animation timing — **never chosen, still at defaults.** Verified:
+      `data/animation.json` holds swapMs 180, stepMs 200, shrinkMs 200, with `holdMs`,
+      `staggerMs` and `splitBeats` at no-op zeros. `dev/timing.html` tunes them against 8
+      real cascades; copy settings, paste into the data file.
+      Owner's stated want: ~20% slower plus "breath" between movements.
+      **Do not confuse this with the gloss values**, which the owner *did* send and which
+      *are* applied — `data/gloss.json` (radius 6, cellShadowA 45, sheen 34, spec 62, and
+      the rest). Gloss: done. Timing: outstanding.
 - [ ] #2 `data/stages.json` is orphaned from the game — target factors are now baked into
       `data/levels.json`. It remains the policy record and is still tested against
       `docs/teaching.html`. Decide whether it stays, moves into the doc, or goes.
@@ -51,9 +54,10 @@ sibling for conventions: `~/Dropbox/ai/code/treasure_trash`.
 bumps landed this session: 0.26.0 (write findings as costs, not as rules) and 0.27.0 (the
 copy audits are personal skills, not shelf payload).
 
-⚠️ **Studio `--validate` reports 2 problems that are the owner's, not the tooling's.** The
-uncommitted deletion of `shelves/L4/skills/*` was committed this session, but check
-`python3 scripts/check_updates.py --validate` in the studio before the next bump.
+Studio delivery is clean — `python3 scripts/check_updates.py --validate` says
+"Delivery mechanism is sound". The `shelves/L4/skills/*` deletion and the two CHANGELOG
+citations it orphaned were both fixed and committed under 0.27.0. Studio working tree is
+clean and pushed.
 
 **Board shape is settled — do not reopen.** 5×8 at six colors. `docs/board-size.html` is
 the record behind it, deliberately framed as settled rather than open; the wide tie pool
