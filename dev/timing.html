@@ -124,6 +124,7 @@ import { boardLayout, createGlyphLayer, createGroundLayer, VIEW } from '../src/r
 
 const PALETTE = await (await fetch('../data/palette.json')).json();
 const GLOSS = await (await fetch('../data/gloss.json')).json();
+const GEOMETRY = await (await fetch('../data/geometry.json')).json();
 const SHIPPED = await (await fetch('../data/animation.json')).json();
 const GLYPHS = playableGlyphs((await (await fetch('../data/glyphs.json')).json()).glyphs);
 const RULES = await (await fetch('../data/rules.json')).json();
@@ -244,7 +245,7 @@ function paint(drawList) {
   scene.render(ctx, {
     width: canvas.width, height: canvas.height, ...drawList,
     layout: boardLayout(finalBoard, canvas.width, canvas.height, { ...VIEW, hudHeight: 0 }),
-    palette: PALETTE, gloss: GLOSS, glyphsById: byId,
+    palette: PALETTE, gloss: GLOSS, geometry: GEOMETRY, glyphsById: byId,
   });
 }
 

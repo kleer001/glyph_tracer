@@ -13,7 +13,7 @@ import { dealLevel, loadRun, nextAfter, outcome } from './levels.js';
 import { createProgress } from './progress.js';
 import { mountPicker } from './picker.js';
 import { describeSwap } from './debugLog.js';
-import { mountDebugPanel, mountPalettePanel } from './devPanels.js';
+import { mountDebugPanel } from './devPanels.js';
 import {
   VIEW,
   boardLayout,
@@ -24,7 +24,7 @@ import {
   createSelectionLayer,
 } from './render.js';
 
-const DATA = ['rules', 'palette', 'glyphs', 'animation', 'gloss', 'levels'];
+const DATA = ['rules', 'palette', 'glyphs', 'animation', 'gloss', 'geometry', 'levels'];
 /** What the HUD says about a level that is finished, or still running. */
 export function statusFor(level, atEnd = false) {
   const state = outcome(level);
@@ -57,7 +57,8 @@ async function loadData() {
 /**
  * Wire up the canvas and run the game.
  * @param {HTMLCanvasElement} canvas
- * @param {{palette: HTMLElement, debug: HTMLElement}} [panels] - dev instruments.
+ * @param {{debug: HTMLElement, sheet: HTMLElement, chrome: object}} [panels] - the
+ *   move log, the level sheet's root, and the topbar it reads from.
  */
 export async function start(canvas, panels) {
   if (!(canvas instanceof HTMLCanvasElement)) {
@@ -130,6 +131,7 @@ export async function start(canvas, panels) {
       layout: boardLayout(level.board, box.width, box.height),
       palette: data.palette,
       gloss: data.gloss,
+      geometry: data.geometry,
       glyphsById,
       selected: playing ? null : selected,
       level,
@@ -215,20 +217,12 @@ export async function start(canvas, panels) {
   window.addEventListener('resize', () => {
     if (!playing) drawBoard();
   });
-  if (panels) {
-    // The editor mutates data.palette in place; the board reads it every frame, so a
-    // repaint is all it takes for a colour change to land.
-    mountPalettePanel(panels.palette, data.palette, () => {
-      if (!playing) drawBoard();
-    });
-  }
   drawBoard();
 }
 
 // Auto-start when loaded in the browser (skipped under `node --test`).
 if (typeof document !== 'undefined') {
   const canvas = document.getElementById('screen');
-  const palette = document.getElementById('palette-panel');
   const debug = document.getElementById('debug-panel');
   const sheet = document.getElementById('sheet-root');
   const chrome = {
@@ -237,6 +231,6 @@ if (typeof document !== 'undefined') {
     act: document.getElementById('level-act'),
     teaches: document.getElementById('level-teaches'),
   };
-  const wired = palette && debug && sheet && Object.values(chrome).every(Boolean);
-  if (canvas) start(canvas, wired ? { palette, debug, sheet, chrome } : undefined);
+  const wired = debug && sheet && Object.values(chrome).every(Boolean);
+  if (canvas) start(canvas, wired ? { debug, sheet, chrome } : undefined);
 }

@@ -1,0 +1,9 @@
+{
+  "note": "Glyph geometry, tuned in dev/cell.html. Lengths are in the render spec's 100-unit cell and scale with the board. The keyline is drawn under the ink ring, so the keyline showing outside it is half their difference.",
+  "radius": 20,
+  "keyWidth": 5,
+  "inkWidth": 6,
+  "markWidth": 2,
+  "dotRadius": 7,
+  "nestRadius": 12
+}

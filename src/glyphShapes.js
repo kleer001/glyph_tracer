@@ -1,17 +1,18 @@
 // Glyph geometry — pure, no canvas. RENDER_SPEC.md is the reference this implements.
 //
-// Everything is expressed in the spec's 100x100 cell so the numbers here read
-// straight off that document; the renderer scales the whole cell to pixels.
+// Everything is expressed in the spec's 100x100 cell; the renderer scales the whole
+// cell to pixels. The lengths themselves are tuning and arrive as `geom` from
+// data/geometry.json, so this module holds the forms and none of the sizes.
 //
 // SVG y is down, so an offset of -90 degrees puts a vertex at the top.
 
 export const CELL = 100;
 export const CENTER = 50;
-export const RADIUS = 36;
-export const CORNER = 8;
 
-/** Stroke widths, in cell units. A 14 under an 8 leaves 3 units of keyline outside. */
-export const STROKE = Object.freeze({ key: 14, ink: 8, mark: 6, nest: 6 });
+/** The knobs data/geometry.json has to carry for a glyph to be drawable. */
+export const GEOMETRY_KEYS = Object.freeze([
+  'radius', 'keyWidth', 'inkWidth', 'markWidth', 'dotRadius', 'nestRadius',
+]);
 
 /** Side count is the verb: how the form relates to a 4-grid. */
 export const FORMS = Object.freeze({
@@ -30,11 +31,11 @@ export const MARKS = Object.freeze(['none', 'dot', 'cross', 'ex', 'slash', 'nest
  * @param {string} form - a key of FORMS.
  * @param {number} [rotation] - degrees added to the form's offset; a triangle's
  *   apex is its push direction, which is the only axis rotation is used for.
- * @param {number} [radius]
+ * @param {number} radius - from data/geometry.json; the caller owns the tuning.
  * @returns {{kind: 'circle', cx: number, cy: number, r: number}
  *          |{kind: 'polygon', points: Array<[number, number]>}}
  */
-export function outline(form, rotation = 0, radius = RADIUS) {
+export function outline(form, rotation, radius) {
   const spec = FORMS[form];
   if (!spec) throw new Error(`unknown form: ${form}`); // boundary
   if (spec.sides === null) return { kind: 'circle', cx: CENTER, cy: CENTER, r: radius };
@@ -66,15 +67,16 @@ export function fillClips(mag) {
  * The inner mark, as primitives the renderer can draw without knowing which mark
  * it got. Painted twice — ink inside the core clip, core inside the ink clip — so
  * it contrasts at every fill state with no per-glyph art.
+ * @param {object} geom - from data/geometry.json.
  * @returns {{dots: Array<object>, lines: Array<object>, rings: Array<object>}}
  */
-export function markGeometry(mark, form, rotation = 0) {
+export function markGeometry(mark, form, rotation, geom) {
   const empty = { dots: [], lines: [], rings: [] };
   switch (mark) {
     case 'none':
       return empty;
     case 'dot':
-      return { ...empty, dots: [{ cx: CENTER, cy: CENTER, r: 8 }] };
+      return { ...empty, dots: [{ cx: CENTER, cy: CENTER, r: geom.dotRadius }] };
     case 'cross':
       return {
         ...empty,
@@ -95,7 +97,7 @@ export function markGeometry(mark, form, rotation = 0) {
       return { ...empty, lines: [{ x1: 38, y1: 62, x2: 62, y2: 38 }] };
     case 'nest':
       // Nesting encodes range: the same form again, inside itself.
-      return { ...empty, rings: [outline(form, rotation, 15)] };
+      return { ...empty, rings: [outline(form, rotation, geom.nestRadius)] };
     default:
       throw new Error(`unknown mark: ${mark}`); // boundary
   }

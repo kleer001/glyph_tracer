@@ -2,10 +2,10 @@
 // only place that touches a canvas, so board.js and level.js stay pure.
 //
 // RENDER_SPEC.md is the paint order this implements. Each glyph is drawn in the
-// spec's 100x100 cell and scaled to the view, so the numbers in that document and
-// the numbers in glyphShapes.js are the same numbers.
+// spec's 100x100 cell and scaled to the view; the lengths and the gloss both arrive
+// as data, so nothing about the look is spelled out here.
 
-import { CELL, STROKE, fillClips, markGeometry, outline } from './glyphShapes.js';
+import { CELL, GEOMETRY_KEYS, fillClips, markGeometry, outline } from './glyphShapes.js';
 
 /** Layout tuning. Everything else about the look comes from data/palette.json. */
 export const VIEW = Object.freeze({
@@ -104,6 +104,15 @@ function assertGloss(gloss) {
   }
 }
 
+/** Geometry is data too; a missing length is a broken data file, not a default. */
+function assertGeometry(geom) {
+  for (const key of GEOMETRY_KEYS) {
+    if (typeof geom?.[key] !== 'number') {
+      throw new Error(`geometry is missing "${key}"`); // boundary
+    }
+  }
+}
+
 /** Set up a shadow, run the paint, put the context back. */
 function withShadow(ctx, { alpha, offsetY, blur }, scale, paint) {
   if (alpha <= 0) {
@@ -184,10 +193,10 @@ function clipTo(ctx, rect) {
   ctx.clip();
 }
 
-function drawMark(ctx, geo, color) {
+function drawMark(ctx, geo, color, width) {
   ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  ctx.lineWidth = STROKE.mark;
+  ctx.lineWidth = width;
   ctx.lineCap = 'round';
   for (const dot of geo.dots) {
     ctx.beginPath();
@@ -211,10 +220,12 @@ function drawMark(ctx, geo, color) {
  * @param {CanvasRenderingContext2D} ctx
  * @param {{form: string, mag: number, mark: string, rotation: number}} glyph
  * @param {{ink: string, core: string, key: string}} colors
+ * @param {object} geom - lengths from data/geometry.json.
  */
-export function drawGlyph(ctx, glyph, colors, gloss) {
+export function drawGlyph(ctx, glyph, colors, gloss, geom) {
   assertGloss(gloss);
-  const shape = outline(glyph.form, glyph.rotation);
+  assertGeometry(geom);
+  const shape = outline(glyph.form, glyph.rotation, geom.radius);
   const clips = fillClips(glyph.mag);
   ctx.lineJoin = 'round';
 
@@ -229,7 +240,7 @@ export function drawGlyph(ctx, glyph, colors, gloss) {
       tracePath(ctx, shape);
       ctx.fillStyle = colors.key;
       ctx.strokeStyle = colors.key;
-      ctx.lineWidth = STROKE.key;
+      ctx.lineWidth = geom.keyWidth;
       ctx.fill();
       ctx.stroke();
     },
@@ -240,7 +251,7 @@ export function drawGlyph(ctx, glyph, colors, gloss) {
   ctx.fillStyle = colors.core;
   ctx.fill();
   ctx.strokeStyle = colors.key;
-  ctx.lineWidth = STROKE.key;
+  ctx.lineWidth = geom.keyWidth;
   ctx.stroke();
 
   // 2 — fill state, under the ring so the ring stays crisp. Skipped at mag 1.
@@ -256,22 +267,22 @@ export function drawGlyph(ctx, glyph, colors, gloss) {
   // 3 — ink ring.
   tracePath(ctx, shape);
   ctx.strokeStyle = colors.ink;
-  ctx.lineWidth = STROKE.ink;
+  ctx.lineWidth = geom.inkWidth;
   ctx.stroke();
 
   // 4 — the mark, painted once per region in the other region's color. One rule,
   // so it contrasts at every fill state without per-glyph art.
-  const geo = markGeometry(glyph.mark, glyph.form, glyph.rotation);
+  const geo = markGeometry(glyph.mark, glyph.form, glyph.rotation, geom);
   if (clips.core) {
     ctx.save();
     clipTo(ctx, clips.core);
-    drawMark(ctx, geo, colors.ink);
+    drawMark(ctx, geo, colors.ink, geom.markWidth);
     ctx.restore();
   }
   if (clips.ink) {
     ctx.save();
     clipTo(ctx, clips.ink);
-    drawMark(ctx, geo, colors.core);
+    drawMark(ctx, geo, colors.core, geom.markWidth);
     ctx.restore();
   }
 
@@ -341,6 +352,7 @@ export function createGlyphLayer(view = VIEW) {
           glyphsById.get(sprite.art),
           { ink: palette.colors[sprite.ink].hex, core: palette.core, key: palette.key },
           frame.gloss,
+          frame.geometry,
         );
         ctx.restore();
       }
