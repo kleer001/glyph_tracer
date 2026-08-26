@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { boardLayout, cellAt, cellOrigin, createGlyphLayer, VIEW } from '../src/render.js';
 
 const GLOSS = JSON.parse(readFileSync(new URL('../data/gloss.json', import.meta.url), 'utf8'));
+const GEOMETRY = JSON.parse(readFileSync(new URL('../data/geometry.json', import.meta.url), 'utf8'));
 const PALETTE = JSON.parse(readFileSync(new URL('../data/palette.json', import.meta.url), 'utf8'));
 const BOARD = { width: 5, height: 8 };
 
@@ -53,6 +54,7 @@ test('the glyph layer clips to the board before it draws anything', () => {
     layout,
     palette: PALETTE,
     gloss: GLOSS,
+    geometry: GEOMETRY,
     glyphsById: new Map([['pulse', { form: 'circle', mag: 1, mark: 'none', rotation: 0 }]]),
   });
   const clipAt = calls.findIndex((c) => c.name === 'clip');

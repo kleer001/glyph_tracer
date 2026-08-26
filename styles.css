@@ -2,8 +2,8 @@
    near-black ink, one monospace face. The house phosphor default is not this
    game's aesthetic.
 
-   The two flanking panels are dev instruments — a palette editor and a move log.
-   They are deliberately quiet so the board stays the thing you look at. */
+   The flanking panel is a dev instrument — the move log. It is deliberately quiet
+   so the board stays the thing you look at. */
 :root {
   --paper: #E7E8EA;
   --panel: #F3F4F5;
@@ -96,6 +96,10 @@ canvas {
   background: rgba(22, 23, 26, 0.45);
 }
 
+/* Author display: flex above outranks the UA [hidden] rule, so the attribute the
+   picker toggles needs a rule of its own or the sheet never closes. */
+.sheet[hidden] { display: none; }
+
 /* Eight columns wide, which is the longest act — so every act is one row and the
    whole run reads as a block rather than a scroll. */
 .sheetbox {
@@ -187,7 +191,6 @@ canvas {
   overflow: hidden;
 }
 
-.panel-left { flex-basis: 248px; border-right: 1px solid var(--rule); overflow-y: auto; }
 .panel-right { flex-basis: 340px; border-left: 1px solid var(--rule); }
 
 .panel-title {
@@ -220,105 +223,6 @@ button {
 
 button:hover:not(:disabled) { border-color: var(--ink); }
 button:disabled { color: var(--ink-faint); cursor: default; }
-
-/* --- palette editor -------------------------------------------------------- */
-
-.swatch-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.swatch {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 5px;
-  padding: 5px;
-  background: var(--paper);
-}
-
-.swatch.is-selected {
-  border-color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink);
-}
-
-.swatch-chip {
-  display: block;
-  height: 34px;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  border-radius: 2px;
-}
-
-.swatch-name {
-  font-size: 9px;
-  letter-spacing: 0.04em;
-  color: var(--ink-dim);
-}
-
-.readout {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.hex {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-}
-
-.slider-row {
-  display: grid;
-  grid-template-columns: 14px 1fr 30px;
-  align-items: center;
-  gap: 8px;
-}
-
-.slider-label { font-size: 10px; color: var(--ink-faint); }
-.slider-value { font-size: 10px; text-align: right; font-variant-numeric: tabular-nums; }
-.slider-row input { width: 100%; }
-
-.state-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background: var(--sunk);
-  border: 1px solid var(--rule);
-  padding: 7px 6px;
-}
-
-.state-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--ink-dim);
-}
-
-.state-row.is-changed { color: var(--ink); font-weight: 600; }
-
-.state-chip {
-  flex: 0 0 auto;
-  width: 11px;
-  height: 11px;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  border-radius: 2px;
-}
-
-.state-text {
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  white-space: pre;
-}
-
-.panel-hint {
-  margin: 0;
-  font-size: 9.5px;
-  line-height: 1.45;
-  color: var(--ink-faint);
-}
 
 /* --- move log -------------------------------------------------------------- */
 
