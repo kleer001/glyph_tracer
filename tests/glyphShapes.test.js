@@ -5,12 +5,13 @@ import { AUTHORED, CELL, GEOMETRY_KEYS, glyphDrawing, keylineUnits } from '../sr
 
 const GEOM = JSON.parse(readFileSync(new URL('../data/geometry.json', import.meta.url), 'utf8'));
 const GLYPHS = JSON.parse(readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8')).glyphs;
+const PATHS = JSON.parse(readFileSync(new URL('../data/glyphPaths.json', import.meta.url), 'utf8')).paths;
 
 test('every glyph in the pack yields something drawable', () => {
   for (const g of GLYPHS) {
-    const d = glyphDrawing(g, GEOM);
-    assert.ok(['text', 'bars', 'dot'].includes(d.kind), `${g.id} drew as ${d.kind}`);
-    if (d.kind === 'text') assert.equal(typeof d.letter, 'string');
+    const d = glyphDrawing(g, GEOM, PATHS);
+    assert.ok(['path', 'bars', 'dot'].includes(d.kind), `${g.id} drew as ${d.kind}`);
+    if (d.kind === 'path') assert.ok(d.d.length > 0, `${g.id} has an empty path`);
     if (d.kind === 'bars') assert.equal(d.rects.length, 2);
     if (d.kind === 'dot') assert.ok(d.circle.r > 0);
   }
@@ -22,16 +23,23 @@ test('the two authored glyphs are the ones with no letter behind them', () => {
 });
 
 test('a turn and a mirror are handed back rather than applied', () => {
-  const turned = glyphDrawing({ letter: 'A', rot: 90 }, GEOM);
+  const turned = glyphDrawing({ letter: 'A', rot: 90 }, GEOM, PATHS);
   assert.equal(turned.rot, 90);
   assert.equal(turned.flip, false);
-  const mirrored = glyphDrawing({ letter: 'R', flip: true }, GEOM);
+  const mirrored = glyphDrawing({ letter: 'R', flip: true }, GEOM, PATHS);
   assert.equal(mirrored.rot, 0);
   assert.equal(mirrored.flip, true);
 });
 
-test('a glyph with no letter fails loudly', () => {
-  assert.throws(() => glyphDrawing({ id: 'broken', letter: '' }, GEOM));
+test('a glyph with no baked path fails loudly', () => {
+  assert.throws(() => glyphDrawing({ id: 'broken', letter: 'Q' }, GEOM, PATHS));
+});
+
+test('every letter the pack uses has been baked', () => {
+  const used = new Set(GLYPHS.map((g) => g.letter).filter((l) => !AUTHORED[l]));
+  for (const letter of used) {
+    assert.ok(PATHS[letter], `no baked path for "${letter}" — rerun tools/bakeGlyphs.py`);
+  }
 });
 
 test('the keyline is the same pixel width whatever the cell size', () => {

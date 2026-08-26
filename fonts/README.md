@@ -1,23 +1,22 @@
 # fonts
 
-`glyph-serif.woff2` is DejaVu Serif Bold, subset to the six letters the glyph set uses
-— **A H O R S X** — and nothing else. Under a kilobyte, so it loads before the first
-frame rather than after it.
+**The game ships no font.** `data/glyphPaths.json` carries the letterforms as SVG
+paths, baked out of DejaVu Serif Bold by `tools/bakeGlyphs.py`. Nothing about how a
+glyph looks depends on what the player has installed, there is no webfont to wait for
+before the first frame, and a turn or a mirror is a transform on a path.
 
-The game sets its glyphs in this face and nowhere else. It is self-hosted rather than
-pulled from a CDN because Google Fonts does not carry DejaVu, and the two authored
-glyphs — `+` and `.` — are built from measurements taken off *this* face: a stem of 19
-and a cap height of 73 in the render spec's 100-unit cell. Substitute another serif and
-those two stop matching the letters they sit beside.
-
-Regenerate with:
+Rebake after changing the face or the letters used:
 
 ```sh
-python3 -m fontTools.subset /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf \
-  --text="OHAXRS" --flavor=woff2 --layout-features='' --no-hinting \
-  --output-file=fonts/glyph-serif.woff2
+python3 tools/bakeGlyphs.py           # writes data/glyphPaths.json
+python3 tools/bakeGlyphs.py --check   # fails if the file is out of date
 ```
 
-`LICENSE` is the Bitstream Vera notice carried in the font's own name table. DejaVu's
-changes to it are public domain; the Bitstream terms permit redistribution and
-modification, and require the notice to travel with the font.
+Each path is normalised to a cap height of 1, centred on x=0, with y=0 at the middle of
+the cap — so `data/geometry.json` still owns the size and the vertical aim. Two glyphs
+are not baked: `+` and `.` are authored from that face's stem width and cap height,
+which is why substituting another face means remeasuring rather than just rebaking.
+
+`LICENSE` is the Bitstream Vera notice carried in DejaVu's own name table. DejaVu's
+changes to it are public domain; the Bitstream terms permit modification and
+redistribution, and the outlines here are a derivative of that work.

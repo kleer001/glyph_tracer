@@ -11,8 +11,6 @@
 :root{--paper:#E7E8EA;--panel:#F3F4F5;--sunk:#DBDDE0;--ink1:#16171A;--ink2:#53565C;--ink3:#83868D;
   --rule:#C5C7CB;--warn:#9C2A2B;
   --ink:#16171A;--ink-dim:#53565C;--ink-faint:#83868D}
-@font-face{font-family:"Glyph Serif";src:url("../fonts/glyph-serif.woff2") format("woff2");
-  font-weight:700;font-style:normal;font-display:block}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink1);
   font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:14px}
@@ -134,6 +132,7 @@ import { mountPalettePanel } from '../src/devPanels.js';
 const PALETTE = await (await fetch('../data/palette.json')).json();
 const GLYPHS = (await (await fetch('../data/glyphs.json')).json()).glyphs;
 const SHIPPED_GEOM = await (await fetch('../data/geometry.json')).json();
+const PATHS = (await (await fetch('../data/glyphPaths.json')).json()).paths;
 const SHIPPED_GLOSS = await (await fetch('../data/gloss.json')).json();
 
 const numbersOnly = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => typeof v === 'number'));
@@ -174,6 +173,7 @@ function paintCell(ctx, glyph, pair, s) {
     gloss,
     geomOf(s),
     s.size,
+    PATHS,
   );
   ctx.restore();
 }
@@ -246,7 +246,6 @@ document.getElementById('copy-gloss').addEventListener('click', (e) =>
 // change lands on every glyph at once.
 mountPalettePanel(document.getElementById('palette-editor'), PALETTE, render);
 
-await document.fonts.load('700 73px "Glyph Serif"');
 render();
 </script>
 </body>

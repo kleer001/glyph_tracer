@@ -1,9 +1,14 @@
 // Glyph geometry — pure, no canvas. RENDER_SPEC.md is the reference this implements.
 //
 // A glyph is a Roman letter, turned or mirrored: the letterform is the verb and the
-// turn is the direction. Two of the twelve are authored rather than taken from the
-// font — `+` is two bars and `.` is a filled dot — because no letter is shaped like a
-// cross and none is shaped like a stop.
+// turn is the direction. Two of the twelve are authored rather than drawn from a
+// letter — `+` is two bars and `.` is a filled dot — because no letter is shaped like
+// a cross and none is shaped like a stop.
+//
+// The letters arrive as baked outlines from data/glyphPaths.json, not as type set in a
+// font. The game ships the paths, so nothing about how a glyph looks depends on what
+// the player has installed and there is no webfont to wait for before the first frame.
+// tools/bakeGlyphs.py cuts them; each is normalised to a cap height of 1.
 //
 // Everything is expressed in the spec's 100x100 cell; the renderer scales the whole
 // cell to pixels. The lengths are tuning and arrive as `geom` from data/geometry.json,
@@ -29,8 +34,9 @@ export const AUTHORED = Object.freeze({ '+': 'bars', '.': 'dot' });
  *
  * @param {{id?: string, letter: string, rot?: number, flip?: boolean}} glyph
  * @param {object} geom - from data/geometry.json.
+ * @param {object} paths - the `paths` map from data/glyphPaths.json.
  */
-export function glyphDrawing(glyph, geom) {
+export function glyphDrawing(glyph, geom, paths) {
   const rot = glyph.rot ?? 0;
   const flip = glyph.flip === true;
   const authored = AUTHORED[glyph.letter];
@@ -61,10 +67,13 @@ export function glyphDrawing(glyph, geom) {
     };
   }
 
-  if (typeof glyph.letter !== 'string' || glyph.letter.length === 0) {
-    throw new Error(`glyph "${glyph.id}" has no letter to draw`); // boundary
+  const d = paths?.[glyph.letter];
+  if (!d) {
+    throw new Error(`glyph "${glyph.id}" has no baked path for "${glyph.letter}"`); // boundary
   }
-  return { kind: 'text', rot, flip, letter: glyph.letter };
+  // Baked at cap height 1 about its own centre, so the size and the vertical aim are
+  // still geometry.json's to set.
+  return { kind: 'path', rot, flip, d, scale: geom.cap, y: geom.centre };
 }
 
 /**

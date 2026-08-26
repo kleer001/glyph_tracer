@@ -23,7 +23,7 @@ import {
   createSelectionLayer,
 } from './render.js';
 
-const DATA = ['rules', 'palette', 'glyphs', 'animation', 'gloss', 'geometry', 'levels'];
+const DATA = ['rules', 'palette', 'glyphs', 'glyphPaths', 'animation', 'gloss', 'geometry', 'levels'];
 /** What the HUD says about a level that is finished, or still running. */
 export function statusFor(level, atEnd = false) {
   const state = outcome(level);
@@ -67,11 +67,6 @@ export async function start(canvas, panels) {
   if (!ctx) throw new Error('2D canvas context unavailable');
 
   const data = await loadData();
-  // Canvas text does not pull a webfont in — only DOM content does — so a glyph drawn
-  // straight to canvas would silently fall back to whatever serif the machine has.
-  // The two authored glyphs are built from this face's measurements, so a substitute
-  // would not match them. Wait for it before the first frame.
-  await document.fonts.load(`${VIEW.glyphWeight} ${data.geometry.cap}px ${VIEW.glyphFont}`);
   const glyphs = data.glyphs.glyphs;
   const glyphsById = new Map(glyphs.map((g) => [g.id, g]));
 
@@ -136,6 +131,7 @@ export async function start(canvas, panels) {
       palette: data.palette,
       gloss: data.gloss,
       geometry: data.geometry,
+      glyphPaths: data.glyphPaths.paths,
       glyphsById,
       selected: playing ? null : selected,
       level,

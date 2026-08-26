@@ -1,14 +1,3 @@
-/* The face the glyphs are set in, subset to the six letters they use. Self-hosted
-   because the two authored glyphs are built from this face's measurements — see
-   fonts/README.md. */
-@font-face {
-  font-family: "Glyph Serif";
-  src: url("fonts/glyph-serif.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: block;
-}
-
 /* Glyph Tracer's own look, taken from the specimen plate in docs/: light plate,
    near-black ink, one monospace face. The house phosphor default is not this
    game's aesthetic.

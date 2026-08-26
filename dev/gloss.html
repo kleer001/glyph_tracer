@@ -127,6 +127,7 @@ import { FORMS, MARKS, CELL } from '../src/glyphShapes.js';
 const PALETTE = await (await fetch('../data/palette.json')).json();
 const SHIPPED = await (await fetch('../data/gloss.json')).json();
 const GEOMETRY = await (await fetch('../data/geometry.json')).json();
+const PATHS = (await (await fetch('../data/glyphPaths.json')).json()).paths;
 
 // `flat` is the renderer with every knob at zero; `shipped` is what data/gloss.json
 // currently holds, so you can always see what you are changing away from.
@@ -172,6 +173,8 @@ function paint(ctx, s, size, pad) {
     { ink: PALETTE.colors[s.ink].hex, core: PALETTE.core, key: PALETTE.key },
     gloss,
     GEOMETRY,
+    size,
+    PATHS,
   );
   ctx.restore();
 }

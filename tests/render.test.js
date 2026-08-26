@@ -6,7 +6,12 @@ import { boardLayout, cellAt, cellOrigin, createGlyphLayer, VIEW } from '../src/
 const GLOSS = JSON.parse(readFileSync(new URL('../data/gloss.json', import.meta.url), 'utf8'));
 const GEOMETRY = JSON.parse(readFileSync(new URL('../data/geometry.json', import.meta.url), 'utf8'));
 const PALETTE = JSON.parse(readFileSync(new URL('../data/palette.json', import.meta.url), 'utf8'));
+const PATHS = JSON.parse(readFileSync(new URL('../data/glyphPaths.json', import.meta.url), 'utf8')).paths;
 const BOARD = { width: 5, height: 8 };
+
+// The renderer builds Path2D objects for the baked letterforms. It is a browser API
+// and this file mocks the canvas, so the mock has to cover it too.
+globalThis.Path2D ??= class { constructor(d) { this.d = d; } };
 
 /** A 2D context that records the calls it is given and draws nothing. */
 function recordingCtx(calls) {
@@ -19,10 +24,7 @@ function recordingCtx(calls) {
     fill: note('fill'), stroke: note('stroke'), translate: note('translate'),
     scale: note('scale'), fillRect: note('fillRect'),
     createLinearGradient: () => ({ addColorStop() {} }),
-    fillText: note('fillText'), strokeText: note('strokeText'),
     strokeRect: note('strokeRect'),
-    measureText: () => ({ actualBoundingBoxAscent: 50, actualBoundingBoxDescent: 0 }),
-    set font(_v) {}, set textAlign(_v) {}, set textBaseline(_v) {},
   };
 }
 
@@ -60,6 +62,7 @@ test('the glyph layer clips to the board before it draws anything', () => {
     gloss: GLOSS,
     geometry: GEOMETRY,
     glyphsById: new Map([['pulse', { id: 'pulse', letter: 'O', rot: 0, flip: false }]]),
+    glyphPaths: PATHS,
   });
   const clipAt = calls.findIndex((c) => c.name === 'clip');
   const firstDraw = calls.findIndex((c) =>

@@ -13,8 +13,6 @@ export const VIEW = Object.freeze({
   gap: 4,
   hudHeight: 72,
   hudFont: '600 15px "Martian Mono", ui-monospace, SFMono-Regular, Consolas, monospace',
-  glyphFont: '"Glyph Serif", "DejaVu Serif", Georgia, serif',
-  glyphWeight: 700,
   hudInk: '#16171A',
   hudDim: '#83868D',
   paper: '#E7E8EA',
@@ -193,10 +191,10 @@ export function drawTile(ctx, { x, y, size }, groundHex, gloss) {
  * @param {{ink: string, key: string}} colors
  * @param {number} cellPx - the on-screen side of the cell, for the keyline.
  */
-export function drawGlyph(ctx, glyph, colors, gloss, geom, cellPx) {
+export function drawGlyph(ctx, glyph, colors, gloss, geom, cellPx, paths) {
   assertGloss(gloss);
   assertGeometry(geom);
-  const d = glyphDrawing(glyph, geom);
+  const d = glyphDrawing(glyph, geom, paths);
   const key = keylineUnits(geom.keylinePx, cellPx);
 
   ctx.save();
@@ -220,6 +218,20 @@ export function drawGlyph(ctx, glyph, colors, gloss, geom, cellPx) {
   ctx.restore();
 }
 
+/**
+ * Path2D objects are immutable once built and the same dozen strings are drawn every
+ * frame, so they are parsed once and kept.
+ */
+const PATHS = new Map();
+function pathFor(d) {
+  let path = PATHS.get(d);
+  if (!path) {
+    path = new Path2D(d);
+    PATHS.set(d, path);
+  }
+  return path;
+}
+
 /** The shape itself, filled in `fill` under a keyline of `key` at `keyWidth`. */
 function paintGlyph(ctx, d, geom, fill, key, keyWidth) {
   ctx.lineJoin = 'round';
@@ -227,17 +239,18 @@ function paintGlyph(ctx, d, geom, fill, key, keyWidth) {
   ctx.fillStyle = fill;
   ctx.lineWidth = keyWidth;
 
-  if (d.kind === 'text') {
-    ctx.font = `${VIEW.glyphWeight} ${geom.cap}px ${VIEW.glyphFont}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    // Type sits above its own baseline, so centre on the cap rather than on the box.
-    const m = ctx.measureText(d.letter);
-    const y = CELL / 2
-      + geom.centre
-      + ((m.actualBoundingBoxAscent ?? geom.cap * 0.7) - (m.actualBoundingBoxDescent ?? 0)) / 2;
-    if (keyWidth > 0) ctx.strokeText(d.letter, CELL / 2, y);
-    ctx.fillText(d.letter, CELL / 2, y);
+  if (d.kind === 'path') {
+    // Baked at cap height 1 about its own centre, so one scale and one shift place it.
+    ctx.save();
+    ctx.translate(CELL / 2, CELL / 2 + d.y);
+    ctx.scale(d.scale, d.scale);
+    const path = pathFor(d.d);
+    // The keyline is a cell-unit width, and the path is about to be scaled by the cap,
+    // so divide it back out or a tall glyph would carry a thicker outline than a short.
+    ctx.lineWidth = keyWidth / d.scale;
+    if (keyWidth > 0) ctx.stroke(path);
+    ctx.fill(path);
+    ctx.restore();
     return;
   }
   if (d.kind === 'bars') {
@@ -306,6 +319,7 @@ export function createGlyphLayer(view = VIEW) {
           frame.gloss,
           frame.geometry,
           size,
+          frame.glyphPaths,
         );
         ctx.restore();
       }
