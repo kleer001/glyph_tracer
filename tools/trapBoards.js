@@ -18,11 +18,11 @@
 import { pathToFileURL } from 'node:url';
 import { writeFileSync } from 'node:fs';
 import {
-  BLOCK,
+  ANCHOR,
   PLAIN,
-  PUSH,
-  VOID,
-  WILD,
+  PULSE,
+  ROTATE,
+  SINK,
   copyBoard,
   randomBoard,
   resolve,
@@ -31,7 +31,7 @@ import {
 import { mulberry32 } from '../src/rng.js';
 import { parseArgs } from './args.js';
 
-const KIND_MARK = { [PLAIN]: ' ', [PUSH]: '*', [BLOCK]: '#', [WILD]: '?', [VOID]: 'o' };
+const KIND_MARK = { [PLAIN]: ' ', [PULSE]: '*', [ANCHOR]: '#', [ROTATE]: '@', [SINK]: 'o' };
 const LETTERS = 'abcdefghijklmnop';
 
 const SPEC = {
@@ -41,7 +41,10 @@ const SPEC = {
   height: { type: 'number', default: 8 },
   pushers: { type: 'number', default: 0.5 },
   blockers: { type: 'number', default: 0.125 },
-  wilds: { type: 'number', default: 0 },
+  // Nothing is random at resolution time, so there is no unpredictable glyph to dial
+  // in. The rotator takes that knob: it is the rearranger that touches the most cells
+  // without shoving, which is the other way a trap line can detonate.
+  rotators: { type: 'number', default: 0 },
   voids: { type: 'number', default: 0 },
   payoff: { type: 'number', default: 8 },
   target: { type: 'number', default: 40 },
@@ -173,7 +176,7 @@ function render(b) {
 
 function report(board, m) {
   console.log(render(board));
-  console.log('\n  lowercase = cell background, UPPERCASE = glyph   * pushes   # eats   ? wild   o pulls inward\n');
+  console.log('\n  lowercase = cell background, UPPERCASE = glyph   * pushes   # eats   @ turns   o pulls inward\n');
   const { lure, solution: sol } = m;
   console.log(
     `  cells cleared:   best line ${String(m.best).padEnd(3)}   greedy pick ${String(lure.full).padEnd(3)}   typical swap ${m.median}`,
@@ -221,13 +224,7 @@ function main() {
     colors: args.colors,
     adjacentOnly: args['adjacent-only'],
   };
-  const mix = { [BLOCK]: args.blockers, [WILD]: args.wilds, [VOID]: args.voids, [PUSH]: args.pushers };
-  if (args.wilds) {
-    console.log(
-      'NOTE: wild glyphs fire a random subset, so a board\'s best line is not\n' +
-        '      reproducible and the solver count below is one sample, not a fact.\n',
-    );
-  }
+  const mix = { [ANCHOR]: args.blockers, [ROTATE]: args.rotators, [SINK]: args.voids, [PULSE]: args.pushers };
   const blurb = Object.entries(mix)
     .filter(([, v]) => v)
     .map(([k, v]) => `${(v * 100).toFixed(0)}% ${k}`)

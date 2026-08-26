@@ -14,17 +14,15 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { BLOCK, PUSH, swapPairs } from '../src/board.js';
-import { greedyPlay, playableGlyphs } from '../src/level.js';
+import { ANCHOR, PULSE, swapPairs } from '../src/board.js';
+import { greedyPlay } from '../src/level.js';
 import { dealLevel } from '../src/levels.js';
 import { parseArgs } from './args.js';
 
 const HTML = new URL('../docs/teaching.html', import.meta.url);
 const OUT = new URL('../data/levels.json', import.meta.url);
 const RULES = JSON.parse(readFileSync(new URL('../data/rules.json', import.meta.url), 'utf8'));
-const GLYPHS = playableGlyphs(
-  JSON.parse(readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8')).glyphs,
-);
+const GLYPHS = JSON.parse(readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8')).glyphs;
 
 const ROMAN = ['I', 'II', 'III', 'IV'];
 const SEED_BASE = 20260825;
@@ -46,7 +44,7 @@ export function readRun(html) {
       no: roman,
       name,
       means: JSON.parse(means),
-      mix: { [BLOCK]: pct('eaters'), [PUSH]: pct('pushers') },
+      mix: { [ANCHOR]: pct('eaters'), [PULSE]: pct('pushers') },
       levels: [...body.matchAll(
         /<tr><td class="num">(\d+)<\/td><td class="num">(\d+)<\/td><td class="teach">(.*?)<\/td><td class="num">([\d.]+)<\/td><td class="num">(\d+)<\/td><td class="note">(.*?)<\/td><\/tr>/g,
       )].map(([, id, colors, teaches, factor, target, note]) => ({

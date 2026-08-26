@@ -4,5 +4,12 @@
   "colors": 6,
   "swapBudget": 6,
   "adjacentOnly": false,
-  "mix": { "block": 0.125, "push": 0.5 }
+  "mix": {
+    "anchor": 0.125,
+    "pulse": 0.25,
+    "pushUp": 0.0625,
+    "pushRight": 0.0625,
+    "pushDown": 0.0625,
+    "pushLeft": 0.0625
+  }
 }

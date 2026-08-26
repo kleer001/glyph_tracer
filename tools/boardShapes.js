@@ -14,8 +14,8 @@
 //   node tools/boardShapes.js --traps                          # generator quality (slow)
 
 import {
-  BLOCK,
-  PUSH,
+  ANCHOR,
+  PULSE,
   applySwap,
   gain,
   randomBoard,
@@ -118,14 +118,14 @@ export function shoveRunway(rules, mix, trials, seed) {
     const b = randomBoard(rules, mix, mulberry32(seed + i));
     for (let r = 0; r < b.height; r++) {
       for (let c = 0; c < b.width; c++) {
-        if (b.kind[r][c] !== PUSH) continue;
+        if (b.kind[r][c] !== PULSE) continue;
         for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
           let len = 0;
           let rr = r + dr;
           let cc = c + dc;
           while (
             rr >= 0 && rr < b.height && cc >= 0 && cc < b.width &&
-            b.alive[rr][cc] && b.glyph[rr][cc] !== null && b.kind[rr][cc] !== BLOCK
+            b.alive[rr][cc] && b.glyph[rr][cc] !== null && b.kind[rr][cc] !== ANCHOR
           ) {
             len += 1;
             rr += dr;
@@ -142,7 +142,7 @@ export function shoveRunway(rules, mix, trials, seed) {
 
 function main() {
   const args = parseArgs(process.argv.slice(2), SPEC);
-  const mix = { [BLOCK]: args.blockers, [PUSH]: args.pushers };
+  const mix = { [ANCHOR]: args.blockers, [PULSE]: args.pushers };
   const sizes = args.sizes.map(parseSize);
   const pad = (v, n, d = 1) => (typeof v === 'number' ? v.toFixed(d) : String(v)).padStart(n);
 

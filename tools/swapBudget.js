@@ -9,11 +9,11 @@
 //   node tools/swapBudget.js                      # full sweep
 //   node tools/swapBudget.js --colors 4 6 8       # pick the palette sizes
 //   node tools/swapBudget.js --blockers 0.25      # fraction of glyphs that eat
-//   node tools/swapBudget.js --wilds 0.1 --voids 0.1
+//   node tools/swapBudget.js --rotators 0.1 --voids 0.1
 //   node tools/swapBudget.js --show               # play one board out loud
 
 import { pathToFileURL } from 'node:url';
-import { BLOCK, PUSH, VOID, WILD, randomBoard, swapPairs } from '../src/board.js';
+import { ANCHOR, PULSE, ROTATE, SINK, randomBoard, swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
 import { mulberry32 } from '../src/rng.js';
 import { parseArgs } from './args.js';
@@ -29,7 +29,10 @@ const SPEC = {
   height: { type: 'number', default: 8 },
   pushers: { type: 'number', default: 0.5 },
   blockers: { type: 'number', default: 0.125 },
-  wilds: { type: 'number', default: 0 },
+  // Nothing is random at resolution time, so there is no unpredictable glyph to dial
+  // in. The rotator takes that knob: it is the rearranger that touches the most cells
+  // without shoving, which is the other way a cascade can start.
+  rotators: { type: 'number', default: 0 },
   voids: { type: 'number', default: 0 },
   show: { type: 'flag', default: false },
 };
@@ -57,7 +60,7 @@ function measure({ colors, rules, mix, trials, seed }) {
 function main() {
   const args = parseArgs(process.argv.slice(2), SPEC);
   const rules = { width: args.width, height: args.height };
-  const mix = { [BLOCK]: args.blockers, [WILD]: args.wilds, [VOID]: args.voids, [PUSH]: args.pushers };
+  const mix = { [ANCHOR]: args.blockers, [ROTATE]: args.rotators, [SINK]: args.voids, [PULSE]: args.pushers };
   const blurb = Object.entries(mix)
     .filter(([, v]) => v)
     .map(([k, v]) => `${(v * 100).toFixed(0)}% ${k}`)
