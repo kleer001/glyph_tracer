@@ -23,8 +23,9 @@ const HTML = new URL('../docs/teaching.html', import.meta.url);
 const OUT = new URL('../data/levels.json', import.meta.url);
 const RULES = JSON.parse(readFileSync(new URL('../data/rules.json', import.meta.url), 'utf8'));
 const GLYPHS = JSON.parse(readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8')).glyphs;
+/** Every kind a glyph is drawn for, so an act cannot name one that cannot appear. */
+const KINDS = new Set(GLYPHS.map((g) => g.kind).filter(Boolean));
 
-const ROMAN = ['I', 'II', 'III', 'IV'];
 const SEED_BASE = 20260825;
 const SEED_STRIDE = 7919;
 const SEED_TRIES = 4000;
@@ -34,17 +35,25 @@ export function readRun(html) {
   const acts = [...html.matchAll(
     /<div class="act" data-means='(\{.*?\})'>[\s\S]*?<span class="no">ACT ([IV]+)<\/span><span class="nm">(.*?)<\/span><span class="cfg">(.*?)<\/span>([\s\S]*?)<\/table>/g,
   )].map(([, means, roman, name, cfg, body]) => {
-    const pct = (label) => {
-      const m = new RegExp(`([\\d.]+)% ${label}`).exec(cfg);
-      if (!m) throw new Error(`act ${roman} does not say how many ${label}`); // boundary
-      return Number(m[1]) / 100;
-    };
+    // The act bar names its own mix — "25% pulse · 12.5% anchor · 6 swaps" — so an act
+    // can ask for any kind the glyph pack draws without this parser learning its name.
+    // The remainder of the board is inert, which is most of it.
+    const mix = {};
+    for (const [, pct, kind] of cfg.matchAll(/([\d.]+)%\s+([A-Za-z]+)/g)) {
+      if (!KINDS.has(kind)) {
+        throw new Error(`act ${roman} asks for "${kind}", which no glyph is drawn for`); // boundary
+      }
+      mix[kind] = Number(pct) / 100;
+    }
+    if (!Object.keys(mix).length) {
+      throw new Error(`act ${roman} says nothing about what its boards are made of`); // boundary
+    }
     return {
       id: name.toLowerCase().replace(/^the /, ''),
       no: roman,
       name,
       means: JSON.parse(means),
-      mix: { [ANCHOR]: pct('eaters'), [PULSE]: pct('pushers') },
+      mix,
       levels: [...body.matchAll(
         /<tr><td class="num">(\d+)<\/td><td class="num">(\d+)<\/td><td class="teach">(.*?)<\/td><td class="num">([\d.]+)<\/td><td class="num">(\d+)<\/td><td class="note">(.*?)<\/td><\/tr>/g,
       )].map(([, id, colors, teaches, factor, target, note]) => ({
@@ -57,7 +66,13 @@ export function readRun(html) {
       })),
     };
   });
-  if (acts.length !== ROMAN.length) throw new Error(`expected ${ROMAN.length} acts, found ${acts.length}`);
+  // The doc decides how many acts the run has; this only checks it found some and that
+  // none was parsed twice, which is what a bad splice into the doc looks like.
+  if (!acts.length) throw new Error('the run has no acts'); // boundary
+  const seen = new Set(acts.map((a) => a.no));
+  if (seen.size !== acts.length) {
+    throw new Error(`an act number appears twice: ${acts.map((a) => a.no).join(' ')}`); // boundary
+  }
   return acts;
 }
 

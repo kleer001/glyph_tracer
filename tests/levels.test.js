@@ -12,8 +12,8 @@ const RULES = read('../data/rules.json');
 const GLYPHS = read('../data/glyphs.json').glyphs;
 const RUN = loadRun(PACK);
 
-test('the run is four acts of consecutive levels', () => {
-  assert.equal(RUN.acts.length, 4);
+test('the run is acts of consecutive levels', () => {
+  assert.ok(RUN.acts.length > 0, 'the pack has no acts');
   assert.deepEqual(RUN.levels.map((l) => l.id), RUN.levels.map((_, i) => i + 1));
   assert.equal(RUN.levels.length, RUN.acts.reduce((n, a) => n + a.levels.length, 0));
 });

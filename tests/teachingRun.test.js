@@ -19,9 +19,9 @@ const ACTS = [...HTML.matchAll(/<div class="act" data-means='(\{.*?\})'>([\s\S]*
   }),
 );
 
-test('the run has four acts and every act has levels', () => {
-  assert.equal(ACTS.length, 4);
-  for (const act of ACTS) assert.ok(act.rows.length > 0);
+test('the run has acts and every act has levels', () => {
+  assert.ok(ACTS.length > 0, 'the run has no acts');
+  ACTS.forEach((act, i) => assert.ok(act.rows.length > 0, `act ${i + 1} has no levels`));
 });
 
 test('every target is its configuration mean times its factor, rounded', () => {
