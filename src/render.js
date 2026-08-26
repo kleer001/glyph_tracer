@@ -5,7 +5,7 @@
 // spec's 100x100 cell and scaled to the view; the lengths and the gloss both arrive
 // as data, so nothing about the look is spelled out here.
 
-import { CELL, GEOMETRY_KEYS, fillClips, markGeometry, outline } from './glyphShapes.js';
+import { CELL, GEOMETRY_KEYS, glyphDrawing, keylineUnits } from './glyphShapes.js';
 
 /** Layout tuning. Everything else about the look comes from data/palette.json. */
 export const VIEW = Object.freeze({
@@ -13,6 +13,8 @@ export const VIEW = Object.freeze({
   gap: 4,
   hudHeight: 72,
   hudFont: '600 15px "Martian Mono", ui-monospace, SFMono-Regular, Consolas, monospace',
+  glyphFont: '"Glyph Serif", "DejaVu Serif", Georgia, serif',
+  glyphWeight: 700,
   hudInk: '#16171A',
   hudDim: '#83868D',
   paper: '#E7E8EA',
@@ -69,16 +71,6 @@ export function cellAt(layout, board, px, py, view = VIEW) {
   return [r, c];
 }
 
-function tracePath(ctx, shape) {
-  ctx.beginPath();
-  if (shape.kind === 'circle') {
-    ctx.arc(shape.cx, shape.cy, shape.r, 0, Math.PI * 2);
-    return;
-  }
-  shape.points.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-  ctx.closePath();
-}
-
 function traceRoundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -92,7 +84,7 @@ function traceRoundRect(ctx, x, y, w, h, r) {
 const GLOSS_KEYS = [
   'radius', 'cellShadowY', 'cellShadowBlur', 'cellShadowA',
   'sheen', 'sheenStop', 'bevel',
-  'glyphShadowY', 'glyphShadowBlur', 'glyphShadowA', 'spec',
+  'glyphShadowY', 'glyphShadowBlur', 'glyphShadowA',
 ];
 
 /** Gloss is data; a missing knob is a broken data file, not a default to invent. */
@@ -187,118 +179,78 @@ export function drawTile(ctx, { x, y, size }, groundHex, gloss) {
   ctx.restore();
 }
 
-function clipTo(ctx, rect) {
-  ctx.beginPath();
-  ctx.rect(rect.x, rect.y, rect.w, rect.h);
-  ctx.clip();
-}
-
-function drawMark(ctx, geo, color, width) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.lineCap = 'round';
-  for (const dot of geo.dots) {
-    ctx.beginPath();
-    ctx.arc(dot.cx, dot.cy, dot.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  for (const line of geo.lines) {
-    ctx.beginPath();
-    ctx.moveTo(line.x1, line.y1);
-    ctx.lineTo(line.x2, line.y2);
-    ctx.stroke();
-  }
-  for (const ring of geo.rings) {
-    tracePath(ctx, ring);
-    ctx.stroke();
-  }
-}
-
 /**
- * Draw one glyph into the spec's 100x100 cell. The caller owns the transform.
+ * One glyph: a letter set in the game's face, or one of the two authored shapes.
+ * The caller owns the transform, so this paints into the spec's 100x100 cell.
+ *
+ * Every glyph carries a black keyline of `geom.keylinePx` screen pixels. That width
+ * is converted from pixels here rather than fixed in cell units, because the same
+ * glyph is drawn at 92px on the board and half that in the level sheet, and a
+ * hairline has to stay a hairline at both.
+ *
  * @param {CanvasRenderingContext2D} ctx
- * @param {{form: string, mag: number, mark: string, rotation: number}} glyph
- * @param {{ink: string, core: string, key: string}} colors
- * @param {object} geom - lengths from data/geometry.json.
+ * @param {{letter: string, rot?: number, flip?: boolean}} glyph
+ * @param {{ink: string, key: string}} colors
+ * @param {number} cellPx - the on-screen side of the cell, for the keyline.
  */
-export function drawGlyph(ctx, glyph, colors, gloss, geom) {
+export function drawGlyph(ctx, glyph, colors, gloss, geom, cellPx) {
   assertGloss(gloss);
   assertGeometry(geom);
-  const shape = outline(glyph.form, glyph.rotation, geom.radius);
-  const clips = fillClips(glyph.mag);
-  ctx.lineJoin = 'round';
+  const d = glyphDrawing(glyph, geom);
+  const key = keylineUnits(geom.keylinePx, cellPx);
 
-  // 0 — the shadow the piece casts, thrown by an opaque copy of its own silhouette.
-  // Filling and stroking the shape once with the shadow on costs one pass; letting
-  // every fill and stroke below cast its own would stack five shadows into mud.
+  ctx.save();
+  ctx.translate(CELL / 2, CELL / 2);
+  if (d.rot) ctx.rotate((d.rot * Math.PI) / 180);
+  if (d.flip) ctx.scale(-1, 1);
+  ctx.translate(-CELL / 2, -CELL / 2);
+
+  // The shadow the piece casts, thrown by one opaque copy of its own shape: letting
+  // every fill below cast its own would stack them into mud. The piece carries no
+  // highlight of its own — the sheen belongs to the cell, and a highlight drawn here
+  // would travel with the sprite across the board while a swap plays.
   withShadow(
     ctx,
     { alpha: gloss.glyphShadowA, offsetY: gloss.glyphShadowY, blur: gloss.glyphShadowBlur },
     1,
-    () => {
-      tracePath(ctx, shape);
-      ctx.fillStyle = colors.key;
-      ctx.strokeStyle = colors.key;
-      ctx.lineWidth = geom.keyWidth;
-      ctx.fill();
-      ctx.stroke();
-    },
+    () => paintGlyph(ctx, d, geom, colors.key, colors.key, key),
   );
+  paintGlyph(ctx, d, geom, colors.ink, colors.key, key);
 
-  // 1 — silhouette: a black interior under a wide keyline.
-  tracePath(ctx, shape);
-  ctx.fillStyle = colors.core;
+  ctx.restore();
+}
+
+/** The shape itself, filled in `fill` under a keyline of `key` at `keyWidth`. */
+function paintGlyph(ctx, d, geom, fill, key, keyWidth) {
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = key;
+  ctx.fillStyle = fill;
+  ctx.lineWidth = keyWidth;
+
+  if (d.kind === 'text') {
+    ctx.font = `${VIEW.glyphWeight} ${geom.cap}px ${VIEW.glyphFont}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Type sits above its own baseline, so centre on the cap rather than on the box.
+    const m = ctx.measureText(d.letter);
+    const y = CELL / 2
+      + geom.centre
+      + ((m.actualBoundingBoxAscent ?? geom.cap * 0.7) - (m.actualBoundingBoxDescent ?? 0)) / 2;
+    if (keyWidth > 0) ctx.strokeText(d.letter, CELL / 2, y);
+    ctx.fillText(d.letter, CELL / 2, y);
+    return;
+  }
+  if (d.kind === 'bars') {
+    for (const r of d.rects) {
+      if (keyWidth > 0) ctx.strokeRect(r.x, r.y, r.w, r.h);
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+    }
+    return;
+  }
+  ctx.beginPath();
+  ctx.arc(d.circle.cx, d.circle.cy, d.circle.r, 0, Math.PI * 2);
+  if (keyWidth > 0) ctx.stroke();
   ctx.fill();
-  ctx.strokeStyle = colors.key;
-  ctx.lineWidth = geom.keyWidth;
-  ctx.stroke();
-
-  // 2 — fill state, under the ring so the ring stays crisp. Skipped at mag 1.
-  if (clips.ink) {
-    ctx.save();
-    clipTo(ctx, clips.ink);
-    tracePath(ctx, shape);
-    ctx.fillStyle = colors.ink;
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // 3 — ink ring.
-  tracePath(ctx, shape);
-  ctx.strokeStyle = colors.ink;
-  ctx.lineWidth = geom.inkWidth;
-  ctx.stroke();
-
-  // 4 — the mark, painted once per region in the other region's color. One rule,
-  // so it contrasts at every fill state without per-glyph art.
-  const geo = markGeometry(glyph.mark, glyph.form, glyph.rotation, geom);
-  if (clips.core) {
-    ctx.save();
-    clipTo(ctx, clips.core);
-    drawMark(ctx, geo, colors.ink, geom.markWidth);
-    ctx.restore();
-  }
-  if (clips.ink) {
-    ctx.save();
-    clipTo(ctx, clips.ink);
-    drawMark(ctx, geo, colors.core, geom.markWidth);
-    ctx.restore();
-  }
-
-  // 5 — specular: a highlight riding the top-left of the silhouette, clipped to it
-  // so the piece picks up the same overhead light the cell does.
-  if (gloss.spec > 0) {
-    ctx.save();
-    tracePath(ctx, shape);
-    ctx.clip();
-    const sheen = ctx.createLinearGradient(20, 14, 62, 74);
-    sheen.addColorStop(0, `rgba(255,255,255,${gloss.spec / 100})`);
-    sheen.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = sheen;
-    ctx.fillRect(0, 0, CELL, CELL);
-    ctx.restore();
-  }
 }
 
 /**
@@ -353,6 +305,7 @@ export function createGlyphLayer(view = VIEW) {
           { ink: palette.colors[sprite.ink].hex, core: palette.core, key: palette.key },
           frame.gloss,
           frame.geometry,
+          size,
         );
         ctx.restore();
       }

@@ -19,6 +19,10 @@ function recordingCtx(calls) {
     fill: note('fill'), stroke: note('stroke'), translate: note('translate'),
     scale: note('scale'), fillRect: note('fillRect'),
     createLinearGradient: () => ({ addColorStop() {} }),
+    fillText: note('fillText'), strokeText: note('strokeText'),
+    strokeRect: note('strokeRect'),
+    measureText: () => ({ actualBoundingBoxAscent: 50, actualBoundingBoxDescent: 0 }),
+    set font(_v) {}, set textAlign(_v) {}, set textBaseline(_v) {},
   };
 }
 
@@ -55,10 +59,11 @@ test('the glyph layer clips to the board before it draws anything', () => {
     palette: PALETTE,
     gloss: GLOSS,
     geometry: GEOMETRY,
-    glyphsById: new Map([['pulse', { form: 'circle', mag: 1, mark: 'none', rotation: 0 }]]),
+    glyphsById: new Map([['pulse', { id: 'pulse', letter: 'O', rot: 0, flip: false }]]),
   });
   const clipAt = calls.findIndex((c) => c.name === 'clip');
-  const firstDraw = calls.findIndex((c) => c.name === 'fill' || c.name === 'stroke');
+  const firstDraw = calls.findIndex((c) =>
+    ['fill', 'stroke', 'fillText', 'strokeText', 'fillRect', 'strokeRect'].includes(c.name));
   assert.ok(clipAt >= 0, 'the layer clips');
   assert.ok(firstDraw > clipAt, 'and it clips before it paints');
   const rect = calls[clipAt - 1];

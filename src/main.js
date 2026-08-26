@@ -8,7 +8,6 @@
 import { createCompositor } from './compositor.js';
 import { applySwap, copyBoard, createRecorder, gain } from './board.js';
 import { buildTimeline, sampleTimeline, staticFrame } from './animate.js';
-import { playableGlyphs } from './level.js';
 import { dealLevel, loadRun, nextAfter, outcome } from './levels.js';
 import { createProgress } from './progress.js';
 import { mountPicker } from './picker.js';
@@ -68,7 +67,12 @@ export async function start(canvas, panels) {
   if (!ctx) throw new Error('2D canvas context unavailable');
 
   const data = await loadData();
-  const glyphs = playableGlyphs(data.glyphs.glyphs);
+  // Canvas text does not pull a webfont in — only DOM content does — so a glyph drawn
+  // straight to canvas would silently fall back to whatever serif the machine has.
+  // The two authored glyphs are built from this face's measurements, so a substitute
+  // would not match them. Wait for it before the first frame.
+  await document.fonts.load(`${VIEW.glyphWeight} ${data.geometry.cap}px ${VIEW.glyphFont}`);
+  const glyphs = data.glyphs.glyphs;
   const glyphsById = new Map(glyphs.map((g) => [g.id, g]));
 
   const scene = createCompositor()

@@ -8,45 +8,44 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Martian+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="palette-panel.css">
 <style>
-:root{--paper:#E7E8EA;--panel:#F3F4F5;--sunk:#DBDDE0;--ink1:#16171A;--ink2:#53565C;--ink3:#83868D;--rule:#C5C7CB;
-  /* the names the extracted palette-editor sheet expects */
+:root{--paper:#E7E8EA;--panel:#F3F4F5;--sunk:#DBDDE0;--ink1:#16171A;--ink2:#53565C;--ink3:#83868D;
+  --rule:#C5C7CB;--warn:#9C2A2B;
   --ink:#16171A;--ink-dim:#53565C;--ink-faint:#83868D}
+@font-face{font-family:"Glyph Serif";src:url("../fonts/glyph-serif.woff2") format("woff2");
+  font-weight:700;font-style:normal;font-display:block}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink1);
   font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:14px}
 .wrap{max-width:1320px;margin:0 auto;padding:34px 26px 80px}
-.mono{font-family:"Martian Mono","SFMono-Regular",Consolas,monospace}
+.mono{font-family:"Martian Mono",Consolas,monospace}
 .eyebrow{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;
   letter-spacing:.17em;text-transform:uppercase;color:var(--ink3)}
 h1{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:10px 0 0}
-.lede{margin:12px 0 0;max-width:70ch;color:var(--ink2)}
+.lede{margin:12px 0 0;max-width:74ch;color:var(--ink2);line-height:1.5}
 header{border-bottom:2px solid var(--ink1);padding-bottom:22px;margin-bottom:26px}
-h2{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin:0 0 12px;color:var(--ink1)}
-.cols{display:grid;grid-template-columns:296px 1fr 232px;gap:22px;align-items:start}
+h2{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin:0 0 12px}
+.cols{display:grid;grid-template-columns:288px 1fr 232px;gap:22px;align-items:start}
 .panel{background:var(--panel);border:1px solid var(--rule);padding:18px 16px}
 .panel.editor{display:flex;flex-direction:column;gap:10px;font-size:11px}
-.row{display:grid;grid-template-columns:92px 1fr 40px;align-items:center;gap:9px;margin-bottom:7px}
+.row{display:grid;grid-template-columns:96px 1fr 42px;align-items:center;gap:9px;margin-bottom:7px}
 .row label{font-size:11px;color:var(--ink2)}
-.row output{font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink1)}
+.row output{font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums}
 .row input[type=range]{width:100%}
 .grp{margin-bottom:20px}
 .grp:last-child{margin-bottom:0}
-.btns{display:flex;gap:7px;flex-wrap:wrap}
 button{font:inherit;font-size:11px;padding:5px 11px;background:#fff;border:1px solid var(--rule);
   border-radius:3px;cursor:pointer}
-button:hover:not(:disabled){border-color:var(--ink1)}
-button:disabled{color:var(--ink3);cursor:default}
-.stagepanel{background:var(--sunk);border:1px solid var(--rule);padding:22px;display:flex;
-  flex-direction:column;align-items:center;gap:18px;overflow-x:auto}
+button:hover{border-color:var(--ink1)}
+.btns{display:flex;gap:7px;flex-wrap:wrap}
+.stagepanel{background:var(--sunk);border:1px solid var(--rule);padding:22px;overflow-x:auto}
 .plate{display:grid;gap:14px;justify-content:center}
 figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:5px}
-figcaption{font-family:"Martian Mono",monospace;font-size:9px;letter-spacing:.04em;color:var(--ink2)}
-.presets{display:flex;gap:7px}
+figcaption{font-family:"Martian Mono",monospace;font-size:9px;color:var(--ink2);text-align:center}
 .settings{margin-top:20px}
 pre{background:var(--sunk);border:1px solid var(--rule);padding:13px;font-family:"Martian Mono",monospace;
   font-size:10.5px;line-height:1.6;overflow-x:auto;margin:0}
-.hint{font-size:11.5px;color:var(--ink2);margin:9px 0 0}
-.warn{color:#9C2A2B;font-weight:600}
+.hint{font-size:11.5px;color:var(--ink2);margin:9px 0 0;line-height:1.5}
+.hint.warn{color:var(--warn);font-weight:600}
 canvas{display:block}
 </style>
 </head>
@@ -57,13 +56,10 @@ canvas{display:block}
   <span class="eyebrow">Glyph Tracer · scratch</span>
   <h1>Cell sandbox</h1>
   <p class="lede">
-    All sixteen glyphs at once, each on a random ground with a different random ink, so
-    every form is judged against a colour pair it did not choose. The sliders are the
-    lengths in <span class="mono">data/geometry.json</span> and the highlights in
-    <span class="mono">data/gloss.json</span>; the plate is drawn by the real
-    <span class="mono">drawTile()</span> and <span class="mono">drawGlyph()</span>, so what
-    you balance here is what ships. The palette itself is on the right — the swatches feed
-    the same random draw.
+    Every glyph at once, each on a random ground with a different random ink, so no shape is
+    judged against a colour pair it chose. The plate is drawn by the real
+    <span class="mono">drawTile()</span> and <span class="mono">drawGlyph()</span>, so what is
+    tuned here is what ships. The palette is on the right and feeds the same draw.
   </p>
 </header>
 
@@ -71,22 +67,18 @@ canvas{display:block}
   <div>
     <div class="panel">
       <div class="grp">
-        <h2>Glyph geometry</h2>
-        <div class="row"><label for="radius">size</label><input type="range" id="radius" min="16" max="48" step="1"><output id="radius-o"></output></div>
-        <div class="row"><label for="keyWidth">keyline</label><input type="range" id="keyWidth" min="0" max="28" step="1"><output id="keyWidth-o"></output></div>
-        <div class="row"><label for="inkWidth">ink ring</label><input type="range" id="inkWidth" min="0" max="24" step="1"><output id="inkWidth-o"></output></div>
-        <div class="row"><label for="markWidth">mark width</label><input type="range" id="markWidth" min="0" max="16" step="1"><output id="markWidth-o"></output></div>
-        <div class="row"><label for="dotRadius">dot</label><input type="range" id="dotRadius" min="1" max="20" step="1"><output id="dotRadius-o"></output></div>
-        <div class="row"><label for="nestRadius">nest</label><input type="range" id="nestRadius" min="4" max="34" step="1"><output id="nestRadius-o"></output></div>
-        <div class="btns">
-          <button id="copy-geom" type="button">copy geometry</button>
-          <span class="presets" id="geom-presets"></span>
-        </div>
+        <h2>Letter metrics</h2>
+        <div class="row"><label for="cap">cap height</label><input type="range" id="cap" min="30" max="96" step="1"><output id="cap-o"></output></div>
+        <div class="row"><label for="stem">stem</label><input type="range" id="stem" min="4" max="40" step="1"><output id="stem-o"></output></div>
+        <div class="row"><label for="centre">centre</label><input type="range" id="centre" min="-12" max="12" step="0.5"><output id="centre-o"></output></div>
+        <div class="row"><label for="dotDiameter">dot</label><input type="range" id="dotDiameter" min="6" max="50" step="1"><output id="dotDiameter-o"></output></div>
+        <div class="row"><label for="keylinePx">keyline px</label><input type="range" id="keylinePx" min="0" max="4" step="0.5"><output id="keylinePx-o"></output></div>
+        <p class="hint" id="fit"></p>
       </div>
 
       <div class="grp">
         <h2>Cell</h2>
-        <div class="row"><label for="gradius">corner</label><input type="range" id="gradius" min="0" max="26" step="1"><output id="gradius-o"></output></div>
+        <div class="row"><label for="radius">corner</label><input type="range" id="radius" min="0" max="26" step="1"><output id="radius-o"></output></div>
         <div class="row"><label for="cellShadowY">shadow y</label><input type="range" id="cellShadowY" min="0" max="18" step="1"><output id="cellShadowY-o"></output></div>
         <div class="row"><label for="cellShadowBlur">shadow blur</label><input type="range" id="cellShadowBlur" min="0" max="40" step="1"><output id="cellShadowBlur-o"></output></div>
         <div class="row"><label for="cellShadowA">shadow α</label><input type="range" id="cellShadowA" min="0" max="70" step="1"><output id="cellShadowA-o"></output></div>
@@ -96,8 +88,6 @@ canvas{display:block}
         <div class="row"><label for="glyphShadowY">glyph sh. y</label><input type="range" id="glyphShadowY" min="0" max="14" step="1"><output id="glyphShadowY-o"></output></div>
         <div class="row"><label for="glyphShadowBlur">glyph sh. blur</label><input type="range" id="glyphShadowBlur" min="0" max="30" step="1"><output id="glyphShadowBlur-o"></output></div>
         <div class="row"><label for="glyphShadowA">glyph sh. α</label><input type="range" id="glyphShadowA" min="0" max="80" step="1"><output id="glyphShadowA-o"></output></div>
-        <div class="row"><label for="spec">specular</label><input type="range" id="spec" min="0" max="80" step="1"><output id="spec-o"></output></div>
-        <div class="btns"><button id="copy-gloss" type="button">copy gloss</button></div>
       </div>
 
       <div class="grp">
@@ -115,16 +105,18 @@ canvas{display:block}
     <div class="settings">
       <h2>data/geometry.json</h2>
       <pre id="dump"></pre>
-      <p class="hint" id="scale-note"></p>
+      <div class="btns" style="margin-top:9px">
+        <button id="copy-geom" type="button">copy geometry</button>
+        <button id="copy-gloss" type="button">copy gloss</button>
+      </div>
     </div>
   </div>
 
   <div class="stagepanel">
     <div class="plate" id="plate"></div>
     <p class="hint" style="text-align:center">
-      Every cell is one of the sixteen, its ground and its ink drawn from the palette by
-      the seed — never the same colour twice in one cell, since a glyph sitting on its own
-      colour is the activating state and not what this plate is for.
+      Ink is never the cell's own ground: a glyph sitting on its own colour is the activating
+      state, not what this plate is for.
     </p>
   </div>
 
@@ -145,67 +137,47 @@ const SHIPPED_GEOM = await (await fetch('../data/geometry.json')).json();
 const SHIPPED_GLOSS = await (await fetch('../data/gloss.json')).json();
 
 const numbersOnly = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => typeof v === 'number'));
-
 const GLOSS_KEYS = Object.keys(numbersOnly(SHIPPED_GLOSS));
-// The cell's corner radius is `radius` in gloss and the glyph's size is `radius` in
-// geometry, so one of them is renamed for the controls: `gradius` is the corner.
-const CONTROL_OF = { radius: 'gradius' };
-const glossControl = (key) => CONTROL_OF[key] ?? key;
 
-const GEOM_PRESETS = {
-  shipped: numbersOnly(SHIPPED_GEOM),
-  hairline: { radius: 38, keyWidth: 7, inkWidth: 4, markWidth: 3, dotRadius: 6, nestRadius: 17 },
-  heavy: { radius: 33, keyWidth: 20, inkWidth: 12, markWidth: 9, dotRadius: 10, nestRadius: 13 },
-};
-
-// Both files carry a `radius`, so the gloss one is read under its control name and
-// the two never collide in one flat state object.
-const shippedState = () => ({
-  ...numbersOnly(SHIPPED_GEOM),
-  ...Object.fromEntries(GLOSS_KEYS.map((k) => [glossControl(k), SHIPPED_GLOSS[k]])),
-});
-
+const shippedState = () => ({ ...numbersOnly(SHIPPED_GEOM), ...numbersOnly(SHIPPED_GLOSS) });
 const state = { ...shippedState(), size: 96, cols: 4, seed: 7 };
+const CONTROLS = [...GEOMETRY_KEYS, ...GLOSS_KEYS, 'size', 'cols', 'seed'];
+
+const geomOf = (s) => Object.fromEntries(GEOMETRY_KEYS.map((k) => [k, s[k]]));
+const glossOf = (s) => Object.fromEntries(GLOSS_KEYS.map((k) => [k, s[k]]));
 
 /**
- * The colour pair for each glyph: a ground, and an ink that is not it. Seeded, so a
- * plate you liked comes back by typing its number rather than by clicking until it
- * reappears.
+ * A ground and an ink that is not it, per glyph. Seeded, so a plate worth keeping comes
+ * back by typing its number rather than by clicking until it reappears.
  */
 function colourPairs(seed) {
   const rand = mulberry32(seed);
   const n = PALETTE.colors.length;
   return GLYPHS.map(() => {
     const bg = Math.floor(rand() * n);
-    const ink = (bg + 1 + Math.floor(rand() * (n - 1))) % n;
-    return { bg, ink };
+    return { bg, ink: (bg + 1 + Math.floor(rand() * (n - 1))) % n };
   });
 }
 
-const geomOf = (s) => Object.fromEntries(GEOMETRY_KEYS.map((k) => [k, s[k]]));
-const glossOf = (s) => Object.fromEntries(GLOSS_KEYS.map((k) => [k, s[glossControl(k)]]));
-
-/** One cell of the plate, drawn by the shipping renderer and nothing else. */
 function paintCell(ctx, glyph, pair, s) {
   const pad = Math.round(s.size * 0.16);
-  const size = s.size;
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   const gloss = glossOf(s);
-  drawTile(ctx, { x: pad, y: pad, size }, PALETTE.colors[pair.bg].hex, gloss);
+  drawTile(ctx, { x: pad, y: pad, size: s.size }, PALETTE.colors[pair.bg].hex, gloss);
   ctx.save();
   ctx.translate(pad, pad);
-  ctx.scale(size / CELL, size / CELL);
+  ctx.scale(s.size / CELL, s.size / CELL);
   drawGlyph(
     ctx,
-    { form: glyph.form, mag: glyph.mag, mark: glyph.mark, rotation: glyph.rotation },
+    glyph,
     { ink: PALETTE.colors[pair.ink].hex, core: PALETTE.core, key: PALETTE.key },
     gloss,
     geomOf(s),
+    s.size,
   );
   ctx.restore();
 }
 
-// --- the plate --------------------------------------------------------------
 const plate = document.getElementById('plate');
 const cells = GLYPHS.map((glyph) => {
   const figure = document.createElement('figure');
@@ -214,14 +186,12 @@ const cells = GLYPHS.map((glyph) => {
   caption.textContent = glyph.name.toLowerCase();
   figure.append(canvas, caption);
   plate.append(figure);
-  return { glyph, figure, canvas, ctx: canvas.getContext('2d') };
+  return { glyph, canvas, ctx: canvas.getContext('2d') };
 });
 
 function renderPlate() {
   const pairs = colourPairs(state.seed);
   const box = state.size + Math.round(state.size * 0.16) * 2;
-  // An exact column count rather than wrapping: the panel scrolls if the plate is
-  // wider than it, so the control means what it says at any window size.
   plate.style.gridTemplateColumns = `repeat(${state.cols}, max-content)`;
   cells.forEach((cell, i) => {
     cell.canvas.width = cell.canvas.height = box;
@@ -229,48 +199,23 @@ function renderPlate() {
   });
 }
 
-// --- controls ---------------------------------------------------------------
-const CONTROLS = [
-  ...GEOMETRY_KEYS,
-  ...GLOSS_KEYS.map(glossControl),
-  'size', 'cols', 'seed',
-];
-
-function writeControls() {
+function render() {
   for (const id of CONTROLS) {
     document.getElementById(id).value = String(state[id]);
     document.getElementById(`${id}-o`).textContent = String(state[id]);
   }
-}
-
-function render() {
-  writeControls();
   renderPlate();
   document.getElementById('dump').textContent = JSON.stringify(geomOf(state), null, 2);
-  // The spec puts the floor at a 44px cell because the ink ring goes under 3.5px
-  // below it; at these numbers the ring is this wide, so the floor moves with them.
-  const ring = (state.inkWidth * state.size) / CELL;
-  const lip = ((state.keyWidth - state.inkWidth) / 2) * (state.size / CELL);
-  const note = document.getElementById('scale-note');
-  // Both strokes centre on the path, so a keyline no wider than the ring is under it.
-  note.textContent = lip > 0
-    ? `At ${state.size}px the ink ring is ${ring.toFixed(2)}px, with ${lip.toFixed(2)}px of keyline outside it.`
-    : `At ${state.size}px the ink ring is ${ring.toFixed(2)}px and covers the keyline — no black outside the ring.`;
-  note.className = ring < 3.5 ? 'hint warn' : 'hint';
-  for (const [name, chip] of Object.entries(presetChips)) {
-    chip.disabled = GEOMETRY_KEYS.every((k) => state[k] === GEOM_PRESETS[name][k]);
-  }
-}
 
-const presetChips = {};
-const presetRow = document.getElementById('geom-presets');
-for (const [name, preset] of Object.entries(GEOM_PRESETS)) {
-  const chip = document.createElement('button');
-  chip.type = 'button';
-  chip.textContent = name;
-  chip.addEventListener('click', () => { Object.assign(state, preset); render(); });
-  presetRow.append(chip);
-  presetChips[name] = chip;
+  // The dot has to be wide enough to read its colour and narrow enough not to read as
+  // an O; O's counter is the ceiling, and a bare stem is the floor.
+  const note = document.getElementById('fit');
+  const dotPx = (state.dotDiameter * state.size) / CELL;
+  const tooWide = state.dotDiameter > state.cap * 0.5;
+  note.textContent = tooWide
+    ? `The dot is ${state.dotDiameter} against a ${state.cap} cap — wide enough to start reading as a filled O.`
+    : `At ${state.size}px the dot is ${dotPx.toFixed(1)}px across and the keyline is ${state.keylinePx}px.`;
+  note.className = tooWide ? 'hint warn' : 'hint';
 }
 
 for (const id of CONTROLS) {
@@ -279,7 +224,6 @@ for (const id of CONTROLS) {
     render();
   });
 }
-
 document.getElementById('reseed').addEventListener('click', () => {
   state.seed = (state.seed % 400) + 1;
   render();
@@ -288,7 +232,6 @@ document.getElementById('shipped').addEventListener('click', () => {
   Object.assign(state, shippedState());
   render();
 });
-
 const copied = async (button, text, label) => {
   await navigator.clipboard.writeText(text);
   button.textContent = 'copied';
@@ -299,10 +242,11 @@ document.getElementById('copy-geom').addEventListener('click', (e) =>
 document.getElementById('copy-gloss').addEventListener('click', (e) =>
   copied(e.target, JSON.stringify(glossOf(state), null, 2), 'copy gloss'));
 
-// The editor mutates PALETTE in place; the plate reads it on every repaint, so a
-// colour change lands on all sixteen cells at once.
+// The editor mutates PALETTE in place; the plate reads it on every repaint, so a colour
+// change lands on every glyph at once.
 mountPalettePanel(document.getElementById('palette-editor'), PALETTE, render);
 
+await document.fonts.load('700 73px "Glyph Serif"');
 render();
 </script>
 </body>

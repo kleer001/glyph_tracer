@@ -92,7 +92,6 @@ canvas{display:block}
         <div class="row"><label for="glyphShadowY">shadow y</label><input type="range" id="glyphShadowY" min="0" max="14" step="1"><output id="glyphShadowY-o"></output></div>
         <div class="row"><label for="glyphShadowBlur">shadow blur</label><input type="range" id="glyphShadowBlur" min="0" max="30" step="1"><output id="glyphShadowBlur-o"></output></div>
         <div class="row"><label for="glyphShadowA">shadow α</label><input type="range" id="glyphShadowA" min="0" max="80" step="1"><output id="glyphShadowA-o"></output></div>
-        <div class="row"><label for="spec">specular</label><input type="range" id="spec" min="0" max="80" step="1"><output id="spec-o"></output></div>
       </div>
 
       <button id="copy" type="button">copy settings</button>
@@ -133,12 +132,12 @@ const GEOMETRY = await (await fetch('../data/geometry.json')).json();
 // currently holds, so you can always see what you are changing away from.
 const PRESETS = {
   flat:    { radius:8,  cellShadowY:0, cellShadowBlur:0, cellShadowA:0, sheen:0, sheenStop:55, bevel:0,
-             glyphShadowY:0, glyphShadowBlur:0, glyphShadowA:0, spec:0 },
+             glyphShadowY:0, glyphShadowBlur:0, glyphShadowA:0 },
   shipped: Object.fromEntries(Object.entries(SHIPPED).filter(([k]) => k !== 'note')),
   soft:    { radius:10, cellShadowY:3, cellShadowBlur:9,  cellShadowA:22, sheen:14, sheenStop:52, bevel:12,
-             glyphShadowY:2, glyphShadowBlur:5, glyphShadowA:28, spec:12 },
+             glyphShadowY:2, glyphShadowBlur:5, glyphShadowA:28 },
   deep:    { radius:8,  cellShadowY:9, cellShadowBlur:22, cellShadowA:45, sheen:20, sheenStop:60, bevel:38,
-             glyphShadowY:5, glyphShadowBlur:12, glyphShadowA:52, spec:20 },
+             glyphShadowY:5, glyphShadowBlur:12, glyphShadowA:52 },
 };
 
 const KEYS = Object.keys(PRESETS.flat);
