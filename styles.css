@@ -40,6 +40,18 @@ html, body {
   padding: 12px;
 }
 
+canvas {
+  /* A 5x8 board, so the field is portrait. Capped so a wide window does not stretch
+     the cells past the render spec's readable size.
+
+     This rule is load-bearing beyond looks: main.js sizes the backing store from the
+     canvas's own rendered box, so without a CSS size the box comes FROM the backing
+     store and each frame multiplies it by the device pixel ratio. */
+  width: min(100%, 52vh);
+  height: min(160%, 88vh);
+  touch-action: none;
+}
+
 /* --- where you are in the run ---------------------------------------------- */
 
 .topbar {

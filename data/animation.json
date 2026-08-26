@@ -1,12 +1,12 @@
 {
   "note": "Linear tweens, in milliseconds. A swap is a SPEED \u2014 `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `shake` is the wobble on a cell being destroyed. Tune in dev/timing.html.",
-  "swapMsPerCell": 55,
-  "swapMinMs": 110,
+  "swapMsPerCell": 100,
+  "swapMinMs": 150,
   "stepMs": 200,
   "shrinkMs": 200,
-  "holdMs": 0,
-  "staggerMs": 0,
-  "splitBeats": false,
+  "holdMs": 100,
+  "staggerMs": 50,
+  "splitBeats": true,
   "shake": {
     "amplitude": 0.07,
     "cycles": 3

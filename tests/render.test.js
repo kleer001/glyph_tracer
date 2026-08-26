@@ -71,3 +71,14 @@ test('a piece travelling off the edge is drawn outside the clip, not inside it',
   assert.ok(x + layout.cell <= layout.originX,
     'it is fully past the board edge, so the clip is what removes it');
 });
+
+// The renderer sizes the canvas backing store from the canvas's own rendered box, so
+// the CSS that gives it a size is what stops that from being circular. Losing the rule
+// does not fail any behavioural test — it just makes the page grow until it dies.
+test('the stylesheet gives the canvas a size', () => {
+  const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
+  const rule = css.match(/(^|\n)canvas\s*\{([\s\S]*?)\}/);
+  assert.ok(rule, 'styles.css has no canvas rule');
+  assert.match(rule[2], /(^|\n)\s*width\s*:/, 'the canvas rule sets no width');
+  assert.match(rule[2], /(^|\n)\s*height\s*:/, 'the canvas rule sets no height');
+});
