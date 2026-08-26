@@ -5,7 +5,7 @@
     { "name": "yellow", "hex": "#FFF627" },
     { "name": "green", "hex": "#52DE52" },
     { "name": "cyan", "hex": "#00E0DF" },
-    { "name": "blue", "hex": "#8382FF" },
+    { "name": "blue", "hex": "#6482FF" },
     { "name": "magenta", "hex": "#B82CBB" }
   ],
   "core": "#101216",
