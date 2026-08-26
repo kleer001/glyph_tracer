@@ -16,10 +16,17 @@ const SINK = {
 };
 
 const VERB = {
-  push: 'shoves its four orthogonal neighbors outward',
-  void: 'pulls its four neighbors inward',
-  wild: 'shoves a random subset of its four directions',
-  block: 'shoves nothing — it only eats',
+  pulse: 'advances all four lines by one',
+  pushUp: 'advances the line above by one',
+  pushRight: 'advances the line to its right by one',
+  pushDown: 'advances the line below by one',
+  pushLeft: 'advances the line to its left by one',
+  swapOrth: 'exchanges upper with lower, and left with right',
+  swapDiag: 'exchanges both corner pairs',
+  rotate: 'turns its four neighbors one step clockwise',
+  rotateRev: 'turns its four neighbors one step anticlockwise',
+  sink: 'draws all four lines inward',
+  anchor: 'shoves nothing — it only eats',
   '': 'does nothing but clear',
 };
 
@@ -107,11 +114,15 @@ function describeEvent(event, snapshot, palette, glyphsById) {
     }
     case 'move':
       return `${at(event.from)} -> ${at(event.to)}   shoved`;
+    case 'exchange':
+      return `${at(event.a)} <-> ${at(event.z)}   exchanged`;
+    case 'turn':
+      return `${at(event.from)} -> ${at(event.to)}   turned`;
     case 'eat':
       return `${at(event.at)} eaten — ${SINK[event.reason]}`;
     case 'kill':
-      return event.reason === 'void'
-        ? `${at(event.at)} cell destroyed — the void's own cell becomes the sink`
+      return event.reason === 'sink'
+        ? `${at(event.at)} cell destroyed — the sink's own cell becomes the hole`
         : `${at(event.at)} cell destroyed — it activated`;
     default:
       throw new Error(`unlogged event type: ${event.type}`); // boundary

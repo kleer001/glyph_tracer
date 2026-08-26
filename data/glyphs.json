@@ -1,24 +1,113 @@
 {
-  "note": "The sixteen. `code` is the drawing reference, not the render path — geometry comes from form/mag/mark/rotation via src/glyphShapes.js. `kind` is what src/board.js runs; a glyph whose effect the engine does not implement yet is plain, and says so.",
+  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation \u2014 the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind.",
   "glyphs": [
-    { "id": "pulse",     "code": "U+25CB", "name": "Pulse",           "form": "circle",   "mag": 1, "mark": "none",  "rotation": 0,   "kind": "push",  "effect": "nudge all neighbors, mag 1" },
-    { "id": "detonate",  "code": "U+25CF", "name": "Detonate",        "form": "circle",   "mag": 3, "mark": "none",  "rotation": 0,   "kind": "push",  "effect": "mag 3, consumes self" },
-    { "id": "charged",   "code": "U+2299", "name": "Charged",         "form": "circle",   "mag": 2, "mark": "dot",   "rotation": 0,   "kind": "push",  "effect": "fires twice" },
-    { "id": "echo",      "code": "U+25CE", "name": "Echo",            "form": "circle",   "mag": 1, "mark": "nest",  "rotation": 0,   "kind": "push",  "effect": "fires at range 2, skips the adjacent ring" },
-
-    { "id": "anchor",    "code": "U+25A1", "name": "Anchor",          "form": "square",   "mag": 1, "mark": "none",  "rotation": 0,   "kind": "block", "effect": "eats one glyph shoved into it, then behaves normally" },
-    { "id": "wall",      "code": "U+25A0", "name": "Wall",            "form": "square",   "mag": 3, "mark": "none",  "rotation": 0,   "kind": "block", "effect": "eats everything shoved into it, indefinitely" },
-    { "id": "bind-orth", "code": "U+229E", "name": "Bind orthogonal", "form": "square",   "mag": 1, "mark": "cross", "rotation": 0,   "kind": "block", "effect": "makes the 4 edge-neighbors eaters" },
-    { "id": "bind-diag", "code": "U+22A0", "name": "Bind diagonal",   "form": "square",   "mag": 1, "mark": "ex",    "rotation": 0,   "kind": "block", "effect": "makes the 4 corner-neighbors eaters" },
-
-    { "id": "push-up",   "code": "U+25B3", "name": "Push up",         "form": "triangle", "mag": 1, "mark": "none",  "rotation": 0,   "kind": "push",  "effect": "1 cell" },
-    { "id": "push-right","code": "U+25B7", "name": "Push right",      "form": "triangle", "mag": 1, "mark": "none",  "rotation": 90,  "kind": "push",  "effect": "1 cell" },
-    { "id": "slam-down", "code": "U+25BC", "name": "Slam down",       "form": "triangle", "mag": 3, "mark": "none",  "rotation": 180, "kind": "push",  "effect": "mag 3" },
-    { "id": "double",    "code": "U+25EC", "name": "Double push",     "form": "triangle", "mag": 2, "mark": "dot",   "rotation": 0,   "kind": "push",  "effect": "pushes, then pushes again" },
-
-    { "id": "swap",      "code": "U+25C7", "name": "Swap",            "form": "diamond",  "mag": 1, "mark": "none",  "rotation": 0,   "kind": "",      "effect": "exchange with any one neighbor", "implemented": false },
-    { "id": "wild",      "code": "U+2B20", "name": "Wild",            "form": "pentagon", "mag": 1, "mark": "none",  "rotation": 0,   "kind": "wild",  "effect": "pushes a random one of the 16 subsets of its four neighbors" },
-    { "id": "flow",      "code": "U+2B21", "name": "Flow",            "form": "hexagon",  "mag": 1, "mark": "none",  "rotation": 0,   "kind": "",      "effect": "the next match is free — it does not spend a turn", "implemented": false },
-    { "id": "void",      "code": "U+2298", "name": "Void",            "form": "circle",   "mag": 1, "mark": "slash", "rotation": 0,   "kind": "void",  "effect": "pulls its four neighbors inward; its own cell is the sink they fall into" }
+    {
+      "id": "inert",
+      "letter": ".",
+      "rot": 0,
+      "flip": false,
+      "name": "Inert",
+      "kind": "",
+      "effect": "nothing \u2014 it matches, its cell goes, and no ability runs"
+    },
+    {
+      "id": "pulse",
+      "letter": "O",
+      "rot": 0,
+      "flip": false,
+      "name": "Pulse",
+      "kind": "pulse",
+      "effect": "advance the line in all four directions by one"
+    },
+    {
+      "id": "anchor",
+      "letter": "H",
+      "rot": 0,
+      "flip": false,
+      "name": "Anchor",
+      "kind": "anchor",
+      "effect": "absorb whatever is shoved in, and stay put"
+    },
+    {
+      "id": "push-up",
+      "letter": "A",
+      "rot": 0,
+      "flip": false,
+      "name": "Push up",
+      "kind": "pushUp",
+      "effect": "advance the line above by one"
+    },
+    {
+      "id": "push-right",
+      "letter": "A",
+      "rot": 90,
+      "flip": false,
+      "name": "Push right",
+      "kind": "pushRight",
+      "effect": "advance the line to the right by one"
+    },
+    {
+      "id": "push-down",
+      "letter": "A",
+      "rot": 180,
+      "flip": false,
+      "name": "Push down",
+      "kind": "pushDown",
+      "effect": "advance the line below by one"
+    },
+    {
+      "id": "push-left",
+      "letter": "A",
+      "rot": 270,
+      "flip": false,
+      "name": "Push left",
+      "kind": "pushLeft",
+      "effect": "advance the line to the left by one"
+    },
+    {
+      "id": "swap-orth",
+      "letter": "+",
+      "rot": 0,
+      "flip": false,
+      "name": "Swap orthogonal",
+      "kind": "swapOrth",
+      "effect": "exchange upper with lower, and left with right"
+    },
+    {
+      "id": "swap-diag",
+      "letter": "X",
+      "rot": 0,
+      "flip": false,
+      "name": "Swap diagonal",
+      "kind": "swapDiag",
+      "effect": "exchange both corner pairs"
+    },
+    {
+      "id": "rotate",
+      "letter": "R",
+      "rot": 0,
+      "flip": false,
+      "name": "Rotate",
+      "kind": "rotate",
+      "effect": "turn the four neighbours one step clockwise"
+    },
+    {
+      "id": "rotate-rev",
+      "letter": "R",
+      "rot": 0,
+      "flip": true,
+      "name": "Rotate reversed",
+      "kind": "rotateRev",
+      "effect": "turn the four neighbours one step anticlockwise"
+    },
+    {
+      "id": "sink",
+      "letter": "S",
+      "rot": 0,
+      "flip": false,
+      "name": "Sink",
+      "kind": "sink",
+      "effect": "draw all four lines inward; its own cell is the sink they fall into"
+    }
   ]
 }

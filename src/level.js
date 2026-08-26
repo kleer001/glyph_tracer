@@ -83,10 +83,9 @@ export function targetFor(mean, factor) {
 }
 
 /**
- * Which of the sixteen each piece is drawn as, written onto the board so it travels
- * with the piece when it is shoved. The engine only knows the four kinds; every
- * glyph of a kind runs identically, so the choice is the level's to make, and it is
- * made once from the seed rather than per frame.
+ * Which glyph each piece is drawn as, written onto the board so it travels with the
+ * piece when it is shoved. One kind per glyph now, so this is a lookup rather than a
+ * choice — except for inert, which is most of the board and has one drawing.
  */
 export function dealArt(board, glyphs, rand) {
   const byKind = new Map();
@@ -123,9 +122,4 @@ export function createLevel({ rules, glyphs, stage, seed, trials = 120 }) {
     swapsUsed: 0,
     cleared: 0,
   };
-}
-
-/** Kinds the engine runs. A glyph whose effect is not implemented is plain. */
-export function playableGlyphs(glyphs) {
-  return glyphs.map((g) => (g.implemented === false ? { ...g, kind: PLAIN } : g));
 }

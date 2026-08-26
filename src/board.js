@@ -21,18 +21,39 @@ export const ORTHO = Object.freeze([
   [0, 1],
 ]);
 
-export const PLAIN = '';
-export const PUSH = 'push';
-export const BLOCK = 'block';
-export const WILD = 'wild';
-export const VOID = 'void';
+/** The four corners. Only swapDiag reaches them. */
+export const DIAG = Object.freeze([
+  [-1, -1],
+  [-1, 1],
+  [1, 1],
+  [1, -1],
+]);
 
-/** Every subset of the four orthogonal directions — wild picks one at random. */
-export const WILD_SETS = Object.freeze(
-  Array.from({ length: 16 }, (_, bits) =>
-    Object.freeze(ORTHO.filter((_dir, i) => (bits >> (3 - i)) & 1)),
-  ),
-);
+// One kind per glyph and no two alike, so a push carries its direction here rather
+// than in its drawing: board.js never reads the art layer.
+export const PLAIN = '';
+export const PULSE = 'pulse';
+export const ANCHOR = 'anchor';
+export const PUSH_UP = 'pushUp';
+export const PUSH_RIGHT = 'pushRight';
+export const PUSH_DOWN = 'pushDown';
+export const PUSH_LEFT = 'pushLeft';
+export const SWAP_ORTH = 'swapOrth';
+export const SWAP_DIAG = 'swapDiag';
+export const ROTATE = 'rotate';
+export const ROTATE_REV = 'rotateRev';
+export const SINK = 'sink';
+
+/** Which way each push sends its line. */
+const PUSH_DIR = Object.freeze({
+  [PUSH_UP]: [-1, 0],
+  [PUSH_RIGHT]: [0, 1],
+  [PUSH_DOWN]: [1, 0],
+  [PUSH_LEFT]: [0, -1],
+});
+
+/** North, east, south, west — the order a rotation steps through. */
+const RING = Object.freeze([[-1, 0], [0, 1], [1, 0], [0, -1]]);
 
 /**
  * An empty board of the given size. Callers fill `bg`, `glyph` and `kind`.
@@ -140,11 +161,11 @@ function carry(b, [fr, fc], [tr, tc]) {
  * advance. Only a live empty cell lets the whole line move intact.
  */
 export function shove(b, r, c, dr, dc, log) {
-  if (!occupied(b, r, c) || b.kind[r][c] === BLOCK) return; // an eater will not be shoved
+  if (!occupied(b, r, c) || b.kind[r][c] === ANCHOR) return; // an eater will not be shoved
   const run = [];
   let rr = r;
   let cc = c;
-  while (occupied(b, rr, cc) && b.kind[rr][cc] !== BLOCK) {
+  while (occupied(b, rr, cc) && b.kind[rr][cc] !== ANCHOR) {
     run.push([rr, cc]);
     rr += dr;
     cc += dc;
@@ -183,7 +204,7 @@ export function armEnd(b, r, c, dr, dc) {
   let last = null;
   let rr = r + dr;
   let cc = c + dc;
-  while (occupied(b, rr, cc) && b.kind[rr][cc] !== BLOCK) {
+  while (occupied(b, rr, cc) && b.kind[rr][cc] !== ANCHOR) {
     last = [rr, cc];
     rr += dr;
     cc += dc;
@@ -191,30 +212,86 @@ export function armEnd(b, r, c, dr, dc) {
   return last;
 }
 
+/** Exchange two cells' pieces. A pair acts only when both its cells are live. */
+function exchange(b, [r1, c1], [r2, c2], log) {
+  if (!onBoard(b, r1, c1) || !onBoard(b, r2, c2)) return;
+  if (!b.alive[r1][c1] || !b.alive[r2][c2]) return;
+  for (const layer of ['glyph', 'kind', 'art']) {
+    const held = b[layer][r1][c1];
+    b[layer][r1][c1] = b[layer][r2][c2];
+    b[layer][r2][c2] = held;
+  }
+  log?.events.push({ type: 'exchange', a: [r1, c1], z: [r2, c2] });
+}
+
+/**
+ * Step the four neighbours one place around the centre. Reading the ring into a
+ * buffer first is what makes it a rotation rather than a chain of overwrites; a
+ * dead or off-board cell holds its position, so the live ones turn past it.
+ */
+function turn(b, r, c, clockwise, log) {
+  const ring = clockwise ? RING : [...RING].reverse();
+  const cells = ring.map(([dr, dc]) => [r + dr, c + dc]);
+  const held = cells.map(([rr, cc]) =>
+    onBoard(b, rr, cc) && b.alive[rr][cc]
+      ? { glyph: b.glyph[rr][cc], kind: b.kind[rr][cc], art: b.art[rr][cc] }
+      : null);
+  cells.forEach(([rr, cc], i) => {
+    const source = (i - 1 + cells.length) % cells.length;
+    const from = held[source];
+    if (!from || !onBoard(b, rr, cc) || !b.alive[rr][cc]) return;
+    b.glyph[rr][cc] = from.glyph;
+    b.kind[rr][cc] = from.kind;
+    b.art[rr][cc] = from.art;
+    log?.events.push({ type: 'turn', from: cells[source], to: [rr, cc] });
+  });
+}
+
 /**
  * Run the ability of the glyph at (r,c).
  *
  * A pull is a shove aimed the other way: to draw an arm inward the far end is the
  * one shoved, so the whole arm advances and the glyph nearest the centre runs into
- * the sink the void leaves behind.
+ * the sink the sink glyph leaves behind.
  */
 export function fire(b, r, c, rand, log) {
   const kind = b.kind[r][c];
   log?.events.push({ type: 'fire', at: [r, c], kind, art: b.art[r][c] });
-  if (kind === PUSH) {
+
+  if (kind === PULSE) {
     for (const [dr, dc] of ORTHO) shove(b, r + dr, c + dc, dr, dc, log);
-  } else if (kind === WILD) {
-    const set = WILD_SETS[Math.floor(rand() * WILD_SETS.length)];
-    for (const [dr, dc] of set) shove(b, r + dr, c + dc, dr, dc, log);
-  } else if (kind === VOID) {
+    return;
+  }
+  if (PUSH_DIR[kind]) {
+    const [dr, dc] = PUSH_DIR[kind];
+    shove(b, r + dr, c + dc, dr, dc, log);
+    return;
+  }
+  if (kind === SWAP_ORTH) {
+    exchange(b, [r - 1, c], [r + 1, c], log);
+    exchange(b, [r, c - 1], [r, c + 1], log);
+    return;
+  }
+  if (kind === SWAP_DIAG) {
+    exchange(b, [r - 1, c - 1], [r + 1, c + 1], log);
+    exchange(b, [r - 1, c + 1], [r + 1, c - 1], log);
+    return;
+  }
+  if (kind === ROTATE || kind === ROTATE_REV) {
+    turn(b, r, c, kind === ROTATE, log);
+    return;
+  }
+  if (kind === SINK) {
     b.alive[r][c] = false; // the hole the arms fall into
     clear(b, r, c);
-    log?.events.push({ type: 'kill', at: [r, c], reason: 'void' });
+    log?.events.push({ type: 'kill', at: [r, c], reason: 'sink' });
     for (const [dr, dc] of ORTHO) {
       const end = armEnd(b, r, c, dr, dc);
       if (end) shove(b, end[0], end[1], -dr, -dc, log);
     }
   }
+  // PLAIN and ANCHOR move nothing: an anchor's whole ability is being a sink,
+  // which shove() handles where the line meets it.
 }
 
 /**

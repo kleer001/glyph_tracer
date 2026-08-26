@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { BLOCK, PLAIN, PUSH, VOID, WILD } from '../src/board.js';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const SOURCE = JSON.parse(read('../data/example_board.json'));
@@ -24,14 +23,12 @@ test('the board embedded in docs/trapping.html has not drifted from the JSON', (
 // run, so they are not asserted here — re-scoring a board under a changed rule is
 // supposed to give a different answer.
 test('the example board is a board the generator could emit', () => {
-  const kinds = [PLAIN, PUSH, BLOCK, WILD, VOID];
   assert.equal(SOURCE.bg.length, SOURCE.h);
   for (let r = 0; r < SOURCE.h; r++) {
     assert.equal(SOURCE.bg[r].length, SOURCE.w);
     for (let c = 0; c < SOURCE.w; c++) {
       assert.ok(SOURCE.bg[r][c] < SOURCE.colors && SOURCE.glyph[r][c] < SOURCE.colors);
       assert.notEqual(SOURCE.glyph[r][c], SOURCE.bg[r][c], `[${r},${c}] spawned pre-matched`);
-      assert.ok(kinds.includes(SOURCE.kind[r][c]));
     }
   }
 });

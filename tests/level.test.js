@@ -8,13 +8,12 @@ import {
   dealArt,
   greedyPlay,
   measureYield,
-  playableGlyphs,
   targetFor,
 } from '../src/level.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
 const RULES = read('../data/rules.json');
-const GLYPHS = playableGlyphs(read('../data/glyphs.json').glyphs);
+const GLYPHS = read('../data/glyphs.json').glyphs;
 const STAGES = read('../data/stages.json').stages;
 
 test('greedy play spends its budget and drains the board', () => {
@@ -71,13 +70,11 @@ test('a piece keeps its drawing when it is shoved', () => {
   }
 });
 
-test('a glyph whose effect is unimplemented is plain, and is still drawable', () => {
+test('exactly one glyph is inert, and it is the one drawn as a full stop', () => {
   const raw = read('../data/glyphs.json').glyphs;
-  const pending = raw.filter((g) => g.implemented === false);
-  assert.ok(pending.length, 'this asserts the marker works, not that any glyph is pending');
-  for (const g of pending) {
-    assert.equal(playableGlyphs(raw).find((p) => p.id === g.id).kind, PLAIN);
-  }
+  const inert = raw.filter((g) => g.kind === PLAIN);
+  assert.equal(inert.length, 1);
+  assert.equal(inert[0].letter, '.');
 });
 
 test('a level is reproducible and its target is reachable in the budget', () => {

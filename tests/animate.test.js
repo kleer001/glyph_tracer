@@ -2,9 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mulberry32 } from '../src/rng.js';
 import {
-  BLOCK,
-  PUSH,
-  VOID,
+  ANCHOR,
+  PULSE,
+  PUSH_LEFT,
+  SINK,
   applySwap,
   blankBoard,
   createRecorder,
@@ -70,7 +71,7 @@ test('a piece that travels and is then eaten falls into whatever ate it', () => 
 
 test('a cell reported dead twice only dies once', () => {
   const b = bareBoard();
-  place(b, 2, 2, { glyph: 1, kind: VOID });
+  place(b, 2, 2, { glyph: 1, kind: SINK });
   const { deadCells } = collapseStep({
     snapshot: b,
     events: [
@@ -84,8 +85,8 @@ test('a cell reported dead twice only dies once', () => {
 test('every piece on the board gets exactly one fate', () => {
   const b = bareBoard();
   for (let c = 0; c < 4; c++) place(b, 0, c, { glyph: c });
-  place(b, 0, 0, { glyph: 0, kind: BLOCK });
-  place(b, 0, 3, { glyph: 3, kind: PUSH });
+  place(b, 0, 0, { glyph: 0, kind: ANCHOR });
+  place(b, 0, 3, { glyph: 3, kind: PULSE });
   b.bg[0][3] = 3;
   const recorder = createRecorder();
   settle(b, rand, recorder);
@@ -97,14 +98,14 @@ test('every piece on the board gets exactly one fate', () => {
   assert.equal(origins.size, pieces, 'two fates claimed the same piece');
 });
 
-test('the ABCD sink case animates as one eaten piece, one mover, one dying cell', () => {
+test('a line shoved into an anchor is one eaten piece, one mover, one dying cell', () => {
   const b = bareBoard();
   for (let i = 0; i < 4; i++) {
     b.bg[0][i] = 4;
     place(b, 0, i, { glyph: i });
   }
-  b.kind[0][0] = BLOCK;
-  b.kind[0][3] = PUSH;
+  b.kind[0][0] = ANCHOR;
+  b.kind[0][3] = PULSE;
   b.bg[0][3] = 3;
   b.glyph[0][3] = 3;
   const recorder = createRecorder();
@@ -123,10 +124,11 @@ test('a timeline runs the swap and then one phase per resolution step', () => {
     b.bg[1][i] = 4;
     place(b, 1, i, { glyph: i });
   }
-  b.kind[1][3] = PUSH;
   b.bg[1][3] = 0;
   b.glyph[1][3] = 3;
-  place(b, 2, 3, { glyph: 0 });
+  // The pulse is the piece that gets swapped up onto its own colour, so it is the
+  // one that fires.
+  place(b, 2, 3, { glyph: 0, kind: PULSE });
   const before = structuredClone(b);
   const recorder = createRecorder();
   applySwap(b, [1, 3], [2, 3], rand, recorder);
@@ -138,7 +140,7 @@ test('a timeline runs the swap and then one phase per resolution step', () => {
 test('the swap phase carries the two pieces to each other', () => {
   const b = bareBoard();
   place(b, 0, 0, { glyph: 1, art: 'pulse' });
-  place(b, 7, 4, { glyph: 2, art: 'wall' });
+  place(b, 7, 4, { glyph: 2, art: 'anchor' });
   const timeline = buildTimeline({
     before: b,
     swap: [[0, 0], [7, 4]],
@@ -226,7 +228,7 @@ function shoveBoard() {
     b.bg[0][i] = 4;
     place(b, 0, i, { glyph: i });
   }
-  b.kind[0][3] = PUSH;
+  b.kind[0][3] = PULSE;
   b.bg[0][3] = 3;
   b.glyph[0][3] = 3;
   return b;
@@ -348,20 +350,20 @@ test('a delayed piece takes as long to travel as an undelayed one', () => {
     'a wave is pieces starting at different times, not moving at different speeds');
 });
 
-test("a void's direct neighbours travel into it as they go", () => {
+test("a sink's direct neighbours travel into it as they go", () => {
   const b = bareBoard();
   for (const [r, c] of [[1, 2], [2, 2], [4, 2], [5, 2], [3, 1], [3, 3]]) {
     place(b, r, c, { glyph: 1 });
   }
   b.bg[3][2] = 0;
-  place(b, 3, 2, { glyph: 0, kind: VOID, art: 'void' });
+  place(b, 3, 2, { glyph: 0, kind: SINK, art: 'sink' });
   const recorder = createRecorder();
   settle(b, rand, recorder);
   const { fates } = collapseStep(recorder.steps[0]);
   const eaten = fates.filter((f) => f.kind === 'eaten');
   assert.equal(eaten.length, 4, 'all four direct neighbours are eaten');
   for (const fate of eaten) {
-    assert.deepEqual(fate.end, [3, 2], 'and each one ends up in the void, not where it stood');
+    assert.deepEqual(fate.end, [3, 2], 'and each one ends up in the sink, not where it stood');
     assert.notDeepEqual(fate.origin, fate.end, 'so it has somewhere to travel');
   }
 });
@@ -370,7 +372,7 @@ test('a piece shoved off the board travels off the edge rather than vanishing', 
   const b = bareBoard();
   for (let c = 0; c < 3; c++) place(b, 0, c, { glyph: c });
   b.bg[0][2] = 2;
-  b.kind[0][2] = PUSH;
+  b.kind[0][2] = PULSE;
   const recorder = createRecorder();
   settle(b, rand, recorder);
   const { fates } = collapseStep(recorder.steps[0]);
@@ -379,13 +381,13 @@ test('a piece shoved off the board travels off the edge rather than vanishing', 
   assert.equal(off.end[1], -1, 'and it heads off the board to do it');
 });
 
-test('a piece eaten by a blocker travels into the blocker', () => {
+test('a piece eaten by an anchor travels into the anchor', () => {
   const b = bareBoard();
-  place(b, 0, 0, { glyph: 0, kind: BLOCK, art: 'wall' });
+  place(b, 0, 0, { glyph: 0, kind: ANCHOR, art: 'anchor' });
   place(b, 0, 1, { glyph: 1 });
   place(b, 0, 2, { glyph: 2 });
   b.bg[0][3] = 3;
-  place(b, 0, 3, { glyph: 3, kind: PUSH, art: 'slam-down' });
+  place(b, 0, 3, { glyph: 3, kind: PUSH_LEFT, art: 'push-left' });
   const recorder = createRecorder();
   settle(b, rand, recorder);
   const { fates } = collapseStep(recorder.steps[0]);

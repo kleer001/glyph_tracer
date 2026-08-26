@@ -2,14 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { swapPairs } from '../src/board.js';
-import { greedyPlay, playableGlyphs } from '../src/level.js';
+import { greedyPlay } from '../src/level.js';
 import { dealLevel, loadRun, nextAfter, outcome } from '../src/levels.js';
 import { readRun } from '../tools/makeLevels.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
 const PACK = read('../data/levels.json');
 const RULES = read('../data/rules.json');
-const GLYPHS = playableGlyphs(read('../data/glyphs.json').glyphs);
+const GLYPHS = read('../data/glyphs.json').glyphs;
 const RUN = loadRun(PACK);
 
 test('the run is four acts of consecutive levels', () => {
@@ -93,9 +93,14 @@ test('the pack is the run documented in docs/teaching.html', () => {
   });
 });
 
-test('every act says what its boards are made of', () => {
+test('every act says what its boards are made of, in kinds the engine runs', () => {
+  const kinds = new Set(read('../data/glyphs.json').glyphs.map((g) => g.kind));
   for (const act of RUN.acts) {
-    assert.equal(typeof act.mix.push, 'number', `${act.name} does not say how many pushers`);
-    assert.equal(typeof act.mix.block, 'number', `${act.name} does not say how many eaters`);
+    const named = Object.keys(act.mix);
+    assert.ok(named.length, `${act.name} says nothing about its boards`);
+    for (const kind of named) {
+      assert.ok(kinds.has(kind), `${act.name} asks for "${kind}", which no glyph is drawn for`);
+      assert.equal(typeof act.mix[kind], 'number', `${act.name}'s ${kind} is not a fraction`);
+    }
   }
 });

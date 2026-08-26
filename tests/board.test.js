@@ -2,13 +2,21 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mulberry32 } from '../src/rng.js';
 import {
-  BLOCK,
-  PUSH,
-  VOID,
-  WILD,
-  WILD_SETS,
+  ANCHOR,
+  PLAIN,
+  PULSE,
+  PUSH_DOWN,
+  PUSH_LEFT,
+  PUSH_RIGHT,
+  PUSH_UP,
+  ROTATE,
+  ROTATE_REV,
+  SINK,
+  SWAP_DIAG,
+  SWAP_ORTH,
   applySwap,
   blankBoard,
+  fire,
   gain,
   matches,
   randomBoard,
@@ -40,25 +48,49 @@ function row(b, y = 0, n = b.width) {
   return out;
 }
 
+// The cell every ability test fires from, with room on all sides for a piece to be
+// moved one further out. Neighbours are listed clockwise from north.
+const MID = [3, 2];
+const RING = [[2, 2], [3, 3], [4, 2], [3, 1]];
+const CORNERS = [[2, 1], [2, 3], [4, 3], [4, 1]];
+const [N, E, S, W] = RING;
+
+/** Stand a distinguishable piece on each of the given cells. */
+function pieces(b, cells) {
+  cells.forEach(([r, c], i) => {
+    b.glyph[r][c] = i;
+    b.art[r][c] = `p${i}`;
+  });
+}
+
+/** The glyph on each of the given cells, in the order they were given. */
+const read = (b, cells) => cells.map(([r, c]) => b.glyph[r][c]);
+
+/** Everything a turn carries, for the cells it carries it between. */
+const carried = (b, cells) =>
+  cells.map(([r, c]) => [b.glyph[r][c], b.kind[r][c], b.art[r][c]]);
+
+const fireMid = (b, log = null) => fire(b, MID[0], MID[1], null, log);
+
 test('a shove line ending on an eater loses its front glyph and advances the rest', () => {
   const b = bareBoard();
   for (let i = 0; i < 4; i++) {
     b.bg[0][i] = 4;
     b.glyph[0][i] = i;
   }
-  b.kind[0][0] = BLOCK;
-  b.kind[0][3] = PUSH;
+  b.kind[0][0] = ANCHOR;
+  b.kind[0][3] = PULSE;
   b.bg[0][3] = 3;
-  b.glyph[0][3] = 3; // D is on its own color, so it activates and pushes left
+  b.glyph[0][3] = 3; // D is on its own color, so it activates and pulses
   assert.equal(row(b, 0, 4), 'ABCD');
   settle(b, rand);
   assert.equal(row(b, 0, 4), 'AC.x');
 });
 
-test('a void pulls its arms inward and eats the glyph nearest the centre', () => {
+test('a sink pulls its arms inward and eats the glyph nearest the centre', () => {
   const b = bareBoard();
   for (let c = 0; c < 5; c++) b.glyph[0][c] = c;
-  b.kind[0][2] = VOID;
+  b.kind[0][2] = SINK;
   b.bg[0][2] = 2;
   b.glyph[0][2] = 2;
   assert.equal(row(b), 'ABCDE');
@@ -66,24 +98,136 @@ test('a void pulls its arms inward and eats the glyph nearest the centre', () =>
   assert.equal(row(b), '.AxE.');
 });
 
-test('a wild fires a random subset of its four directions', () => {
-  const seen = new Set();
-  for (let seed = 0; seed < 400; seed++) {
+test('a pulse shoves all four lines outward by one', () => {
+  const b = bareBoard();
+  pieces(b, RING);
+  b.kind[3][2] = PULSE;
+  fireMid(b);
+  assert.deepEqual(read(b, RING), [null, null, null, null]);
+  assert.deepEqual(read(b, [[1, 2], [3, 4], [5, 2], [3, 0]]), [0, 1, 2, 3]);
+});
+
+test('each directional push shoves only the line it names', () => {
+  const cases = [
+    [PUSH_UP, [1, 2], 0, [null, 1, 2, 3]],
+    [PUSH_RIGHT, [3, 4], 1, [0, null, 2, 3]],
+    [PUSH_DOWN, [5, 2], 2, [0, 1, null, 3]],
+    [PUSH_LEFT, [3, 0], 3, [0, 1, 2, null]],
+  ];
+  for (const [kind, [tr, tc], glyph, ring] of cases) {
     const b = bareBoard();
-    for (let c = 0; c < 5; c++) b.glyph[1][c] = c;
-    b.kind[1][2] = WILD;
-    b.bg[1][2] = 2;
-    b.glyph[1][2] = 2;
-    settle(b, mulberry32(seed));
-    seen.add(row(b, 1));
+    pieces(b, RING);
+    b.kind[3][2] = kind;
+    fireMid(b);
+    assert.equal(b.glyph[tr][tc], glyph, `${kind} did not land its piece`);
+    assert.deepEqual(read(b, RING), ring, `${kind} moved a line it does not name`);
   }
-  assert.ok(seen.size > 1, 'a wild that always did the same thing would not be wild');
-  assert.equal(WILD_SETS.length, 16);
+});
+
+test('swapOrth exchanges upper with lower and left with right', () => {
+  const b = bareBoard();
+  pieces(b, RING);
+  b.kind[3][2] = SWAP_ORTH;
+  fireMid(b);
+  assert.deepEqual(read(b, RING), [2, 3, 0, 1]);
+  assert.equal(b.art[N[0]][N[1]], 'p2', 'the drawing travels with the piece');
+});
+
+test('swapDiag exchanges both corner pairs', () => {
+  const b = bareBoard();
+  pieces(b, CORNERS);
+  b.kind[3][2] = SWAP_DIAG;
+  fireMid(b);
+  assert.deepEqual(read(b, CORNERS), [2, 3, 0, 1]);
+});
+
+test('an exchange pair with a dead cell stays put while the other pair acts', () => {
+  const b = bareBoard();
+  pieces(b, RING);
+  b.glyph[N[0]][N[1]] = null;
+  b.alive[N[0]][N[1]] = false;
+  b.kind[3][2] = SWAP_ORTH;
+  fireMid(b);
+  assert.deepEqual(read(b, RING), [null, 3, 2, 1]);
+});
+
+test('swapOrth twice and swapDiag twice leave the board as they found it', () => {
+  for (const [kind, cells] of [[SWAP_ORTH, RING], [SWAP_DIAG, CORNERS]]) {
+    const b = bareBoard();
+    pieces(b, cells);
+    b.kind[3][2] = kind;
+    const before = JSON.stringify(b);
+    fireMid(b);
+    assert.notEqual(JSON.stringify(b), before, `${kind} exchanged nothing to undo`);
+    fireMid(b);
+    assert.equal(JSON.stringify(b), before);
+  }
+});
+
+test('rotate carries each neighbour one place clockwise', () => {
+  const b = bareBoard();
+  pieces(b, RING);
+  b.kind[3][2] = ROTATE;
+  fireMid(b);
+  assert.deepEqual(read(b, RING), [3, 0, 1, 2], 'north went east, and west took north');
+});
+
+test('rotateRev carries each neighbour one place anticlockwise', () => {
+  const b = bareBoard();
+  pieces(b, RING);
+  b.kind[3][2] = ROTATE_REV;
+  fireMid(b);
+  assert.deepEqual(read(b, RING), [1, 2, 3, 0], 'north went west, and east took north');
+});
+
+test('rotate and rotateRev undo each other', () => {
+  const b = bareBoard();
+  pieces(b, RING);
+  b.kind[3][2] = ROTATE;
+  const before = carried(b, RING);
+  fireMid(b);
+  assert.notDeepEqual(carried(b, RING), before, 'the turn moved nothing to undo');
+  b.kind[3][2] = ROTATE_REV;
+  fireMid(b);
+  assert.deepEqual(carried(b, RING), before, 'every layer came back');
+});
+
+test('an anchor and a plain glyph move nothing when they fire', () => {
+  for (const kind of [ANCHOR, PLAIN]) {
+    const b = bareBoard();
+    pieces(b, RING);
+    b.kind[3][2] = kind;
+    const before = JSON.stringify(b);
+    fireMid(b);
+    assert.equal(JSON.stringify(b), before, `${kind || 'plain'} moved something`);
+  }
+});
+
+test('an exchange logs its two cells and a turn logs where each piece landed', () => {
+  const swapped = { events: [] };
+  const bs = bareBoard();
+  pieces(bs, RING);
+  bs.kind[3][2] = SWAP_ORTH;
+  fireMid(bs, swapped);
+  assert.deepEqual(swapped.events.filter((e) => e.type === 'exchange'), [
+    { type: 'exchange', a: N, z: S },
+    { type: 'exchange', a: W, z: E },
+  ]);
+
+  const turned = { events: [] };
+  const bt = bareBoard();
+  pieces(bt, RING);
+  bt.kind[3][2] = ROTATE;
+  fireMid(bt, turned);
+  assert.deepEqual(
+    turned.events.filter((e) => e.type === 'turn').map((e) => e.to),
+    [N, E, S, W],
+  );
 });
 
 test('a fresh board opens with nothing matched', () => {
   for (let seed = 0; seed < 50; seed++) {
-    const b = randomBoard(RULES, { [BLOCK]: 0.125, [PUSH]: 0.5 }, mulberry32(seed));
+    const b = randomBoard(RULES, { [ANCHOR]: 0.125, [PULSE]: 0.5 }, mulberry32(seed));
     assert.deepEqual(matches(b), [], `seed ${seed} spawned a glyph on its own color`);
   }
 });
@@ -99,14 +243,14 @@ test('an activated cell is gone from the board', () => {
 });
 
 test('resolve reads a swap without changing the board', () => {
-  const b = randomBoard(RULES, { [PUSH]: 0.5 }, mulberry32(7));
+  const b = randomBoard(RULES, { [PULSE]: 0.5 }, mulberry32(7));
   const snapshot = JSON.stringify(b);
   for (const [a, z] of swapPairs(RULES)) resolve(b, a, z, rand);
   assert.equal(JSON.stringify(b), snapshot);
 });
 
 test('a swap that shows nothing activates nothing', () => {
-  const b = randomBoard(RULES, { [PUSH]: 0.5 }, mulberry32(11));
+  const b = randomBoard(RULES, { [PULSE]: 0.5 }, mulberry32(11));
   for (const [a, z] of swapPairs(RULES)) {
     if (gain(b, a, z) === 0) assert.equal(resolve(b, a, z, rand).activated, 0);
   }
@@ -119,7 +263,7 @@ test('the swap rule decides how many swaps a board offers', () => {
 });
 
 test('applySwap moves the board it is handed', () => {
-  const b = randomBoard(RULES, { [PUSH]: 0.5 }, mulberry32(3));
+  const b = randomBoard(RULES, { [PULSE]: 0.5 }, mulberry32(3));
   const [a, z] = swapPairs(RULES).find((p) => gain(b, ...p) > 0);
   const before = remaining(b);
   const { activated } = applySwap(b, a, z, rand);

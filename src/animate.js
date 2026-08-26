@@ -51,12 +51,31 @@ export function collapseStep({ snapshot, events }) {
   const fates = [];
   const deadCells = [];
   const seenDead = new Set();
+  const turns = [];
   for (const event of events) {
     if (event.type === 'fire') continue; // recorded for the log; nothing moves yet
     if (event.type === 'move') {
       const origin = occupant.get(key(event.from));
       occupant.delete(key(event.from));
       if (origin) occupant.set(key(event.to), origin);
+      continue;
+    }
+    if (event.type === 'exchange') {
+      // Two pieces trade cells, so neither leaves the board and nothing dies. Read
+      // both out before writing either back, or the first write loses the second.
+      const [a, z] = [key(event.a), key(event.z)];
+      const held = [occupant.get(a), occupant.get(z)];
+      occupant.delete(a);
+      occupant.delete(z);
+      if (held[1]) occupant.set(a, held[1]);
+      if (held[0]) occupant.set(z, held[0]);
+      continue;
+    }
+    if (event.type === 'turn') {
+      // A rotation moves every piece in the ring at once. Replaying the events one at
+      // a time would drag a single piece the whole way round, so they are collected
+      // and applied together below.
+      turns.push(event);
       continue;
     }
     const at = key(event.at);
@@ -76,6 +95,13 @@ export function collapseStep({ snapshot, events }) {
       deadCells.push(event.at);
     }
     if (origin) fates.push({ origin, end: event.at, kind: 'destroyed' });
+  }
+  if (turns.length) {
+    const lifted = turns.map((t) => occupant.get(key(t.from)));
+    for (const t of turns) occupant.delete(key(t.from));
+    turns.forEach((t, i) => {
+      if (lifted[i]) occupant.set(key(t.to), lifted[i]);
+    });
   }
   for (const [where, origin] of occupant) {
     const end = where.split(',').map(Number);
