@@ -10,10 +10,15 @@ import {
   createRecorder,
   settle,
 } from '../src/board.js';
-import { buildTimeline, collapseStep, sampleTimeline, staticFrame } from '../src/animate.js';
+import {
+  buildTimeline, collapseStep, sampleTimeline, staticFrame, swapDurationFor,
+} from '../src/animate.js';
 
 const RULES = { width: 5, height: 8, colors: 6, adjacentOnly: false };
-const TIMING = { swapMs: 180, stepMs: 200 };
+const TIMING = { swapMsPerCell: 55, swapMinMs: 110, stepMs: 200 };
+// Most of these build their timeline from a self-swap, whose travel is nothing, so
+// the swap beat lands on its floor.
+const FLOOR = TIMING.swapMinMs;
 const SHAKE = { amplitude: 0.07, cycles: 3 };
 const rand = mulberry32(20260825);
 
@@ -127,7 +132,7 @@ test('a timeline runs the swap and then one phase per resolution step', () => {
   applySwap(b, [1, 3], [2, 3], rand, recorder);
   const timeline = buildTimeline({ before, swap: [[1, 3], [2, 3]], recorder, timing: TIMING });
   assert.equal(timeline.phases.length, 1 + recorder.steps.length);
-  assert.equal(timeline.totalMs, TIMING.swapMs + recorder.steps.length * TIMING.stepMs);
+  assert.equal(timeline.totalMs, FLOOR + recorder.steps.length * TIMING.stepMs);
 });
 
 test('the swap phase carries the two pieces to each other', () => {
@@ -140,8 +145,9 @@ test('the swap phase carries the two pieces to each other', () => {
     recorder: { steps: [] },
     timing: TIMING,
   });
+  const span = swapDurationFor([0, 0], [7, 4], TIMING);
   const start = sampleTimeline(timeline, 0, SHAKE);
-  const mid = sampleTimeline(timeline, TIMING.swapMs / 2, SHAKE);
+  const mid = sampleTimeline(timeline, span / 2, SHAKE);
   const pulseStart = start.sprites.find((s) => s.art === 'pulse');
   const pulseMid = mid.sprites.find((s) => s.art === 'pulse');
   assert.deepEqual([pulseStart.x, pulseStart.y], [0, 0]);
@@ -160,7 +166,7 @@ test('a dying cell shrinks to nothing over its phase', () => {
     recorder,
     timing: TIMING,
   });
-  const at = (t) => sampleTimeline(timeline, TIMING.swapMs + t, SHAKE);
+  const at = (t) => sampleTimeline(timeline, FLOOR + t, SHAKE);
   const tileAt = (t) => at(t).tiles.find((tile) => Math.round(tile.x) === 2 && tile.y === 3);
   assert.ok(Math.abs(tileAt(0).scale - 1) < 1e-9, 'starts full size');
   assert.ok(Math.abs(tileAt(TIMING.stepMs / 2).scale - 0.5) < 1e-9, 'half way, half size');
@@ -176,7 +182,7 @@ test('a dying cell wobbles about its column and an ordinary one does not', () =>
   settle(b, rand, recorder);
   const timeline = buildTimeline({ before: b, swap: [[3, 2], [3, 2]], recorder, timing: TIMING });
   // A quarter of the way through the first wobble is where it is furthest out.
-  const frame = sampleTimeline(timeline, TIMING.swapMs + TIMING.stepMs / 12, SHAKE);
+  const frame = sampleTimeline(timeline, FLOOR + TIMING.stepMs / 12, SHAKE);
   const dying = frame.tiles.filter((t) => t.scale < 1);
   assert.equal(dying.length, 1, 'exactly one cell is being destroyed');
   assert.ok(Math.abs(dying[0].x - 2) - SHAKE.amplitude < 1e-9, 'wobbles by the amplitude');
@@ -207,8 +213,8 @@ test('a timeline is spent once its phases are', () => {
     recorder: { steps: [] },
     timing: TIMING,
   });
-  assert.ok(sampleTimeline(timeline, TIMING.swapMs - 1, SHAKE));
-  assert.equal(sampleTimeline(timeline, TIMING.swapMs, SHAKE), null);
+  assert.ok(sampleTimeline(timeline, FLOOR - 1, SHAKE));
+  assert.equal(sampleTimeline(timeline, FLOOR, SHAKE), null);
 });
 
 // --- the timing knobs -------------------------------------------------------
@@ -240,8 +246,8 @@ test('a hold adds still time after each phase without moving anything', () => {
   assert.equal(held.phases.length, plain.phases.length);
   assert.equal(held.totalMs, plain.totalMs + 100 * plain.phases.length);
   // Through the hold the frame is whatever the phase ended on.
-  const atEnd = sampleTimeline(held, TIMING.swapMs, SHAKE);
-  const inHold = sampleTimeline(held, TIMING.swapMs + 60, SHAKE);
+  const atEnd = sampleTimeline(held, FLOOR, SHAKE);
+  const inHold = sampleTimeline(held, FLOOR + 60, SHAKE);
   assert.deepEqual(inHold, atEnd, 'nothing moves during a hold');
 });
 
@@ -265,7 +271,7 @@ test('a staggered piece has not started while its delay is still running', () =>
   const step = staggered.phases[1];
   const late = step.sprites.find((s) => s.delay > 0 && String(s.from) !== String(s.to));
   assert.ok(late, 'something is delayed and moving');
-  const frame = sampleTimeline(staggered, TIMING.swapMs + late.delay / 2, SHAKE);
+  const frame = sampleTimeline(staggered, FLOOR + late.delay / 2, SHAKE);
   const drawn = frame.sprites.find((s) => s.art === late.art && Math.abs(s.y - late.from[0]) < 1e-9);
   assert.ok(drawn, 'it is still sitting where it started');
 });
@@ -284,7 +290,7 @@ test('split beats move first and destroy second', () => {
 });
 
 test('the knobs are no-ops at zero, so the timeline is what it always was', () => {
-  const bare = timelineFor({ swapMs: TIMING.swapMs, stepMs: TIMING.stepMs });
+  const bare = timelineFor({ ...TIMING });
   const zeroed = timelineFor({ ...TIMING, holdMs: 0, staggerMs: 0, splitBeats: false });
   assert.equal(zeroed.totalMs, bare.totalMs);
   assert.deepEqual(zeroed.phases.map((p) => p.tweenMs), bare.phases.map((p) => p.tweenMs));
@@ -293,7 +299,7 @@ test('the knobs are no-ops at zero, so the timeline is what it always was', () =
 test('data/animation.json carries every knob the timeline reads', async () => {
   const { readFileSync } = await import('node:fs');
   const anim = JSON.parse(readFileSync(new URL('../data/animation.json', import.meta.url), 'utf8'));
-  for (const key of ['swapMs', 'stepMs', 'holdMs', 'staggerMs']) {
+  for (const key of ['swapMsPerCell', 'swapMinMs', 'stepMs', 'shrinkMs', 'holdMs', 'staggerMs']) {
     assert.equal(typeof anim[key], 'number', `animation is missing "${key}"`);
     assert.ok(anim[key] >= 0);
   }
@@ -310,7 +316,7 @@ test('shrink runs on its own clock, not the movement clock', () => {
   // Halfway through a 600ms shrink the piece is half gone, while a piece that only
   // travels has finished its 200ms move long before.
   const step = slowShrink.phases[1];
-  const frame = sampleTimeline(slowShrink, TIMING.swapMs + 300, SHAKE);
+  const frame = sampleTimeline(slowShrink, FLOOR + 300, SHAKE);
   const dying = frame.sprites.filter((s) => s.scale > 0 && s.scale < 1);
   assert.ok(dying.length, 'something is mid-shrink');
   assert.ok(dying.every((s) => Math.abs(s.scale - 0.5) < 0.05), 'and it is about half gone');
@@ -328,7 +334,7 @@ test('a phase lasts as long as the clocks its pieces actually use', () => {
   const timeline = buildTimeline({
     before: b, swap: [[3, 2], [3, 2]], recorder, timing: { ...TIMING, shrinkMs: 90 },
   });
-  assert.equal(timeline.phases[0].tweenMs, TIMING.swapMs, 'the swap beat still holds');
+  assert.equal(timeline.phases[0].tweenMs, FLOOR, 'the swap beat still holds');
   assert.equal(timeline.phases[1].tweenMs, 90, 'the step is only as long as its shrink');
 });
 
@@ -386,4 +392,41 @@ test('a piece eaten by a blocker travels into the blocker', () => {
   const eaten = fates.find((f) => f.kind === 'eaten');
   assert.deepEqual(eaten.origin, [0, 1]);
   assert.deepEqual(eaten.end, [0, 0], 'it slides into the eater that took it');
+});
+
+// --- a swap is a speed ------------------------------------------------------
+
+test('a swap takes longer the further the pieces travel', () => {
+  const near = swapDurationFor([0, 0], [0, 3], TIMING);
+  const far = swapDurationFor([0, 0], [7, 4], TIMING);
+  assert.ok(far > near, 'crossing the board is not the same as crossing three cells');
+  // Above the floor, the time per cell is the same wherever the swap is.
+  const speed = (a, z) => swapDurationFor(a, z, TIMING) / Math.hypot(a[0] - z[0], a[1] - z[1]);
+  assert.ok(Math.abs(speed([0, 0], [0, 3]) - speed([0, 0], [7, 4])) < 1e-9,
+    'the pieces move at one speed, not one duration');
+});
+
+test('a short swap is floored so it can still be seen', () => {
+  const neighbour = swapDurationFor([3, 2], [3, 3], TIMING);
+  assert.equal(neighbour, TIMING.swapMinMs, 'one cell would be over in a few frames');
+  // The floor stops mattering once the distance is worth more than it.
+  const reach = TIMING.swapMinMs / TIMING.swapMsPerCell;
+  assert.ok(swapDurationFor([0, 0], [0, Math.ceil(reach) + 1], TIMING) > TIMING.swapMinMs);
+});
+
+test('the swap phase lasts exactly as long as its swap', () => {
+  const b = bareBoard();
+  place(b, 0, 0, { glyph: 1 });
+  place(b, 7, 4, { glyph: 2, art: 'wall' });
+  for (const pair of [[[0, 0], [7, 4]], [[0, 0], [0, 1]]]) {
+    const timeline = buildTimeline({
+      before: b, swap: pair, recorder: { steps: [] }, timing: TIMING,
+    });
+    assert.equal(timeline.phases[0].tweenMs, swapDurationFor(pair[0], pair[1], TIMING));
+    assert.equal(timeline.totalMs, swapDurationFor(pair[0], pair[1], TIMING));
+  }
+});
+
+test('a swap with no speed set fails loudly rather than guessing one', () => {
+  assert.throws(() => swapDurationFor([0, 0], [1, 1], { stepMs: 200 }), /swapMsPerCell/);
 });

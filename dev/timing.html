@@ -32,7 +32,7 @@ button.on{background:var(--ink1);color:var(--paper);border-color:var(--ink1)}
 .stage{background:var(--sunk);border:1px solid var(--rule);padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
 canvas{display:block}
 .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
-.readout{font-family:"Martian Mono",monospace;font-size:10.5px;color:var(--ink2);text-align:center;line-height:1.7}
+.readout{font-family:"Martian Mono",monospace;font-size:10.5px;color:var(--ink2);text-align:center;line-height:1.7;white-space:pre-line}
 pre{background:var(--sunk);border:1px solid var(--rule);padding:11px;font-family:"Martian Mono",monospace;font-size:10px;line-height:1.6;overflow-x:auto;margin:0}
 .hint{font-size:11px;color:var(--ink3);margin:8px 0 0;line-height:1.5}
 .track{width:100%;height:16px;background:var(--sunk);border:1px solid var(--rule);position:relative;overflow:hidden}
@@ -51,7 +51,9 @@ pre{background:var(--sunk);border:1px solid var(--rule);padding:11px;font-family
     beat after each step; <strong>stagger</strong> delays each piece by how far it sits from
     whatever fired; <strong>split beats</strong> plays the shoving and the clearing as two
     separate beats instead of at once. <strong>shrink</strong> runs on its own clock, so
-    a piece can slide at one speed and vanish at another.
+    a piece can slide at one speed and vanish at another. The swap is a <strong>speed</strong>
+    — milliseconds per cell travelled, floored so a one-cell swap is still visible — because
+    any two cells can be swapped and that distance runs from 1 to about 8.
   </p>
 </header>
 
@@ -59,7 +61,8 @@ pre{background:var(--sunk);border:1px solid var(--rule);padding:11px;font-family
   <div class="panel">
     <div class="grp">
       <h2>Timing</h2>
-      <div class="row"><label for="swapMs">swap</label><input type="range" id="swapMs" min="60" max="700" step="10"><output id="swapMs-o"></output></div>
+      <div class="row"><label for="swapMsPerCell">swap ms/cell</label><input type="range" id="swapMsPerCell" min="10" max="200" step="5"><output id="swapMsPerCell-o"></output></div>
+      <div class="row"><label for="swapMinMs">swap floor</label><input type="range" id="swapMinMs" min="0" max="500" step="10"><output id="swapMinMs-o"></output></div>
       <div class="row"><label for="stepMs">step</label><input type="range" id="stepMs" min="60" max="700" step="10"><output id="stepMs-o"></output></div>
       <div class="row"><label for="shrinkMs">shrink</label><input type="range" id="shrinkMs" min="40" max="900" step="10"><output id="shrinkMs-o"></output></div>
       <div class="row"><label for="holdMs">hold</label><input type="range" id="holdMs" min="0" max="500" step="10"><output id="holdMs-o"></output></div>
@@ -113,7 +116,7 @@ pre{background:var(--sunk);border:1px solid var(--rule);padding:11px;font-family
 
 <script type="module">
 import { blankBoard, createRecorder, applySwap, copyBoard, BLOCK, PUSH, VOID } from '../src/board.js';
-import { buildTimeline, sampleTimeline, staticFrame } from '../src/animate.js';
+import { buildTimeline, sampleTimeline, staticFrame, swapDurationFor } from '../src/animate.js';
 import { createCompositor } from '../src/compositor.js';
 import { playableGlyphs } from '../src/level.js';
 import { mulberry32 } from '../src/rng.js';
@@ -127,13 +130,13 @@ const RULES = await (await fetch('../data/rules.json')).json();
 const byId = new Map(GLYPHS.map((g) => [g.id, g]));
 const rand = mulberry32(7);
 
-const KEYS = ['swapMs', 'stepMs', 'shrinkMs', 'holdMs', 'staggerMs'];
+const KEYS = ['swapMsPerCell', 'swapMinMs', 'stepMs', 'shrinkMs', 'holdMs', 'staggerMs'];
 const PRESETS = {
   shipped: { ...pick(SHIPPED), splitBeats: !!SHIPPED.splitBeats,
              amplitude: Math.round(SHIPPED.shake.amplitude * 100), cycles: SHIPPED.shake.cycles },
-  slower:  { swapMs: 216, stepMs: 240, shrinkMs: 240, holdMs: 0,   staggerMs: 0,  splitBeats: false, amplitude: 7, cycles: 3 },
-  breath:  { swapMs: 216, stepMs: 240, shrinkMs: 280, holdMs: 110, staggerMs: 35, splitBeats: false, amplitude: 7, cycles: 3 },
-  beats:   { swapMs: 216, stepMs: 220, shrinkMs: 200, holdMs: 90,  staggerMs: 30, splitBeats: true,  amplitude: 8, cycles: 3 },
+  slower:  { swapMsPerCell: 66, swapMinMs: 130, stepMs: 240, shrinkMs: 240, holdMs: 0,   staggerMs: 0,  splitBeats: false, amplitude: 7, cycles: 3 },
+  breath:  { swapMsPerCell: 66, swapMinMs: 130, stepMs: 240, shrinkMs: 280, holdMs: 110, staggerMs: 35, splitBeats: false, amplitude: 7, cycles: 3 },
+  beats:   { swapMsPerCell: 60, swapMinMs: 120, stepMs: 220, shrinkMs: 200, holdMs: 90,  staggerMs: 30, splitBeats: true,  amplitude: 8, cycles: 3 },
 };
 function pick(o) { return Object.fromEntries(KEYS.map((k) => [k, o[k] ?? 0])); }
 
@@ -230,7 +233,8 @@ let slowmo = false;
 let finalBoard = null;
 
 const timing = () => ({
-  swapMs: state.swapMs, stepMs: state.stepMs, shrinkMs: state.shrinkMs,
+  swapMsPerCell: state.swapMsPerCell, swapMinMs: state.swapMinMs,
+  stepMs: state.stepMs, shrinkMs: state.shrinkMs,
   holdMs: state.holdMs, staggerMs: state.staggerMs, splitBeats: state.splitBeats,
 });
 const shake = () => ({ amplitude: state.amplitude / 100, cycles: state.cycles });
@@ -251,10 +255,14 @@ function build() {
   const out = applySwap(board, swap[0], swap[1], rand, recorder);
   finalBoard = board;
   timeline = buildTimeline({ before, swap, recorder, timing: timing() });
+  const cells = Math.hypot(swap[0][0] - swap[1][0], swap[0][1] - swap[1][1]);
+  const swapMs = swapDurationFor(swap[0], swap[1], timing());
+  const floored = swapMs === state.swapMinMs && cells * state.swapMsPerCell < state.swapMinMs;
   document.getElementById('readout').textContent =
-    `${recorder.steps.length} step${recorder.steps.length === 1 ? '' : 's'} · ` +
-    `${out.activated} cleared · ${timeline.phases.length} phases · ` +
-    `${(timeline.totalMs / 1000).toFixed(2)}s${slowmo ? ' (¼ speed)' : ''}`;
+    `swap travels ${cells.toFixed(2)} cells → ${Math.round(swapMs)}ms${floored ? ' (floored)' : ''}\n`
+    + `${recorder.steps.length} step${recorder.steps.length === 1 ? '' : 's'} · `
+    + `${out.activated} cleared · ${timeline.phases.length} phases · `
+    + `${(timeline.totalMs / 1000).toFixed(2)}s${slowmo ? ' (¼ speed)' : ''}`;
   drawTrack();
 }
 
@@ -331,7 +339,8 @@ function writeControls() {
   }
   document.getElementById('splitBeats').checked = state.splitBeats;
   document.getElementById('dump').textContent = JSON.stringify({
-    swapMs: state.swapMs, stepMs: state.stepMs, shrinkMs: state.shrinkMs,
+    swapMsPerCell: state.swapMsPerCell, swapMinMs: state.swapMinMs,
+    stepMs: state.stepMs, shrinkMs: state.shrinkMs,
     holdMs: state.holdMs, staggerMs: state.staggerMs, splitBeats: state.splitBeats,
     shake: { amplitude: state.amplitude / 100, cycles: state.cycles },
   }, null, 2);

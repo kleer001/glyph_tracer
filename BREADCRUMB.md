@@ -17,9 +17,11 @@ a swap exchanges **any two live cells** (not orthogonal neighbours), and a swap 
 ### Parallel
 
 - [ ] #1 Settle animation timing — **never chosen, still at defaults.** Verified:
-      `data/animation.json` holds swapMs 180, stepMs 200, shrinkMs 200, with `holdMs`,
-      `staggerMs` and `splitBeats` at no-op zeros. `dev/timing.html` tunes them against 8
-      real cascades; copy settings, paste into the data file.
+      `data/animation.json` holds swapMsPerCell 55, swapMinMs 110, stepMs 200,
+      shrinkMs 200, with `holdMs`, `staggerMs` and `splitBeats` at no-op zeros.
+      The swap is a **speed** (ms per cell travelled, floored), not a fixed duration —
+      any two cells can be swapped, so travel runs from 1 to ~8 cells.
+      `dev/timing.html` tunes it all against 8 real cascades; copy settings, paste in.
       Owner's stated want: ~20% slower plus "breath" between movements.
       **Do not confuse this with the gloss values**, which the owner *did* send and which
       *are* applied — `data/gloss.json` (radius 6, cellShadowA 45, sheen 34, spec 62, and

@@ -12,6 +12,29 @@
 const key = ([r, c]) => `${r},${c}`;
 
 /**
+ * How long a swap takes: the distance the pieces travel, at a fixed speed.
+ *
+ * Any two live cells may be swapped, so a swap crosses anywhere from one cell to
+ * eight. A single duration for all of them is a single duration for an eightfold
+ * range of distances — the same animation that ambles across a neighbour swap hurls
+ * a piece corner to corner. Speed is the thing that should be constant.
+ *
+ * Distance is straight-line because the tween is a straight line. `swapMinMs` is a
+ * floor: at any readable speed a one-cell swap is over in a few frames, and the
+ * player needs to see which two cells they just picked.
+ *
+ * @param {[number, number]} a
+ * @param {[number, number]} z
+ * @returns {number} milliseconds
+ */
+export function swapDurationFor(a, z, { swapMsPerCell, swapMinMs }) {
+  if (typeof swapMsPerCell !== 'number' || typeof swapMinMs !== 'number') {
+    throw new Error('a swap needs swapMsPerCell and swapMinMs'); // boundary
+  }
+  return Math.max(swapMinMs, Math.hypot(a[0] - z[0], a[1] - z[1]) * swapMsPerCell);
+}
+
+/**
  * Fold one recorded step into what happened to each piece and each cell.
  * @returns {{deadCells: Array<[number, number]>, fates: Array<object>}}
  *   A fate is {origin, end, kind}; kind is held, moved, eaten or destroyed.
@@ -139,10 +162,9 @@ export function staticFrame(board) {
  * @returns {{phases: Array, totalMs: number}}
  */
 export function buildTimeline({ before, swap, recorder, timing }) {
-  const {
-    swapMs, stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs,
-  } = timing;
+  const { stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs } = timing;
   const [a, z] = swap;
+  const swapMs = swapDurationFor(a, z, timing);
   const phases = [
     phaseOf({
       holdMs,
