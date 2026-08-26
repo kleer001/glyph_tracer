@@ -62,10 +62,10 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 | `src/levels.js`, `src/progress.js`, `src/picker.js` | the run, what is finished, and the level sheet |
 | `src/glyphShapes.js`, `src/render.js` | the render spec's geometry, and the canvas layers that paint it |
 | `src/animate.js` | folding a resolved settle back into phases you can watch |
-| `data/` | rules, palette, gloss, the sixteen glyphs, stage factors, animation timings — the tuning |
+| `data/` | rules, palette, glyph geometry, gloss, the sixteen glyphs, stage factors, animation timings — the tuning |
 | `tools/` | `swapBudget.js`, `trapBoards.js`, `boardShapes.js` — the sweeps, the trap generator, the board-shape study |
 | `docs/` | the specimen plate, the trap write-up, the level structure, the board-shape study |
-| `dev/` | the gloss and timing sandboxes — they drive `src/`, so what is tuned is what ships |
+| `dev/` | the cell, gloss and timing sandboxes — they drive `src/`, so what is tuned is what ships |
 
 The engine knows four kinds — push, block, wild, void — and every glyph is one of
 them. Which of the sixteen a piece wears is `data/glyphs.json`, dealt once from the
