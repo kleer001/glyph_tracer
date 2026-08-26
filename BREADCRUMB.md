@@ -16,15 +16,36 @@ a swap exchanges **any two live cells** (not orthogonal neighbours), and a swap 
 
 ### Parallel
 
-- [ ] #2 `data/stages.json` is orphaned from the game — target factors are now baked into
-      `data/levels.json`. It remains the policy record and is still tested against
-      `docs/teaching.html`. Decide whether it stays, moves into the doc, or goes.
+- [ ] #2 `data/stages.json` reads as orphaned but is not — nothing in `src/` loads it,
+      yet `tests/teachingRun.test.js` checks the doc's stage bands against it and
+      `tests/level.test.js` uses it. Deleting it removes one side of that check. **Small:**
+      say in the file and in `SPEC.md`'s table that it is a policy record rather than
+      runtime data, so it stops looking like dead weight. ~10 min.
 - [ ] #3 Two of the sixteen glyphs are drawn but not implemented: `◇ Swap` (exchange with
       one neighbour) and `⬡ Flow` (next match is free). Both marked `"implemented": false`
-      in `data/glyphs.json` and play as plain glyphs.
+      in `data/glyphs.json` and play as plain glyphs. **Not small, and not just code:**
+      a fifth kind changes what boards yield, and every target in `data/levels.json` was
+      measured against the current mixes — so the whole pack needs regenerating after.
+      `◇ Swap` is also under-specified: "exchange with any one neighbour" does not say
+      which, and if it is random it is unauthorable for the same reason wilds are. Wants
+      an owner decision before any code.
 - [ ] #4 Acts III and IV want authored trap boards rather than seeded random ones
       (`docs/teaching.html` says so). `tools/trapBoards.js --json` generates them; nothing
-      wires generated boards into `data/levels.json` yet.
+      wires generated boards into `data/levels.json` yet. **Medium:** a level stores a
+      `seed`, not a board, so the pack would have to carry grids and `dealLevel` accept
+      either. Bounded work, but it changes how Acts III–IV play — a design change wearing
+      plumbing clothes.
+
+- [ ] #7 No favicon, so every page load logs a 404 in the console. One line; the house
+      rules explicitly exempt a favicon small enough to inline as an SVG data URI.
+      ~5 min.
+
+- [ ] #8 No skip-on-tap while an animation plays. Input is locked for the whole timeline
+      and the worst case measured across the 25 levels is 3.55s, six times a level. A tap
+      during playback should jump to the settled board. Small and self-contained: `main.js`
+      already refuses input while `playing` is set — that branch becomes the skip. This is
+      the highest value of the small items, because it answers a cost that was measured
+      rather than guessed.
 
 ### Sequential
 
@@ -94,7 +115,10 @@ silently don't match. Always assert the match before writing.
 
 ## Next Step
 
-**#5 — graft L2** is the next real gate: `GAME-SHEET.md` plus a panel cast for this
-game. #2, #3 and #4 are optional polish that can wait.
+**#5 — graft L2** is the next real gate: `GAME-SHEET.md` plus a panel cast for this game.
+
+If you want a short warm-up first, **#8 (skip-on-tap), #7 (favicon) and #2 (label
+stages.json)** are all small, independent, and none of them touches the level pack —
+they can be done in one pass. #3 and #4 want an owner decision before any code.
 
 /home/menser/Dropbox/ai/code/glyph_tracer
