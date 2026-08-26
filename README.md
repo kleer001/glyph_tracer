@@ -13,7 +13,14 @@ range.
 A browser game raised in [Trace ROM Studio](https://github.com/kleer001/trace_rom_studio).
 Vanilla JS, ES modules, no build step.
 
-## Run
+## Play it
+
+**[▶ Launch Glyph Tracer](https://kleer001.github.io/glyph_tracer/)**
+
+Runs straight from GitHub Pages — no install, no build. Progress is kept in the
+browser's localStorage, so it stays on the machine you played it on.
+
+## Run it locally
 
 ```sh
 ./run.sh          # serves http://localhost:8000, no-cache
