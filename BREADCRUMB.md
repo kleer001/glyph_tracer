@@ -16,16 +16,6 @@ a swap exchanges **any two live cells** (not orthogonal neighbours), and a swap 
 
 ### Parallel
 
-- [ ] #1 Settle animation timing — **never chosen, still at defaults.** Verified:
-      `data/animation.json` holds swapMsPerCell 55, swapMinMs 110, stepMs 200,
-      shrinkMs 200, with `holdMs`, `staggerMs` and `splitBeats` at no-op zeros.
-      The swap is a **speed** (ms per cell travelled, floored), not a fixed duration —
-      any two cells can be swapped, so travel runs from 1 to ~8 cells.
-      `dev/timing.html` tunes it all against 8 real cascades; copy settings, paste in.
-      Owner's stated want: ~20% slower plus "breath" between movements.
-      **Do not confuse this with the gloss values**, which the owner *did* send and which
-      *are* applied — `data/gloss.json` (radius 6, cellShadowA 45, sheen 34, spec 62, and
-      the rest). Gloss: done. Timing: outstanding.
 - [ ] #2 `data/stages.json` is orphaned from the game — target factors are now baked into
       `data/levels.json`. It remains the policy record and is still tested against
       `docs/teaching.html`. Decide whether it stays, moves into the doc, or goes.
@@ -76,6 +66,13 @@ shipped one unwinnable level.
 **Stars are swaps left over**, not cells cleared: a level ends the moment its target is
 met, so cells cleared cannot separate a good run from a bare pass.
 
+**Animation timing is settled** (owner's values, in `data/animation.json`): swapMsPerCell
+100, swapMinMs 150, stepMs 200, shrinkMs 200, holdMs 100, staggerMs 50, splitBeats true.
+A swap is a **speed** — ms per cell travelled, floored — because any two cells can be
+swapped and that distance runs 1 to ~8 cells. Cost, measured by greedy-playing all 25
+levels: median 1.25s per swap, 90th 2.20s, worst 3.55s. Input is locked that whole time
+and there is no skip-on-tap; if the worst case grates, that is the lever.
+
 **Two dev instruments live in `dev/`** (promoted out of gitignored `tmp/` before the bud
 would have destroyed them): `gloss.html` tunes `data/gloss.json`, `timing.html` tunes
 `data/animation.json`. Both drive the real `src/` modules, so what is tuned is what ships.
@@ -86,14 +83,18 @@ back next session as policy. The test: could a future session cite this sentence
 the owner? If so it is an invented rule — rewrite it as the cost it measures. The whole
 repo was swept for this; keep new prose to the same standard.
 
+**`styles.css` has a load-bearing `canvas` rule.** `main.js` sizes the backing store from
+the canvas's own rendered box, so with no CSS size the box comes from the backing store
+and each frame multiplies it by the device pixel ratio. A block edit deleted the rule once
+and the page grew to 768602px before failing. `tests/render.test.js` now asserts the rule
+sets a width and a height.
+
 **Gotcha that bit twice this session:** `re.sub`/string replacements in edit scripts that
 silently don't match. Always assert the match before writing.
 
 ## Next Step
 
-Start with **#1** — the animation timing is the one thing the owner was actively tuning
-when the session ended. Open `dev/timing.html` (serve with `./run.sh`, never `file://`),
-find values, hit **copy settings**, paste into `data/animation.json`. Then #5 (L2) is the
-real next gate.
+**#5 — graft L2** is the next real gate: `GAME-SHEET.md` plus a panel cast for this
+game. #2, #3 and #4 are optional polish that can wait.
 
 /home/menser/Dropbox/ai/code/glyph_tracer
