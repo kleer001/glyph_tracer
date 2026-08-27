@@ -122,22 +122,22 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 <section>
   <div class="head">
     <h2>Act I — The match</h2>
-    <span class="aside">Four levels. Nothing on the board has an ability at all.</span>
+    <span class="aside">Four levels. Nothing has an ability, and the board opens smaller than it ends.</span>
   </div>
-  <div class="act" data-means='{"2": 12.0, "3": 12.0}'>
+  <div class="act" data-means='{"4x4@2": 11.3, "5x8@2": 12.0, "5x8@3": 12.0}'>
     <div class="actbar"><span class="no">ACT I</span><span class="nm">The match</span><span class="cfg">0% pulse · 6 swaps</span></div>
     <div class="actbody scroll">
       <table>
-        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <thead><tr><th>Level</th><th>Board</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
         <tbody>
-          <tr><td class="num">1</td><td class="num">2</td><td class="teach">A glyph on its own colour activates</td><td class="num">0.33</td><td class="num">4</td><td class="note">At two colours every glyph is the opposite of its cell, so every swap that lands at all is a double hit. The player cannot fail to see the rule.</td></tr>
-          <tr><td class="num">2</td><td class="num">2</td><td class="teach">You move glyphs, not cells</td><td class="num">0.42</td><td class="num">5</td><td class="note">Same trivial palette, so attention is on what moved. The ground stays put and the shape travels.</td></tr>
-          <tr><td class="num">3</td><td class="num">2</td><td class="teach">Any two cells swap — the whole board is in reach</td><td class="num">0.50</td><td class="num">6</td><td class="note">Put the only two useful pieces in opposite corners. A rule taught by letting the move work is cheaper than one taught by refusing it.</td></tr>
-          <tr><td class="num">4</td><td class="num">3</td><td class="teach">A swap can miss, and the board drains</td><td class="num">0.55</td><td class="num">7</td><td class="note">The third colour is where choosing begins — two openings in three now pay once instead of twice, and a wasted swap costs the target.</td></tr>
+          <tr><td class="num">1</td><td class="num">4x4</td><td class="num">2</td><td class="teach">A glyph on its own colour activates</td><td class="num">0.33</td><td class="num">4</td><td class="note">At two colours every glyph is the opposite of its cell, so every swap that lands at all is a double hit. The player cannot fail to see the rule.</td></tr>
+          <tr><td class="num">2</td><td class="num">4x4</td><td class="num">2</td><td class="teach">You move glyphs, not cells</td><td class="num">0.42</td><td class="num">5</td><td class="note">Same trivial palette, so attention is on what moved. The ground stays put and the shape travels.</td></tr>
+          <tr><td class="num">3</td><td class="num">5x8</td><td class="num">2</td><td class="teach">Any two cells swap — the whole board is in reach</td><td class="num">0.50</td><td class="num">6</td><td class="note">Put the only two useful pieces in opposite corners. A rule taught by letting the move work is cheaper than one taught by refusing it.</td></tr>
+          <tr><td class="num">4</td><td class="num">5x8</td><td class="num">3</td><td class="teach">A swap can miss, and the board drains</td><td class="num">0.55</td><td class="num">7</td><td class="note">The third colour is where choosing begins — two openings in three now pay once instead of twice, and a wasted swap costs the target.</td></tr>
         </tbody>
       </table>
     </div>
-    <div class="actfoot">Measured yield over six swaps: <strong>12.0</strong>, at every palette size. The act is flat by construction — with total reach and nothing to chain, a greedy player finds a double hit every turn however rare doubles are. The factor column is the entire ramp.</div>
+    <div class="actfoot">Measured yield over six swaps: <strong>11.3</strong> on the opening 4x4 board and <strong>12.0</strong> on the full one, at every palette size. The act is flat by construction — with total reach and nothing to chain, a greedy player finds a double hit every turn however rare doubles are. The factor column is the entire ramp.</div>
   </div>
 </section>
 
@@ -146,17 +146,17 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
     <h2>Act II — The shove</h2>
     <span class="aside">Five levels. O arrives and the board starts moving on its own.</span>
   </div>
-  <div class="act" data-means='{"3": 16.1, "4": 15.1, "5": 14.4}'>
+  <div class="act" data-means='{"5x8@3": 16.1, "5x8@4": 15.1}'>
     <div class="actbar"><span class="no">ACT II</span><span class="nm">The shove</span><span class="cfg">25% pulse · 6 swaps</span></div>
     <div class="actbody scroll">
       <table>
-        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <thead><tr><th>Level</th><th>Board</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
         <tbody>
-          <tr><td class="num">5</td><td class="num">3</td><td class="teach">Activating advances every line around it</td><td class="num">0.55</td><td class="num">9</td><td class="note">One O in an otherwise inert board. The player should see exactly four things move, and nothing else.</td></tr>
-          <tr><td class="num">6</td><td class="num">4</td><td class="teach">A shoved glyph can land on its own colour — the chain</td><td class="num">0.60</td><td class="num">9</td><td class="note">Author the board so the first pulse hands the player a second match it did not have to look for.</td></tr>
-          <tr><td class="num">7</td><td class="num">4</td><td class="teach">A line runs until it meets a sink</td><td class="num">0.66</td><td class="num">10</td><td class="note">The front piece falls off the board edge. Show the whole line move and one piece leave.</td></tr>
-          <tr><td class="num">8</td><td class="num">5</td><td class="teach">The board drains, and the budget bites</td><td class="num">0.70</td><td class="num">10</td><td class="note">Fifth colour. A pulse that hits nothing is now the expensive mistake.</td></tr>
-          <tr><td class="num">9</td><td class="num">5</td><td class="teach">Set the chain up before you fire it</td><td class="num">0.76</td><td class="num">11</td><td class="note">The first level whose target is out of reach without arranging one pulse to feed another.</td></tr>
+          <tr><td class="num">5</td><td class="num">5x8</td><td class="num">3</td><td class="teach">Activating advances every line around it</td><td class="num">0.55</td><td class="num">9</td><td class="note">One O in an otherwise inert board. The player should see exactly four things move, and nothing else.</td></tr>
+          <tr><td class="num">6</td><td class="num">5x8</td><td class="num">3</td><td class="teach">A shoved glyph can land on its own colour — the chain</td><td class="num">0.60</td><td class="num">10</td><td class="note">Author the board so the first pulse hands the player a second match it did not have to look for.</td></tr>
+          <tr><td class="num">7</td><td class="num">5x8</td><td class="num">3</td><td class="teach">A line runs until it meets a sink</td><td class="num">0.66</td><td class="num">11</td><td class="note">The front piece falls off the board edge. Show the whole line move and one piece leave.</td></tr>
+          <tr><td class="num">8</td><td class="num">5x8</td><td class="num">4</td><td class="teach">The board drains, and the budget bites</td><td class="num">0.70</td><td class="num">11</td><td class="note">Fifth colour. A pulse that hits nothing is now the expensive mistake.</td></tr>
+          <tr><td class="num">9</td><td class="num">5x8</td><td class="num">4</td><td class="teach">Set the chain up before you fire it</td><td class="num">0.76</td><td class="num">11</td><td class="note">The first level whose target is out of reach without arranging one pulse to feed another.</td></tr>
         </tbody>
       </table>
     </div>
@@ -169,17 +169,17 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
     <h2>Act III — The aim</h2>
     <span class="aside">Five levels. The pointed glyphs: one line each, the way they point.</span>
   </div>
-  <div class="act" data-means='{"4": 13.1, "5": 12.8, "6": 12.8}'>
+  <div class="act" data-means='{"5x8@4": 13.1, "5x8@5": 12.8, "5x8@6": 12.8}'>
     <div class="actbar"><span class="no">ACT III</span><span class="nm">The aim</span><span class="cfg">7.5% pushUp · 7.5% pushRight · 7.5% pushDown · 7.5% pushLeft · 6 swaps</span></div>
     <div class="actbody scroll">
       <table>
-        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <thead><tr><th>Level</th><th>Board</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
         <tbody>
-          <tr><td class="num">10</td><td class="num">4</td><td class="teach">A pointed glyph advances one line, the way it points</td><td class="num">0.62</td><td class="num">8</td><td class="note">Four A's, one of each facing, in an otherwise inert board. The drawing is the only thing saying which way it goes.</td></tr>
-          <tr><td class="num">11</td><td class="num">4</td><td class="teach">Which one you trigger is the choice</td><td class="num">0.68</td><td class="num">9</td><td class="note">Two pointed glyphs whose lines cross. Only one order clears the target.</td></tr>
-          <tr><td class="num">12</td><td class="num">5</td><td class="teach">Aim into a hole an earlier shove opened</td><td class="num">0.72</td><td class="num">9</td><td class="note">The board cannot offer this until pieces have left it. Author a line that only works second.</td></tr>
-          <tr><td class="num">13</td><td class="num">5</td><td class="teach">Two aims that meet</td><td class="num">0.78</td><td class="num">10</td><td class="note">Opposed pushes on the same line — the pieces between them have nowhere to go.</td></tr>
-          <tr><td class="num">14</td><td class="num">6</td><td class="teach">Direction beats force</td><td class="num">0.82</td><td class="num">10</td><td class="note">Full palette. A pulse would waste three of its four lines here; the pointed glyph spends nothing.</td></tr>
+          <tr><td class="num">10</td><td class="num">5x8</td><td class="num">4</td><td class="teach">A pointed glyph advances one line, the way it points</td><td class="num">0.62</td><td class="num">8</td><td class="note">Four A's, one of each facing, in an otherwise inert board. The drawing is the only thing saying which way it goes.</td></tr>
+          <tr><td class="num">11</td><td class="num">5x8</td><td class="num">4</td><td class="teach">Which one you trigger is the choice</td><td class="num">0.68</td><td class="num">9</td><td class="note">Two pointed glyphs whose lines cross. Only one order clears the target.</td></tr>
+          <tr><td class="num">12</td><td class="num">5x8</td><td class="num">5</td><td class="teach">Aim into a hole an earlier shove opened</td><td class="num">0.72</td><td class="num">9</td><td class="note">The board cannot offer this until pieces have left it. Author a line that only works second.</td></tr>
+          <tr><td class="num">13</td><td class="num">5x8</td><td class="num">5</td><td class="teach">Two aims that meet</td><td class="num">0.78</td><td class="num">10</td><td class="note">Opposed pushes on the same line — the pieces between them have nowhere to go.</td></tr>
+          <tr><td class="num">14</td><td class="num">5x8</td><td class="num">6</td><td class="teach">Direction beats force</td><td class="num">0.82</td><td class="num">10</td><td class="note">Full palette. A pulse would waste three of its four lines here; the pointed glyph spends nothing.</td></tr>
         </tbody>
       </table>
     </div>
@@ -192,16 +192,16 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
     <h2>Act IV — The wall</h2>
     <span class="aside">Four levels. H holds its ground and eats what arrives.</span>
   </div>
-  <div class="act" data-means='{"4": 12.7, "5": 12.5, "6": 12.3}'>
+  <div class="act" data-means='{"5x8@4": 12.7, "5x8@5": 12.5, "5x8@6": 12.3}'>
     <div class="actbar"><span class="no">ACT IV</span><span class="nm">The wall</span><span class="cfg">6.25% pushUp · 6.25% pushRight · 6.25% pushDown · 6.25% pushLeft · 12.5% anchor · 6 swaps</span></div>
     <div class="actbody scroll">
       <table>
-        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <thead><tr><th>Level</th><th>Board</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
         <tbody>
-          <tr><td class="num">15</td><td class="num">4</td><td class="teach">An anchor eats the front of any line that reaches it</td><td class="num">0.66</td><td class="num">8</td><td class="note">One anchor at the end of a long line. The player should watch a piece arrive and simply stop existing.</td></tr>
-          <tr><td class="num">16</td><td class="num">5</td><td class="teach">An anchor is a sink you can aim into</td><td class="num">0.72</td><td class="num">9</td><td class="note">The brake used on purpose: the only line that clears the target is the one pointed at the wall.</td></tr>
-          <tr><td class="num">17</td><td class="num">5</td><td class="teach">A line boxed between two anchors</td><td class="num">0.78</td><td class="num">10</td><td class="note">Nothing leaves. Everything shuffles. The player has to spend the space rather than the pieces.</td></tr>
-          <tr><td class="num">18</td><td class="num">6</td><td class="teach">The board you cannot drain</td><td class="num">0.84</td><td class="num">10</td><td class="note">Full palette and enough anchors that the rim stops helping. The target is met by choosing, not by clearing.</td></tr>
+          <tr><td class="num">15</td><td class="num">5x8</td><td class="num">4</td><td class="teach">An anchor eats the front of any line that reaches it</td><td class="num">0.66</td><td class="num">8</td><td class="note">One anchor at the end of a long line. The player should watch a piece arrive and simply stop existing.</td></tr>
+          <tr><td class="num">16</td><td class="num">5x8</td><td class="num">5</td><td class="teach">An anchor is a sink you can aim into</td><td class="num">0.72</td><td class="num">9</td><td class="note">The brake used on purpose: the only line that clears the target is the one pointed at the wall.</td></tr>
+          <tr><td class="num">17</td><td class="num">5x8</td><td class="num">5</td><td class="teach">A line boxed between two anchors</td><td class="num">0.78</td><td class="num">10</td><td class="note">Nothing leaves. Everything shuffles. The player has to spend the space rather than the pieces.</td></tr>
+          <tr><td class="num">18</td><td class="num">5x8</td><td class="num">6</td><td class="teach">The board you cannot drain</td><td class="num">0.84</td><td class="num">10</td><td class="note">Full palette and enough anchors that the rim stops helping. The target is met by choosing, not by clearing.</td></tr>
         </tbody>
       </table>
     </div>
@@ -214,16 +214,16 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
     <h2>Act V — The trade</h2>
     <span class="aside">Four levels. + and X rearrange without consuming anything.</span>
   </div>
-  <div class="act" data-means='{"4": 15.6, "5": 14.4, "6": 14.1}'>
+  <div class="act" data-means='{"5x8@4": 15.6, "5x8@5": 14.5, "5x8@6": 14.1}'>
     <div class="actbar"><span class="no">ACT V</span><span class="nm">The trade</span><span class="cfg">20% swapOrth · 10% swapDiag · 12.5% pulse · 6 swaps</span></div>
     <div class="actbody scroll">
       <table>
-        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <thead><tr><th>Level</th><th>Board</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
         <tbody>
-          <tr><td class="num">19</td><td class="num">4</td><td class="teach">Some glyphs rearrange instead of clearing</td><td class="num">0.70</td><td class="num">11</td><td class="note">One + in an inert board. Four pieces move, nothing leaves, and the count does not go up — yet.</td></tr>
-          <tr><td class="num">20</td><td class="num">5</td><td class="teach">A trade can make a match that was not there</td><td class="num">0.76</td><td class="num">11</td><td class="note">Author the two cells either side of a + so that exchanging them lands both on their own colour.</td></tr>
-          <tr><td class="num">21</td><td class="num">5</td><td class="teach">The cross trades edges, the ex trades corners</td><td class="num">0.82</td><td class="num">12</td><td class="note">Both on one board, each the wrong tool for the other's job.</td></tr>
-          <tr><td class="num">22</td><td class="num">6</td><td class="teach">Trade first, fire second</td><td class="num">0.88</td><td class="num">12</td><td class="note">Full palette. The target needs a + to set up a pulse, in that order and no other.</td></tr>
+          <tr><td class="num">19</td><td class="num">5x8</td><td class="num">4</td><td class="teach">Some glyphs rearrange instead of clearing</td><td class="num">0.70</td><td class="num">11</td><td class="note">One + in an inert board. Four pieces move, nothing leaves, and the count does not go up — yet.</td></tr>
+          <tr><td class="num">20</td><td class="num">5x8</td><td class="num">5</td><td class="teach">A trade can make a match that was not there</td><td class="num">0.76</td><td class="num">11</td><td class="note">Author the two cells either side of a + so that exchanging them lands both on their own colour.</td></tr>
+          <tr><td class="num">21</td><td class="num">5x8</td><td class="num">5</td><td class="teach">The cross trades edges, the ex trades corners</td><td class="num">0.82</td><td class="num">12</td><td class="note">Both on one board, each the wrong tool for the other's job.</td></tr>
+          <tr><td class="num">22</td><td class="num">5x8</td><td class="num">6</td><td class="teach">Trade first, fire second</td><td class="num">0.88</td><td class="num">12</td><td class="note">Full palette. The target needs a + to set up a pulse, in that order and no other.</td></tr>
         </tbody>
       </table>
     </div>
@@ -236,21 +236,25 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
     <h2>Act VI — The turn</h2>
     <span class="aside">Three levels. R turns the ring, its mirror turns it back, and S pulls everything in.</span>
   </div>
-  <div class="act" data-means='{"5": 15.7, "6": 14.8}'>
+  <div class="act" data-means='{"5x8@5": 15.7, "5x8@6": 14.8}'>
     <div class="actbar"><span class="no">ACT VI</span><span class="nm">The turn</span><span class="cfg">15% rotate · 15% rotateRev · 10% sink · 12.5% pulse · 6 swaps</span></div>
     <div class="actbody scroll">
       <table>
-        <thead><tr><th>Level</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
+        <thead><tr><th>Level</th><th>Board</th><th>Colors</th><th>Introduces</th><th>Factor</th><th>Target</th><th>Note</th></tr></thead>
         <tbody>
-          <tr><td class="num">23</td><td class="num">5</td><td class="teach">The ring turns one step</td><td class="num">0.80</td><td class="num">13</td><td class="note">One R. North's piece ends up east, east's south, and so on round. Nothing leaves the board.</td></tr>
-          <tr><td class="num">24</td><td class="num">6</td><td class="teach">Turn it back</td><td class="num">1.00</td><td class="num">15</td><td class="note">R and its mirror on one board. The same four cells, the other way round — the player has to read which is which.</td></tr>
-          <tr><td class="num">25</td><td class="num">6</td><td class="teach">The sink pulls inward and takes its own cell</td><td class="num">1.10</td><td class="num">16</td><td class="note">The last level. S draws all four lines in and dies first, so the hole it leaves is the sink they run into.</td></tr>
+          <tr><td class="num">23</td><td class="num">5x8</td><td class="num">5</td><td class="teach">The ring turns one step</td><td class="num">0.80</td><td class="num">13</td><td class="note">One R. North's piece ends up east, east's south, and so on round. Nothing leaves the board.</td></tr>
+          <tr><td class="num">24</td><td class="num">5x8</td><td class="num">6</td><td class="teach">Turn it back</td><td class="num">1.00</td><td class="num">15</td><td class="note">R and its mirror on one board. The same four cells, the other way round — the player has to read which is which.</td></tr>
+          <tr><td class="num">25</td><td class="num">5x8</td><td class="num">6</td><td class="teach">The sink pulls inward and takes its own cell</td><td class="num">1.10</td><td class="num">16</td><td class="note">The last level. S draws all four lines in and dies first, so the hole it leaves is the sink they run into.</td></tr>
         </tbody>
       </table>
     </div>
     <div class="actfoot">The highest yield in the run: <strong>16.6</strong> at four colours. A turn moves four pieces at once and spends none of them, and a sink converts its own cell into the hole its neighbours fall into. Both are ways of getting paid for rearranging.</div>
   </div>
 </section>
+
+
+
+
 
 <section>
   <div class="head">

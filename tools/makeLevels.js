@@ -55,9 +55,11 @@ export function readRun(html) {
       means: JSON.parse(means),
       mix,
       levels: [...body.matchAll(
-        /<tr><td class="num">(\d+)<\/td><td class="num">(\d+)<\/td><td class="teach">(.*?)<\/td><td class="num">([\d.]+)<\/td><td class="num">(\d+)<\/td><td class="note">(.*?)<\/td><\/tr>/g,
-      )].map(([, id, colors, teaches, factor, target, note]) => ({
+        /<tr><td class="num">(\d+)<\/td><td class="num">(\d+)x(\d+)<\/td><td class="num">(\d+)<\/td><td class="teach">(.*?)<\/td><td class="num">([\d.]+)<\/td><td class="num">(\d+)<\/td><td class="note">(.*?)<\/td><\/tr>/g,
+      )].map(([, id, width, height, colors, teaches, factor, target, note]) => ({
         id: Number(id),
+        width: Number(width),
+        height: Number(height),
         colors: Number(colors),
         teaches: text(teaches),
         factor: Number(factor),
@@ -92,11 +94,11 @@ const text = (s) => s
  *
  * @returns {{seed: number, greedy: number}}
  */
-export function seedFor({ colors, target }, mix, budget, start) {
-  const candidates = swapPairs({ ...RULES, colors });
+export function seedFor({ width, height, colors, target }, mix, budget, start) {
+  const candidates = swapPairs({ ...RULES, width, height, colors });
   for (let i = 0; i < SEED_TRIES; i++) {
     const seed = start + i;
-    const spec = { id: 0, colors, target, seed, act: { mix } };
+    const spec = { id: 0, width, height, colors, target, seed, act: { mix } };
     const dealt = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
     const run = greedyPlay(dealt.board, budget, dealt.rand, candidates);
     if (run.cleared >= target) return { seed, greedy: run.cleared };
@@ -118,15 +120,16 @@ function main() {
     acts: [],
   };
 
-  console.log(`level  act        colors  factor  target  greedy  seed`);
-  console.log('-'.repeat(60));
+  console.log(`level  act        board  colors  factor  target  greedy  seed`);
+  console.log('-'.repeat(68));
   for (const act of acts) {
     const out = { id: act.id, no: act.no, name: act.name, mix: act.mix, levels: [] };
     for (const level of act.levels) {
       const { seed, greedy } = seedFor(level, act.mix, budget, SEED_BASE + level.id * SEED_STRIDE);
       out.levels.push({ ...level, seed });
       console.log(
-        `${String(level.id).padStart(5)}  ${act.name.padEnd(10)} ${String(level.colors).padStart(6)}  `
+        `${String(level.id).padStart(5)}  ${act.name.padEnd(10)} `
+        + `${`${level.width}x${level.height}`.padStart(5)}  ${String(level.colors).padStart(6)}  `
         + `${level.factor.toFixed(2).padStart(6)}  ${String(level.target).padStart(6)}  `
         + `${String(greedy).padStart(6)}  ${seed}`,
       );

@@ -12,9 +12,10 @@ const ACTS = [...HTML.matchAll(/<div class="act" data-means='(\{.*?\})'>([\s\S]*
   ([, means, body]) => ({
     means: JSON.parse(means),
     rows: [...body.matchAll(
-      /<tr><td class="num">(\d+)<\/td><td class="num">(\d+)<\/td><td class="teach">.*?<\/td><td class="num">([\d.]+)<\/td><td class="num">(\d+)<\/td>/g,
-    )].map(([, level, colors, factor, target]) => ({
-      level: Number(level), colors: Number(colors), factor: Number(factor), target: Number(target),
+      /<tr><td class="num">(\d+)<\/td><td class="num">(\d+x\d+)<\/td><td class="num">(\d+)<\/td><td class="teach">.*?<\/td><td class="num">([\d.]+)<\/td><td class="num">(\d+)<\/td>/g,
+    )].map(([, level, board, colors, factor, target]) => ({
+      level: Number(level), board, colors: Number(colors),
+      factor: Number(factor), target: Number(target),
     })),
   }),
 );
@@ -27,10 +28,21 @@ test('the run has acts and every act has levels', () => {
 test('every target is its configuration mean times its factor, rounded', () => {
   for (const act of ACTS) {
     for (const row of act.rows) {
-      const mean = act.means[row.colors];
-      assert.ok(mean, `level ${row.level} uses ${row.colors} colors, which its act has no mean for`);
+      const key = `${row.board}@${row.colors}`;
+      const mean = act.means[key];
+      assert.ok(mean, `level ${row.level} is ${key}, which its act has no mean for`);
       assert.equal(row.target, Math.round(mean * row.factor),
         `level ${row.level}: ${mean} x ${row.factor} is not ${row.target}`);
+    }
+  }
+});
+
+test('no target asks for more cells than its board has', () => {
+  for (const act of ACTS) {
+    for (const row of act.rows) {
+      const [w, h] = row.board.split('x').map(Number);
+      assert.ok(row.target <= w * h,
+        `level ${row.level} wants ${row.target} of a ${row.board} board`);
     }
   }
 });

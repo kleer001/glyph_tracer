@@ -37,7 +37,9 @@ test('a pack missing a budget or a target fails loudly', () => {
 test('every shipped level can be won', () => {
   for (const level of RUN.levels) {
     const dealt = dealLevel(level, { rules: RULES, glyphs: GLYPHS, budget: RUN.budget });
-    const rules = { ...RULES, colors: level.colors };
+    // the candidate pairs have to come from the board the level actually deals, or
+    // they index cells a smaller board does not have
+    const rules = { ...RULES, width: level.width, height: level.height, colors: level.colors };
     const run = greedyPlay(dealt.board, RUN.budget, dealt.rand, swapPairs(rules));
     assert.ok(run.cleared >= level.target,
       `level ${level.id}: greedy play clears ${run.cleared}, target is ${level.target}`);

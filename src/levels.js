@@ -23,12 +23,18 @@ export function loadRun(pack) {
   const levels = [];
   for (const act of pack.acts) {
     for (const level of act.levels) {
-      for (const field of ['id', 'colors', 'target', 'seed']) {
+      for (const field of ['id', 'width', 'height', 'colors', 'target', 'seed']) {
         if (!Number.isInteger(level[field])) {
           throw new Error(`level ${level.id}: "${field}" must be a whole number`); // boundary
         }
       }
       if (level.target > 0 === false) throw new Error(`level ${level.id}: target must be positive`);
+      if (level.target > level.width * level.height) {
+        // A target no board of this size can reach ships an unwinnable level.
+        throw new Error(
+          `level ${level.id}: target ${level.target} exceeds its ${level.width}x${level.height} board`,
+        ); // boundary
+      }
       levels.push({ ...level, act });
     }
   }
@@ -45,7 +51,13 @@ export function loadRun(pack) {
  */
 export function dealLevel(spec, { rules, glyphs, budget }) {
   const rand = mulberry32(spec.seed);
-  const board = randomBoard({ ...rules, colors: spec.colors }, spec.act.mix, rand);
+  // The run opens on a smaller board than it ends on, so the size is the level's to
+  // state rather than the rules' to fix.
+  const board = randomBoard(
+    { ...rules, width: spec.width, height: spec.height, colors: spec.colors },
+    spec.act.mix,
+    rand,
+  );
   dealArt(board, glyphs, rand);
   return {
     spec,
