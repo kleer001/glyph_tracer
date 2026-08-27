@@ -1,8 +1,8 @@
 {
   "note": "Glyph geometry, tuned in dev/cell.html. Lengths are in the render spec's 100-unit cell and scale with the board. The letter metrics are measured off DejaVu Serif Bold: stem is its stem width, cap the height every capital shares, and centre the offset from the cell's middle to the cap-height centre.",
-  "stem": 19,
-  "cap": 73,
-  "centre": -1.5,
-  "dotDiameter": 26,
+  "stem": 9,
+  "cap": 33,
+  "centre": -0.5,
+  "dotDiameter": 12,
   "keylinePx": 1
 }
