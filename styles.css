@@ -193,6 +193,14 @@ canvas {
 
 .panel-right { flex-basis: 340px; border-left: 1px solid var(--rule); }
 
+/* The move log is a dev instrument. On a narrow screen it was taking two thirds of the
+   width and leaving the board a strip, so below this the board gets the whole window —
+   which is what a player came for. */
+@media (max-width: 900px) {
+  .panel { display: none; }
+  .stage { padding: 8px 8px 12px; }
+}
+
 .panel-title {
   margin: 0;
   font-size: 10px;
