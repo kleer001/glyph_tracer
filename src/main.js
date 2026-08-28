@@ -98,7 +98,7 @@ export async function start(canvas, panels) {
     log?.clear();
     log?.append([{
       depth: 0,
-      text: `level ${spec.id} · ${spec.act.name} · ${spec.colors} colors — clear ${spec.target} in ${run.budget}`,
+      text: `level ${spec.id} · ${spec.act.name} — clear ${spec.target} in ${level.budget}`,
     }]);
   };
 

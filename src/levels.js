@@ -45,6 +45,11 @@ export function loadRun(pack, glyphs) {
         }
       }
       if (level.target > 0 === false) throw new Error(`level ${level.id}: target must be positive`);
+      // A teaching level wants one swap and a hard stop; a full board wants six. The
+      // pack's budget is the default, not the rule.
+      if (level.budget !== undefined && !(Number.isInteger(level.budget) && level.budget > 0)) {
+        throw new Error(`level ${level.id}: "budget" must be a positive whole number`); // boundary
+      }
       const [width, height] = authored ? checkBoard(level, glyphs) : [level.width, level.height];
       if (level.target > width * height) {
         throw new Error(
@@ -97,6 +102,7 @@ function checkBoard(level, glyphs) {
  * fresh roll.
  */
 export function dealLevel(spec, { rules, glyphs, budget }) {
+  const swaps = spec.budget ?? budget;
   // A swap still draws from a seeded stream to break ties, so an authored level needs
   // one too; its own number serves, since it never deals anything.
   const rand = mulberry32(spec.seed ?? spec.id);
@@ -107,7 +113,7 @@ export function dealLevel(spec, { rules, glyphs, budget }) {
     spec,
     board,
     rand,
-    budget,
+    budget: swaps,
     target: spec.target,
     swapsUsed: 0,
     cleared: 0,

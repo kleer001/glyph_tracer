@@ -36,10 +36,11 @@ test('a pack missing a budget or a target fails loudly', () => {
 test('every shipped level can be won', () => {
   for (const level of RUN.levels) {
     const dealt = dealLevel(level, { rules: RULES, glyphs: GLYPHS, budget: RUN.budget });
-    // the candidate pairs have to come from the board the level actually deals, or
-    // they index cells a smaller board does not have
-    const rules = { ...RULES, width: level.width, height: level.height, colors: level.colors };
-    const run = greedyPlay(dealt.board, RUN.budget, dealt.rand, swapPairs(rules));
+    // The candidate pairs have to come from the board the level actually opened — a
+    // spec's stated size is absent on a level that carries its board, and wrong for
+    // any level smaller than the default.
+    const { width, height } = dealt.board;
+    const run = greedyPlay(dealt.board, dealt.budget, dealt.rand, swapPairs({ ...RULES, width, height }));
     assert.ok(run.cleared >= level.target,
       `level ${level.id}: greedy play clears ${run.cleared}, target is ${level.target}`);
   }
@@ -155,4 +156,28 @@ test('a board that opens already matched fails loudly', () => {
     ] }],
   };
   assert.throws(() => loadRun(pack, GLYPHS), /\[0,0\] already sits on its own colour/);
+});
+
+// A teaching level wants one swap and a hard stop; a full board wants six. The pack's
+// budget is the default, so a level that states its own gets it.
+test('a level can set its own swap budget', () => {
+  const opts = { rules: RULES, glyphs: GLYPHS, budget: 6 };
+  const spec = { id: 1, target: 2, board: ['aB. bA.'], act: { mix: {} } };
+  assert.equal(dealLevel(spec, opts).budget, 6, 'without one, the pack decides');
+  assert.equal(dealLevel({ ...spec, budget: 1 }, opts).budget, 1);
+  // and it is what a loss is measured against
+  const tight = dealLevel({ ...spec, budget: 1 }, opts);
+  assert.equal(outcome({ ...tight, swapsUsed: 1, cleared: 0 }), 'lost');
+});
+
+test('a budget that is not a positive whole number fails loudly', () => {
+  const pack = (budget) => ({
+    budget: 6,
+    acts: [{ id: 'a', no: 'I', name: 'A', mix: {}, levels: [
+      { id: 1, target: 2, budget, board: ['aB. bA.'] },
+    ] }],
+  });
+  assert.throws(() => loadRun(pack(0), GLYPHS), /"budget" must be a positive whole number/);
+  assert.throws(() => loadRun(pack(1.5), GLYPHS), /"budget" must be a positive whole number/);
+  assert.doesNotThrow(() => loadRun(pack(1), GLYPHS));
 });
