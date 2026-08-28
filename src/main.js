@@ -142,6 +142,7 @@ export async function start(canvas, panels) {
   const drawBoard = () => paint(staticFrame(level.board));
 
   const tick = (now) => {
+    if (!playing) return; // a tap cut the playback short and already drew the settled board
     const drawList = sampleTimeline(playing.timeline, now - playing.startedAt, data.animation.shake);
     if (!drawList) {
       playing = null;
@@ -180,7 +181,13 @@ export async function start(canvas, panels) {
   };
 
   const onPick = (event) => {
-    if (playing) return; // let the board finish resolving before taking another move
+    // The rules already ran: applySwap settled the board before the timeline started,
+    // so cutting playback short jumps to the finished board rather than skipping a move.
+    if (playing) {
+      playing = null;
+      drawBoard();
+      return;
+    }
     if (isOver(level)) {
       advance();
       drawBoard();
