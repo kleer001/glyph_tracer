@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <title>Glyph Tracer — gloss sandbox</title>
+<link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Martian+Mono:wght@400;600&display=swap">
@@ -67,11 +68,7 @@ canvas{display:block}
     <div class="panel">
       <div class="grp">
         <h2>Subject</h2>
-        <div class="selrow"><label for="form">form</label><select id="form"></select></div>
-        <div class="selrow"><label for="mark">mark</label><select id="mark"></select></div>
-        <div class="selrow"><label for="mag">fill</label><select id="mag">
-          <option value="1">1 — hollow</option><option value="2">2 — half</option>
-          <option value="3" selected>3 — solid</option></select></div>
+        <div class="selrow"><label for="glyph">glyph</label><select id="glyph"></select></div>
         <div class="selrow"><label for="ground">ground</label><select id="ground"></select></div>
         <div class="selrow"><label for="ink">ink</label><select id="ink"></select></div>
       </div>
@@ -122,9 +119,10 @@ canvas{display:block}
 
 <script type="module">
 import { drawGlyph, drawTile } from '../src/render.js';
-import { FORMS, MARKS, CELL } from '../src/glyphShapes.js';
+import { CELL } from '../src/glyphShapes.js';
 
 const PALETTE = await (await fetch('../data/palette.json')).json();
+const GLYPHS = (await (await fetch('../data/glyphs.json')).json()).glyphs;
 const SHIPPED = await (await fetch('../data/gloss.json')).json();
 const GEOMETRY = await (await fetch('../data/geometry.json')).json();
 const PATHS = (await (await fetch('../data/glyphPaths.json')).json()).paths;
@@ -142,7 +140,7 @@ const PRESETS = {
 };
 
 const KEYS = Object.keys(PRESETS.flat);
-const state = { ...PRESETS.shipped, form:'circle', mark:'none', mag:3, ground:0, ink:1 };
+const state = { ...PRESETS.shipped, glyph:0, ground:0, ink:1 };
 
 // --- populate the selects ---------------------------------------------------
 const fill = (id, values, labeller = (v) => v) => {
@@ -150,8 +148,7 @@ const fill = (id, values, labeller = (v) => v) => {
   sel.replaceChildren(...values.map((v, i) => new Option(labeller(v, i), typeof v === 'string' ? v : i)));
   return sel;
 };
-fill('form', Object.keys(FORMS));
-fill('mark', MARKS);
+fill('glyph', GLYPHS, (g) => g.name.toLowerCase());
 fill('ground', PALETTE.colors, (c) => c.name);
 fill('ink', PALETTE.colors, (c) => c.name);
 document.getElementById('ink').value = '1';
@@ -169,7 +166,7 @@ function paint(ctx, s, size, pad) {
   ctx.scale(size / CELL, size / CELL);
   drawGlyph(
     ctx,
-    { form: s.form, mag: Number(s.mag), mark: s.mark, rotation: 0 },
+    GLYPHS[s.glyph],
     { ink: PALETTE.colors[s.ink].hex, core: PALETTE.core, key: PALETTE.key },
     gloss,
     GEOMETRY,
@@ -184,9 +181,7 @@ const hero = document.getElementById('hero').getContext('2d');
 
 function readControls() {
   for (const key of KEYS) state[key] = Number(document.getElementById(key).value);
-  state.form = document.getElementById('form').value;
-  state.mark = document.getElementById('mark').value;
-  state.mag = Number(document.getElementById('mag').value);
+  state.glyph = Number(document.getElementById('glyph').value);
   state.ground = Number(document.getElementById('ground').value);
   state.ink = Number(document.getElementById('ink').value);
 }
@@ -232,7 +227,7 @@ function renderPresets() {
   }
 }
 
-for (const id of [...KEYS, 'form', 'mark', 'mag', 'ground', 'ink']) {
+for (const id of [...KEYS, 'glyph', 'ground', 'ink']) {
   document.getElementById(id).addEventListener('input', () => { readControls(); render(); renderPresets(); });
 }
 document.getElementById('reset').addEventListener('click', () => {
