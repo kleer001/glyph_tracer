@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
 import { dealLevel, loadRun, nextAfter, outcome } from '../src/levels.js';
-import { readRun } from '../tools/makeLevels.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
 const PACK = read('../data/levels.json');
@@ -75,26 +74,6 @@ test('the run ends rather than running off its end', () => {
   assert.equal(nextAfter(RUN, RUN.levels.length), null);
 });
 
-// The pack is generated from the doc, so the two describing different runs would mean
-// the game and its design record had quietly diverged.
-test('the pack is the run documented in docs/teaching.html', () => {
-  const doc = readRun(readFileSync(new URL('../docs/teaching.html', import.meta.url), 'utf8'));
-  assert.equal(doc.length, PACK.acts.length);
-  doc.forEach((act, i) => {
-    const packed = PACK.acts[i];
-    assert.equal(packed.name, act.name, `act ${i + 1} name`);
-    assert.equal(packed.no, act.no);
-    assert.deepEqual(packed.mix, act.mix, `act ${act.name} board mix`);
-    assert.equal(packed.levels.length, act.levels.length);
-    act.levels.forEach((level, j) => {
-      const p = packed.levels[j];
-      for (const field of ['id', 'colors', 'factor', 'target', 'teaches']) {
-        assert.equal(p[field], level[field], `level ${level.id}: ${field}`);
-      }
-    });
-  });
-});
-
 test('every act says what its boards are made of, in kinds the engine runs', () => {
   const kinds = new Set(read('../data/glyphs.json').glyphs.map((g) => g.kind));
   for (const act of RUN.acts) {
@@ -105,4 +84,51 @@ test('every act says what its boards are made of, in kinds the engine runs', () 
       assert.equal(typeof act.mix[kind], 'number', `${act.name}'s ${kind} is not a fraction`);
     }
   }
+});
+
+// The two ways a level can name a board, and the guarantee that carrying one changes
+// nothing downstream: `dealLevel` returns the same shape either way.
+test('a level can carry its board instead of dealing one', () => {
+  const spec = {
+    id: 1,
+    target: 2,
+    board: [
+      'aB. bAO cB^',
+      'bC+ aBX cAH',
+      'cA@ bC% aBS',
+    ],
+    act: { mix: {} },
+  };
+  const dealt = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget: 6 });
+  assert.equal(dealt.board.width, 3);
+  assert.equal(dealt.board.height, 3);
+  assert.deepEqual(dealt.board.kind[1], ['swapOrth', 'swapDiag', 'anchor']);
+  assert.equal(dealt.board.art[2][2], 'sink');
+  assert.equal(outcome(dealt), 'playing');
+});
+
+test('an authored level opens the same board every time', () => {
+  const spec = { id: 1, target: 1, board: ['aB. bAO', 'cB^ aC.'], act: { mix: {} } };
+  const opts = { rules: RULES, glyphs: GLYPHS, budget: 6 };
+  assert.deepEqual(dealLevel(spec, opts).board, dealLevel(spec, opts).board);
+});
+
+test('an authored level is checked against the board it carries, not a stated size', () => {
+  const pack = {
+    budget: 6,
+    acts: [{ id: 'a', no: 'I', name: 'A', mix: {}, levels: [
+      { id: 1, target: 99, board: ['aB. bAO', 'cB^ aC.'] },
+    ] }],
+  };
+  assert.throws(() => loadRun(pack), /target 99 exceeds its 2x2 board/);
+});
+
+test('a ragged authored board fails loudly rather than shipping a hole', () => {
+  const pack = {
+    budget: 6,
+    acts: [{ id: 'a', no: 'I', name: 'A', mix: {}, levels: [
+      { id: 1, target: 1, board: ['aB. bAO', 'cB^'] },
+    ] }],
+  };
+  assert.throws(() => loadRun(pack), /rows are 2, 1 cells wide/);
 });

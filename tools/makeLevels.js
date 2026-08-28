@@ -1,89 +1,41 @@
 #!/usr/bin/env node
-// Build data/levels.json from the run documented in docs/teaching.html.
+// Check data/levels.json, and fill in the seeds it needs.
 //
-// The doc is where the run is designed — which rung each level teaches, what factor
-// it carries, what its target works out to. This turns that into the pack the game
-// plays, so the two cannot describe different runs.
+// The pack is the run: acts, levels, targets and boards are authored there. This tool
+// does not write any of that. What it does is guarantee the one thing an author cannot
+// check by eye — that every level can actually be won:
 //
-// Every level also gets a seed, chosen by playing candidate boards greedily until one
-// meets the target. Greedy play is a lower bound on what a person can do, so a board
-// that clears the target greedily is a board the target is reachable on. A level whose
-// target could not be met would be unplayable, and nothing else would catch it.
+//   * a level that CARRIES a board is played greedily, exactly as it ships
+//   * a level that DEALS one gets a seed, chosen by playing candidate boards until one
+//     meets the target; an existing seed is re-checked rather than replaced
+//
+// Greedy play is a lower bound on what a person can find, so a board greedy clears the
+// target on is a board the target is reachable on.
 //
 // Usage:  node tools/makeLevels.js [--write]
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { ANCHOR, PULSE, swapPairs } from '../src/board.js';
+import { swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
-import { dealLevel } from '../src/levels.js';
+import { dealLevel, loadRun } from '../src/levels.js';
 import { parseArgs } from './args.js';
 
-const HTML = new URL('../docs/teaching.html', import.meta.url);
-const OUT = new URL('../data/levels.json', import.meta.url);
+const PACK = new URL('../data/levels.json', import.meta.url);
 const RULES = JSON.parse(readFileSync(new URL('../data/rules.json', import.meta.url), 'utf8'));
 const GLYPHS = JSON.parse(readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8')).glyphs;
-/** Every kind a glyph is drawn for, so an act cannot name one that cannot appear. */
-const KINDS = new Set(GLYPHS.map((g) => g.kind).filter(Boolean));
 
 const SEED_BASE = 20260825;
 const SEED_STRIDE = 7919;
 const SEED_TRIES = 4000;
 
-/** Pull the acts and their levels straight out of the run's own tables. */
-export function readRun(html) {
-  const acts = [...html.matchAll(
-    /<div class="act" data-means='(\{.*?\})'>[\s\S]*?<span class="no">ACT ([IV]+)<\/span><span class="nm">(.*?)<\/span><span class="cfg">(.*?)<\/span>([\s\S]*?)<\/table>/g,
-  )].map(([, means, roman, name, cfg, body]) => {
-    // The act bar names its own mix — "25% pulse · 12.5% anchor · 6 swaps" — so an act
-    // can ask for any kind the glyph pack draws without this parser learning its name.
-    // The remainder of the board is inert, which is most of it.
-    const mix = {};
-    for (const [, pct, kind] of cfg.matchAll(/([\d.]+)%\s+([A-Za-z]+)/g)) {
-      if (!KINDS.has(kind)) {
-        throw new Error(`act ${roman} asks for "${kind}", which no glyph is drawn for`); // boundary
-      }
-      mix[kind] = Number(pct) / 100;
-    }
-    if (!Object.keys(mix).length) {
-      throw new Error(`act ${roman} says nothing about what its boards are made of`); // boundary
-    }
-    return {
-      id: name.toLowerCase().replace(/^the /, ''),
-      no: roman,
-      name,
-      means: JSON.parse(means),
-      mix,
-      levels: [...body.matchAll(
-        /<tr><td class="num">(\d+)<\/td><td class="num">(\d+)x(\d+)<\/td><td class="num">(\d+)<\/td><td class="teach">(.*?)<\/td><td class="num">([\d.]+)<\/td><td class="num">(\d+)<\/td><td class="note">(.*?)<\/td><\/tr>/g,
-      )].map(([, id, width, height, colors, teaches, factor, target, note]) => ({
-        id: Number(id),
-        width: Number(width),
-        height: Number(height),
-        colors: Number(colors),
-        teaches: text(teaches),
-        factor: Number(factor),
-        target: Number(target),
-        note: text(note),
-      })),
-    };
-  });
-  // The doc decides how many acts the run has; this only checks it found some and that
-  // none was parsed twice, which is what a bad splice into the doc looks like.
-  if (!acts.length) throw new Error('the run has no acts'); // boundary
-  const seen = new Set(acts.map((a) => a.no));
-  if (seen.size !== acts.length) {
-    throw new Error(`an act number appears twice: ${acts.map((a) => a.no).join(' ')}`); // boundary
-  }
-  return acts;
+/** Play a level exactly as it ships, and report what a greedy read clears. */
+function greedyClears(spec, budget) {
+  const dealt = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
+  const { board } = dealt;
+  const candidates = swapPairs({ ...RULES, width: board.width, height: board.height });
+  return greedyPlay(board, budget, dealt.rand, candidates).cleared;
 }
-
-const text = (s) => s
-  .replace(/<[^>]+>/g, '')
-  .replace(/&mdash;/g, '—').replace(/&ndash;/g, '–').replace(/&amp;/g, '&')
-  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#215;/g, '×')
-  .replace(/&rsquo;/g, '’').replace(/&nbsp;/g, ' ')
-  .replace(/\s+/g, ' ').trim();
 
 /**
  * The first seed whose board clears `target` under greedy play.
@@ -108,40 +60,50 @@ export function seedFor({ width, height, colors, target }, mix, budget, start) {
 
 function main() {
   const args = parseArgs(process.argv.slice(2), { write: { type: 'flag', default: false } });
-  const acts = readRun(readFileSync(HTML, 'utf8'));
-  const budget = RULES.swapBudget;
+  const pack = JSON.parse(readFileSync(PACK, 'utf8'));
+  const budget = loadRun(pack).budget;
 
-  const pack = {
-    note: 'Generated by tools/makeLevels.js from the run in docs/teaching.html. Every '
-      + 'seed is a board greedy play can clear the target on, so no level ships unwinnable. '
-      + 'Edit the run in the doc and regenerate; editing this file alone makes the two disagree '
-      + 'and the tests say so.',
-    budget,
-    acts: [],
-  };
-
-  console.log(`level  act        board  colors  factor  target  greedy  seed`);
-  console.log('-'.repeat(68));
-  for (const act of acts) {
-    const out = { id: act.id, no: act.no, name: act.name, mix: act.mix, levels: [] };
+  console.log('level  act         board  source    target  greedy  seed');
+  console.log('-'.repeat(66));
+  let changed = 0;
+  for (const act of pack.acts) {
     for (const level of act.levels) {
-      const { seed, greedy } = seedFor(level, act.mix, budget, SEED_BASE + level.id * SEED_STRIDE);
-      out.levels.push({ ...level, seed });
+      const spec = { ...level, act };
+      let source = 'authored';
+      let greedy;
+      if (level.board) {
+        greedy = greedyClears(spec, budget);
+        if (greedy < level.target) {
+          throw new Error(
+            `level ${level.id}: its board clears ${greedy} greedily, target is ${level.target}`,
+          ); // boundary
+        }
+      } else if (Number.isInteger(level.seed) && greedyClears(spec, budget) >= level.target) {
+        source = 'dealt';
+        greedy = greedyClears(spec, budget);
+      } else {
+        const found = seedFor(level, act.mix, budget, SEED_BASE + level.id * SEED_STRIDE);
+        level.seed = found.seed;
+        greedy = found.greedy;
+        source = 'dealt *';
+        changed += 1;
+      }
+      const dealt = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
       console.log(
-        `${String(level.id).padStart(5)}  ${act.name.padEnd(10)} `
-        + `${`${level.width}x${level.height}`.padStart(5)}  ${String(level.colors).padStart(6)}  `
-        + `${level.factor.toFixed(2).padStart(6)}  ${String(level.target).padStart(6)}  `
-        + `${String(greedy).padStart(6)}  ${seed}`,
+        `${String(level.id).padStart(5)}  ${act.name.padEnd(11)}`
+        + `${`${dealt.board.width}x${dealt.board.height}`.padStart(5)}  ${source.padEnd(8)}  `
+        + `${String(level.target).padStart(6)}  ${String(greedy).padStart(6)}  `
+        + `${level.seed ?? '—'}`,
       );
     }
-    pack.acts.push(out);
   }
 
   const total = pack.acts.reduce((n, a) => n + a.levels.length, 0);
   console.log(`\n${total} levels across ${pack.acts.length} acts, every one reachable greedily.`);
+  console.log(changed ? `${changed} seed(s) newly chosen (marked *)` : 'no seed needed changing');
   if (args.write) {
-    writeFileSync(OUT, `${JSON.stringify(pack, null, 2)}\n`);
-    console.log(`wrote ${OUT.pathname}`);
+    writeFileSync(PACK, `${JSON.stringify(pack, null, 2)}\n`);
+    console.log(`wrote ${PACK.pathname}`);
   } else {
     console.log('(dry run — pass --write to save)');
   }
