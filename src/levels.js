@@ -10,16 +10,24 @@
 // `tools/makeLevels.js` picks the seed by playing candidates until one clears the
 // target, so no dealt level ships unwinnable.
 
-import { parseBoard, randomBoard } from './board.js';
+import { matches, parseBoard, randomBoard } from './board.js';
 import { mulberry32 } from './rng.js';
 import { dealArt } from './level.js';
 
 /**
  * Validate a pack and flatten it into a playable run.
+ *
+ * Every authored board is parsed here rather than when its level is opened, because a
+ * mistyped cell twenty levels in is a mistake the author should hear about now and not
+ * one the player should find. What this cannot promise is that a level is winnable —
+ * that costs a full resolve of every swap, so it lives in `tools/makeLevels.js`.
+ *
+ * @param {object} pack - data/levels.json.
+ * @param {Array<object>} glyphs - the pack from data/glyphs.json.
  * @returns {{budget: number, acts: Array, levels: Array}} `levels` is every level in
  *   order, each carrying the act it belongs to.
  */
-export function loadRun(pack) {
+export function loadRun(pack, glyphs) {
   if (!Array.isArray(pack?.acts) || !pack.acts.length) {
     throw new Error('a level pack needs acts'); // boundary
   }
@@ -37,9 +45,7 @@ export function loadRun(pack) {
         }
       }
       if (level.target > 0 === false) throw new Error(`level ${level.id}: target must be positive`);
-      // The grammar of a cell is `parseBoard`'s to check; the size is this pack's,
-      // because a target no board of that size can reach ships an unwinnable level.
-      const [width, height] = authored ? boardSize(level) : [level.width, level.height];
+      const [width, height] = authored ? checkBoard(level, glyphs) : [level.width, level.height];
       if (level.target > width * height) {
         throw new Error(
           `level ${level.id}: target ${level.target} exceeds its ${width}x${height} board`,
@@ -55,16 +61,34 @@ export function loadRun(pack) {
   return { budget: pack.budget, acts: pack.acts, levels };
 }
 
-/** How wide and tall an authored board is, read off the grid it is written on. */
-function boardSize(level) {
+/**
+ * Read an authored board now, and return its size. Anything `parseBoard` will not
+ * accept is reported against the level it is in, so the author gets a level number
+ * rather than a bare cell reference.
+ */
+function checkBoard(level, glyphs) {
   if (!Array.isArray(level.board) || !level.board.length) {
     throw new Error(`level ${level.id}: "board" must be rows of cells`); // boundary
   }
-  const cells = level.board.map((row) => String(row).trim().split(/\s+/).length);
-  if (new Set(cells).size !== 1) {
-    throw new Error(`level ${level.id}: its rows are ${cells.join(', ')} cells wide`); // boundary
+  if (!Array.isArray(glyphs) || !glyphs.length) {
+    throw new Error('loadRun needs the glyph pack to read an authored board'); // boundary
   }
-  return [cells[0], level.board.length];
+  let board;
+  try {
+    board = parseBoard(level.board, glyphs);
+  } catch (cause) {
+    throw new Error(`level ${level.id}: ${cause.message}`); // boundary
+  }
+  // A dealt board never opens with a piece on its own colour, so every activation is
+  // one the player caused. An authored board that broke that would sit there looking
+  // fired and doing nothing until some unrelated swap resolved it.
+  const already = matches(board);
+  if (already.length) {
+    throw new Error(
+      `level ${level.id}: [${already[0]}] already sits on its own colour`,
+    ); // boundary
+  }
+  return [board.width, board.height];
 }
 
 /**

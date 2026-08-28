@@ -61,7 +61,7 @@ export function seedFor({ width, height, colors, target }, mix, budget, start) {
 function main() {
   const args = parseArgs(process.argv.slice(2), { write: { type: 'flag', default: false } });
   const pack = JSON.parse(readFileSync(PACK, 'utf8'));
-  const budget = loadRun(pack).budget;
+  const budget = loadRun(pack, GLYPHS).budget;
 
   console.log('level  act         board  source    target  greedy  seed');
   console.log('-'.repeat(66));

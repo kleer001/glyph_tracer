@@ -9,7 +9,7 @@ const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8')
 const PACK = read('../data/levels.json');
 const RULES = read('../data/rules.json');
 const GLYPHS = read('../data/glyphs.json').glyphs;
-const RUN = loadRun(PACK);
+const RUN = loadRun(PACK, GLYPHS);
 
 test('the run is acts of consecutive levels', () => {
   assert.ok(RUN.acts.length > 0, 'the pack has no acts');
@@ -20,14 +20,14 @@ test('the run is acts of consecutive levels', () => {
 test('a pack that skips a level fails loudly rather than shipping a hole', () => {
   const holed = structuredClone(PACK);
   holed.acts[0].levels.splice(1, 1);
-  assert.throws(() => loadRun(holed), /skips or repeats/);
+  assert.throws(() => loadRun(holed, GLYPHS), /skips or repeats/);
 });
 
 test('a pack missing a budget or a target fails loudly', () => {
-  assert.throws(() => loadRun({ acts: PACK.acts }), /swap budget/);
+  assert.throws(() => loadRun({ acts: PACK.acts }, GLYPHS), /swap budget/);
   const noTarget = structuredClone(PACK);
   delete noTarget.acts[0].levels[0].target;
-  assert.throws(() => loadRun(noTarget), /target/);
+  assert.throws(() => loadRun(noTarget, GLYPHS), /target/);
 });
 
 // The guarantee the pack exists to make. Greedy play is a lower bound on what a
@@ -120,7 +120,7 @@ test('an authored level is checked against the board it carries, not a stated si
       { id: 1, target: 99, board: ['aB. bAO', 'cB^ aC.'] },
     ] }],
   };
-  assert.throws(() => loadRun(pack), /target 99 exceeds its 2x2 board/);
+  assert.throws(() => loadRun(pack, GLYPHS), /target 99 exceeds its 2x2 board/);
 });
 
 test('a ragged authored board fails loudly rather than shipping a hole', () => {
@@ -130,5 +130,29 @@ test('a ragged authored board fails loudly rather than shipping a hole', () => {
       { id: 1, target: 1, board: ['aB. bAO', 'cB^'] },
     ] }],
   };
-  assert.throws(() => loadRun(pack), /rows are 2, 1 cells wide/);
+  assert.throws(() => loadRun(pack, GLYPHS), /board row 1 has 1 cells, row 0 has 2/);
+});
+
+// The author, not the player, is the one who should hear about a mistyped cell — so a
+// bad board twenty levels in has to be a startup error, not a surprise on level twenty.
+test('a mistyped cell is reported at load, against the level it is in', () => {
+  const bad = (board) => ({
+    budget: 6,
+    acts: [{ id: 'a', no: 'I', name: 'A', mix: {}, levels: [{ id: 1, target: 1, board }] }],
+  });
+  assert.throws(() => loadRun(bad(['aB. bAZ']), GLYPHS), /level 1: .*"Z" is no glyph's mark/);
+  assert.throws(() => loadRun(bad(['zB. bA.']), GLYPHS), /level 1: .*"z" is not a ground colour/);
+  assert.throws(() => loadRun(bad(['aB. bA']), GLYPHS), /level 1: .*is not three characters/);
+});
+
+// randomBoard cannot deal a piece onto its own colour, so nothing the game shows the
+// player ever opens mid-match. An authored board has to keep that promise too.
+test('a board that opens already matched fails loudly', () => {
+  const pack = {
+    budget: 6,
+    acts: [{ id: 'a', no: 'I', name: 'A', mix: {}, levels: [
+      { id: 1, target: 1, board: ['aA. cD.'] },
+    ] }],
+  };
+  assert.throws(() => loadRun(pack, GLYPHS), /\[0,0\] already sits on its own colour/);
 });

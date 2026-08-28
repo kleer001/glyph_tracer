@@ -76,7 +76,7 @@ export async function start(canvas, panels) {
     .add(createSelectionLayer())
     .add(createHudLayer());
 
-  const run = loadRun(data.levels);
+  const run = loadRun(data.levels, data.glyphs.glyphs);
   const progress = createProgress(window.localStorage);
   let level = null;
   let rand = null;
