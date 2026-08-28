@@ -8,6 +8,7 @@
 import { createCompositor } from './compositor.js';
 import { applySwap, copyBoard, createRecorder, gain } from './board.js';
 import { buildTimeline, sampleTimeline, staticFrame } from './animate.js';
+import { resolvePalette } from './palette.js';
 import { dealLevel, loadRun, nextAfter, outcome } from './levels.js';
 import { createProgress } from './progress.js';
 import { mountPicker } from './picker.js';
@@ -76,6 +77,8 @@ export async function start(canvas, panels) {
     .add(createSelectionLayer())
     .add(createHudLayer());
 
+  // One of the palettes in data/palette.json, named by that file's `default`.
+  const palette = resolvePalette(data.palette);
   const run = loadRun(data.levels, data.glyphs.glyphs);
   const progress = createProgress(window.localStorage);
   let level = null;
@@ -128,7 +131,7 @@ export async function start(canvas, panels) {
       height: box.height,
       ...drawList,
       layout: boardLayout(level.board, box.width, box.height),
-      palette: data.palette,
+      palette,
       gloss: data.gloss,
       geometry: data.geometry,
       glyphPaths: data.glyphPaths.paths,
@@ -166,7 +169,7 @@ export async function start(canvas, panels) {
         before,
         swap: [a, z],
         recorder,
-        palette: data.palette,
+        palette,
         glyphsById,
         moveNumber: level.swapsUsed,
         shown,

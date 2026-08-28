@@ -129,8 +129,10 @@ import { drawGlyph, drawTile } from '../src/render.js';
 import { CELL, GEOMETRY_KEYS } from '../src/glyphShapes.js';
 import { mulberry32 } from '../src/rng.js';
 import { mountPalettePanel } from '../src/devPanels.js';
+import { resolvePalette } from '../src/palette.js';
 
-const PALETTE = await (await fetch('../data/palette.json')).json();
+// The file holds several; the editor works on the one it names as default.
+const PALETTE = resolvePalette(await (await fetch('../data/palette.json')).json());
 const GLYPHS = (await (await fetch('../data/glyphs.json')).json()).glyphs;
 const SHIPPED_GEOM = await (await fetch('../data/geometry.json')).json();
 const PATHS = (await (await fetch('../data/glyphPaths.json')).json()).paths;

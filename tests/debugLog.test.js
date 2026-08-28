@@ -1,12 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { resolvePalette } from '../src/palette.js';
 import { readFileSync } from 'node:fs';
 import { mulberry32 } from '../src/rng.js';
 import { ANCHOR, PUSH_LEFT, applySwap, blankBoard, createRecorder, settle } from '../src/board.js';
 import { describeSwap, toText } from '../src/debugLog.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
-const PALETTE = read('../data/palette.json');
+const PALETTE = resolvePalette(read('../data/palette.json'));
 const byId = new Map(read('../data/glyphs.json').glyphs.map((g) => [g.id, g]));
 const RULES = { width: 5, height: 8, colors: 6, adjacentOnly: false };
 const rand = mulberry32(20260825);

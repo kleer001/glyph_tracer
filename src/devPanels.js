@@ -21,22 +21,23 @@ export function rgbToHex({ r, g, b }) {
 }
 
 /**
- * The whole palette as the contents of data/palette.json, so what you copy off the
- * panel is what you paste into the file. `note` rides along untouched.
- * @param {object} palette
+ * One palette as the block it occupies inside data/palette.json's `palettes`, so what
+ * you copy off the panel is what you paste back over it. `core` and `key` are shared by
+ * every palette and sit at the top level of that file, so they are not part of a block.
+ *
+ * @param {{id: string, name: string, note: string, colors: Array}} palette - resolved.
  * @returns {string}
  */
 export function paletteFileText(palette) {
-  const colors = palette.colors.map((c) => `    { "name": ${JSON.stringify(c.name)}, "hex": "${c.hex}" }`);
+  const colors = palette.colors.map((c) => `        { "name": ${JSON.stringify(c.name)}, "hex": "${c.hex}" }`);
   return [
-    '{',
-    `  "note": ${JSON.stringify(palette.note)},`,
-    '  "colors": [',
+    `    ${JSON.stringify(palette.id)}: {`,
+    `      "name": ${JSON.stringify(palette.name)},`,
+    `      "note": ${JSON.stringify(palette.note)},`,
+    '      "colors": [',
     colors.join(',\n'),
-    '  ],',
-    `  "core": "${palette.core}",`,
-    `  "key": "${palette.key}"`,
-    '}',
+    '      ]',
+    '    }',
     '',
   ].join('\n');
 }

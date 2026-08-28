@@ -1,13 +1,56 @@
 {
-  "note": "Six hues 60 degrees apart — three primaries, three secondaries — pulled in off the pure RGB corners so they sit closer in weight to each other. Ink and ground are drawn from the same list, so the even hue spacing is what keeps any pair of them apart.",
-  "colors": [
-    { "name": "red", "hex": "#EC3334" },
-    { "name": "yellow", "hex": "#FFF627" },
-    { "name": "green", "hex": "#52DE52" },
-    { "name": "cyan", "hex": "#00E0DF" },
-    { "name": "blue", "hex": "#6482FF" },
-    { "name": "magenta", "hex": "#B82CBB" }
-  ],
+  "note": "Every palette is six colours a piece and a cell can both be drawn in, so what matters is that no two are confusable — including for the roughly one man in twelve with a red-green colour deficiency. Deficiencies flatten hue and leave lightness alone, so separation is bought by spreading the six in lightness rather than by spacing them evenly in hue. `core` and `key` are the glyph interior and its keyline, shared by every palette. Switch palette by changing `default`. Measured by tools/palette.js, which simulates each deficiency and reports the closest pair.",
+  "default": "trace",
   "core": "#101216",
-  "key": "#000000"
+  "key": "#000000",
+  "palettes": {
+    "trace": {
+      "name": "Trace",
+      "note": "Six hues evenly spaced and close in weight. The most colourful of the set and the least separable: its closest pair is green against cyan.",
+      "colors": [
+        { "name": "red", "hex": "#EC3334" },
+        { "name": "yellow", "hex": "#FFF627" },
+        { "name": "green", "hex": "#52DE52" },
+        { "name": "cyan", "hex": "#00E0DF" },
+        { "name": "blue", "hex": "#6482FF" },
+        { "name": "magenta", "hex": "#B82CBB" }
+      ]
+    },
+    "deep": {
+      "name": "Deep",
+      "note": "Muted, and free to spread in lightness — which is where its separation comes from. The widest margin of any palette here, at the cost of green reading pale and magenta dark.",
+      "colors": [
+        { "name": "red", "hex": "#BE5034" },
+        { "name": "yellow", "hex": "#C2A702" },
+        { "name": "green", "hex": "#B9E997" },
+        { "name": "cyan", "hex": "#0AC5D3" },
+        { "name": "blue", "hex": "#4F7ED5" },
+        { "name": "magenta", "hex": "#70407B" }
+      ]
+    },
+    "even": {
+      "name": "Even",
+      "note": "Muted, but held to a narrow lightness range so the six read as one set. Buys less separation than Deep and looks closer to Trace.",
+      "colors": [
+        { "name": "red", "hex": "#C15544" },
+        { "name": "yellow", "hex": "#BB9F00" },
+        { "name": "green", "hex": "#9EC683" },
+        { "name": "cyan", "hex": "#00CFDF" },
+        { "name": "blue", "hex": "#6598F6" },
+        { "name": "magenta", "hex": "#9D70AB" }
+      ]
+    },
+    "legible": {
+      "name": "Legible",
+      "note": "The Okabe-Ito palette (jfly.uni-koeln.de/color), chosen and verified by its authors to stay distinguishable under every colour deficiency. Keeps the six slot names, but they are orange, sky, blue-green, yellow, blue and vermilion.",
+      "colors": [
+        { "name": "red", "hex": "#D55E00" },
+        { "name": "yellow", "hex": "#F0E442" },
+        { "name": "green", "hex": "#009E73" },
+        { "name": "cyan", "hex": "#56B4E9" },
+        { "name": "blue", "hex": "#0072B2" },
+        { "name": "magenta", "hex": "#E69F00" }
+      ]
+    }
+  }
 }

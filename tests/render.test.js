@@ -1,11 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { resolvePalette } from '../src/palette.js';
 import { readFileSync } from 'node:fs';
 import { boardLayout, cellAt, cellOrigin, createGlyphLayer, VIEW } from '../src/render.js';
 
 const GLOSS = JSON.parse(readFileSync(new URL('../data/gloss.json', import.meta.url), 'utf8'));
 const GEOMETRY = JSON.parse(readFileSync(new URL('../data/geometry.json', import.meta.url), 'utf8'));
-const PALETTE = JSON.parse(readFileSync(new URL('../data/palette.json', import.meta.url), 'utf8'));
+const PALETTE = resolvePalette(
+  JSON.parse(readFileSync(new URL('../data/palette.json', import.meta.url), 'utf8')),
+);
 const PATHS = JSON.parse(readFileSync(new URL('../data/glyphPaths.json', import.meta.url), 'utf8')).paths;
 const BOARD = { width: 5, height: 8 };
 
