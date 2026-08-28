@@ -51,6 +51,16 @@
         { "name": "blue", "hex": "#0072B2" },
         { "name": "magenta", "hex": "#E69F00" }
       ]
+    },
+    "lively": {
+      "name": "Lively",
+      "note": "Colourful without glare: the yellow stays light but softens to cream, and the green goes deep enough to stop competing with the cyan. `use` takes red, yellow, green and blue, the four of the six that sit furthest apart — dropping cyan and magenta removes the only two crowded pairs.",
+      "colors": [
+        { "name": "red", "hex": "#F33122" },
+        { "name": "yellow", "hex": "#EFE8A7" },
+        { "name": "green", "hex": "#298800" },
+        { "name": "blue", "hex": "#536CF9" }
+      ]
     }
   }
 }

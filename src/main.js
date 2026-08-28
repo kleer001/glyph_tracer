@@ -8,7 +8,7 @@
 import { createCompositor } from './compositor.js';
 import { applySwap, copyBoard, createRecorder, gain } from './board.js';
 import { buildTimeline, sampleTimeline, staticFrame } from './animate.js';
-import { resolvePalette } from './palette.js';
+import { resolvePalette, uncovered } from './palette.js';
 import { dealLevel, loadRun, nextAfter, outcome } from './levels.js';
 import { createProgress } from './progress.js';
 import { mountPicker } from './picker.js';
@@ -80,6 +80,16 @@ export async function start(canvas, panels) {
   // One of the palettes in data/palette.json, named by that file's `default`.
   const palette = resolvePalette(data.palette);
   const run = loadRun(data.levels, data.glyphs.glyphs);
+  // A board holds colour indices, so a palette narrower than a level is a level that
+  // cannot be painted. Say so here rather than drawing part of it.
+  const short = uncovered(palette, run.levels, (level) =>
+    dealLevel(level, { rules: data.rules, glyphs, budget: run.budget }).board.colors);
+  if (short.length) {
+    throw new Error(
+      `palette "${palette.id}" has ${palette.colors.length} colours; `
+      + `${short.length} level(s) need more, starting with level ${short[0].id} (${short[0].needs})`,
+    ); // boundary
+  }
   const progress = createProgress(window.localStorage);
   let level = null;
   let rand = null;
