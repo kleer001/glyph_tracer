@@ -32,3 +32,15 @@ test('the example board is a board the generator could emit', () => {
     }
   }
 });
+
+// The kinds this file records are the ones the generator wrote, and the generator
+// writes what `src/board.js` runs. A kind here that no glyph is drawn for means the
+// board outlived a change to the engine — which is how the previous one rotted.
+test('every kind on the example board is one a glyph is drawn for', () => {
+  const drawn = new Set(JSON.parse(read('../data/glyphs.json')).glyphs.map((g) => g.kind));
+  for (const row of SOURCE.kind) {
+    for (const kind of row) {
+      assert.ok(drawn.has(kind), `the board carries "${kind}", which no glyph is drawn for`);
+    }
+  }
+});

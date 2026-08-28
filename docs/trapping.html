@@ -1,5 +1,6 @@
 <meta charset="utf-8">
 <title>Trapping the Greedy Read</title>
+<link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Martian+Mono:wght@400;600&display=swap">
@@ -157,7 +158,7 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
   <div class="compare">
     <div>
       <span class="k">Best line</span>
-      <span class="n">24</span>
+      <span class="n">31</span>
       <span class="d">Cells cleared by the strongest swap on the board, cascade included.</span>
     </div>
     <div>
@@ -168,14 +169,14 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
     <div>
       <span class="k">Typical swap</span>
       <span class="n">1</span>
-      <span class="d">Median across all 32 productive swaps. Outside the line, you clear what you aimed at.</span>
+      <span class="d">Median across all 263 productive swaps. Outside the line, you clear what you aimed at.</span>
     </div>
   </div>
   <div class="body">
     <p>
       Out of 40 cells. The two derived figures the generator optimizes — <em>deception</em>
       (best minus greedy) and <em>spread</em> (best minus median) — are differences, not
-      totals. On this board deception is 22, which is the distance between 24 and 2.
+      totals. On this board deception is 29, which is the distance between 31 and 2.
     </p>
     <p>
       The third number, <strong>solvers</strong>, counts how many swaps reach 80% of best.
@@ -187,7 +188,7 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 <section>
   <div class="head">
     <h2>A generated board</h2>
-    <span class="aside">Six colors, 3000 annealing steps, neighbor swaps only.</span>
+    <span class="aside">Six colors, 3000 annealing steps, any two cells.</span>
   </div>
   <div class="boardwrap">
     <script type="application/json" id="board-data">
@@ -197,23 +198,16 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
  "colors": 6,
  "bg": [
   [
-   0,
    2,
-   0,
-   5,
-   4
-  ],
-  [
-   5,
-   4,
-   0,
-   4,
+   3,
+   1,
+   1,
    2
   ],
   [
-   3,
-   4,
-   2,
+   1,
+   1,
+   1,
    0,
    4
   ],
@@ -221,307 +215,217 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
    1,
    5,
    5,
-   4,
-   3
+   0,
+   4
   ],
   [
+   3,
+   2,
    0,
-   0,
-   5,
    0,
    2
   ],
   [
    3,
    5,
+   1,
+   2,
+   2
+  ],
+  [
+   2,
+   3,
    0,
-   0,
+   4,
    5
   ],
   [
    1,
-   5,
-   2,
+   4,
    1,
-   3
+   5,
+   1
   ],
   [
-   2,
-   5,
-   0,
+   4,
    1,
-   4
+   5,
+   2,
+   0
   ]
  ],
  "glyph": [
   [
-   4,
+   1,
+   5,
+   3,
    0,
-   1,
-   1,
    3
   ],
   [
    0,
-   2,
+   0,
+   0,
    5,
-   5,
-   4
-  ],
-  [
-   1,
-   3,
-   4,
-   2,
    2
   ],
   [
-   0,
-   4,
+   2,
+   2,
+   1,
+   1,
+   2
+  ],
+  [
    1,
    5,
+   5,
+   1,
    4
   ],
   [
-   3,
-   5,
-   0,
-   2,
-   3
-  ],
-  [
-   5,
-   3,
-   5,
-   5,
-   0
-  ],
-  [
    4,
-   2,
-   5,
-   5,
-   4
-  ],
-  [
+   3,
    0,
    1,
-   5,
+   5
+  ],
+  [
+   3,
    0,
-   3
+   5,
+   1,
+   2
+  ],
+  [
+   2,
+   1,
+   0,
+   1,
+   5
+  ],
+  [
+   1,
+   4,
+   1,
+   5,
+   1
   ]
  ],
  "kind": [
   [
    "",
-   "push",
-   "block",
-   "push",
-   ""
-  ],
-  [
-   "push",
-   "push",
-   "block",
-   "block",
-   ""
-  ],
-  [
-   "",
-   "push",
+   "pulse",
    "",
    "",
    ""
   ],
   [
-   "push",
+   "pulse",
+   "pulse",
    "",
-   "block",
-   "push",
-   "push"
+   "",
+   ""
   ],
   [
-   "push",
+   "pulse",
    "",
    "",
-   "",
-   "push"
-  ],
-  [
-   "",
-   "",
-   "push",
-   "",
-   "push"
-  ],
-  [
-   "push",
-   "push",
-   "",
-   "block",
-   "push"
+   "anchor",
+   "pulse"
   ],
   [
    "",
    "",
+   "pulse",
+   "pulse",
+   ""
+  ],
+  [
    "",
    "",
-   "push"
+   "pulse",
+   "",
+   ""
+  ],
+  [
+   "",
+   "pulse",
+   "",
+   "pulse",
+   ""
+  ],
+  [
+   "pulse",
+   "anchor",
+   "",
+   "pulse",
+   "pulse"
+  ],
+  [
+   "pulse",
+   "pulse",
+   "pulse",
+   "pulse",
+   "pulse"
   ]
  ],
- "best": 24,
- "median": 1,
- "solvers": 1,
- "productive": 32,
- "line": {
+ "solution": {
   "a": [
-   5,
-   3
+   1,
+   1
   ],
   "z": [
-   5,
+   7,
    4
   ],
-  "imm": 2,
-  "full": 24,
+  "clears": 31,
   "steps": 5
  },
  "lure": {
   "a": [
-   1,
-   4
+   0,
+   0
   ],
   "z": [
    2,
-   4
+   0
   ],
-  "imm": 2,
-  "full": 2
+  "clears": 2
  },
- "top": [
-  {
-   "a": [
-    5,
-    3
-   ],
-   "z": [
-    5,
-    4
-   ],
-   "imm": 2,
-   "full": 24
-  },
-  {
-   "a": [
-    6,
-    4
-   ],
-   "z": [
-    7,
-    4
-   ],
-   "imm": 2,
-   "full": 15
-  },
-  {
-   "a": [
-    6,
-    1
-   ],
-   "z": [
-    6,
-    2
-   ],
-   "imm": 2,
-   "full": 6
-  },
-  {
-   "a": [
-    4,
-    2
-   ],
-   "z": [
-    5,
-    2
-   ],
-   "imm": 2,
-   "full": 4
-  },
-  {
-   "a": [
-    1,
-    4
-   ],
-   "z": [
-    2,
-    4
-   ],
-   "imm": 2,
-   "full": 2
-  },
-  {
-   "a": [
-    4,
-    1
-   ],
-   "z": [
-    4,
-    2
-   ],
-   "imm": 2,
-   "full": 2
-  },
-  {
-   "a": [
-    5,
-    0
-   ],
-   "z": [
-    5,
-    1
-   ],
-   "imm": 2,
-   "full": 2
-  },
-  {
-   "a": [
-    4,
-    3
-   ],
-   "z": [
-    4,
-    4
-   ],
-   "imm": 1,
-   "full": 13
-  }
- ]
+ "deception": 29,
+ "spread": 30,
+ "solvers": 1,
+ "tied": 38,
+ "greedyEv": 5.55
 }
 </script>
     <div class="board" id="board" role="img" aria-label="A 5 by 8 Glyph Tracer board with the winning swap and the trap swap marked"></div>
     <div class="key">
       <div class="item">
-        <span class="tag"><span class="sw line"></span>THE LINE &nbsp;(5,3) ↔ (5,4)</span>
-        <p>Shows <strong>2</strong> immediate matches. Clears <strong>24</strong> cells across a five-step cascade.</p>
+        <span class="tag"><span class="sw line"></span>THE LINE &nbsp;(1,1) ↔ (7,4)</span>
+        <p>Shows <strong>2</strong> immediate matches. Clears <strong>31</strong> cells across a five-step cascade.</p>
       </div>
       <div class="item">
-        <span class="tag"><span class="sw lure"></span>THE LURE &nbsp;(1,4) ↔ (2,4)</span>
+        <span class="tag"><span class="sw lure"></span>THE LURE &nbsp;(0,0) ↔ (2,0)</span>
         <p>Shows <strong>2</strong> immediate matches — the same visible payoff as the line. Clears <strong>2</strong> and stops.</p>
       </div>
       <div class="item">
         <p style="color:var(--ink1)">
           Nothing on the surface separates them. Both moves show two matches; one clears
-          two cells and the other clears twenty-four. The difference lives entirely in
-          which glyphs push, which eat, and what is downrange of them.
+          two cells and the other clears thirty-one. The difference lives entirely in
+          which glyphs shove, which absorb, and what is downrange of them.
         </p>
       </div>
       <div class="item">
         <p>
           Lowercase = cell background color, <strong>UPPERCASE</strong> = glyph color,
-          <strong>✳</strong> shoves its neighbors outward, <strong>▮</strong> eats
-          whatever is shoved into it, <strong>◌</strong> pulls its neighbors inward, and
-          <strong>?</strong> pushes a random subset. Letters stand in for colors; the
-          palette is not decided here.
+          <strong>✳</strong> advances all four of its lines outward by one, and
+          <strong>▮</strong> absorbs whatever is shoved into it and stays put. Those are
+          the two abilities in this board's mix. Turn <code>--rotators</code> or
+          <code>--voids</code> up and <strong>↻</strong> <strong>↺</strong> and
+          <strong>◌</strong> join them. Letters stand in for colors; the palette is not
+          decided here.
         </p>
       </div>
     </div>
@@ -531,7 +435,7 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 <section>
   <div class="head">
     <h2>What the player sees, and what happens</h2>
-    <span class="aside">Every swap on this board showing two immediate matches, plus the best single-match move.</span>
+    <span class="aside">The 38 swaps on this board tied for the best visible payoff, grouped by what they actually clear.</span>
   </div>
   <div class="scroll">
     <table>
@@ -539,21 +443,23 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
         <tr><th>Swap</th><th>Shows</th><th>Actually clears</th><th></th></tr>
       </thead>
       <tbody>
-        <tr class="win"><td class="num">(5,3) ↔ (5,4)</td><td class="num">2</td><td class="num">24</td><td>the line</td></tr>
-        <tr><td class="num">(6,4) ↔ (7,4)</td><td class="num">2</td><td class="num">15</td><td></td></tr>
-        <tr><td class="num">(6,1) ↔ (6,2)</td><td class="num">2</td><td class="num">6</td><td></td></tr>
-        <tr><td class="num">(4,2) ↔ (5,2)</td><td class="num">2</td><td class="num">4</td><td></td></tr>
-        <tr class="trap"><td class="num">(1,4) ↔ (2,4)</td><td class="num">2</td><td class="num">2</td><td>the lure</td></tr>
-        <tr><td class="num">(4,1) ↔ (4,2)</td><td class="num">2</td><td class="num">2</td><td></td></tr>
+        <tr class="win"><td class="num">(1,1) ↔ (7,4)</td><td class="num">2</td><td class="num">31</td><td>the line — the only one</td></tr>
+        <tr><td class="num">(1,0) ↔ (7,4)</td><td class="num">2</td><td class="num">21</td><td></td></tr>
+        <tr><td class="num">(4,2) ↔ (7,4)</td><td class="num">2</td><td class="num">18</td><td></td></tr>
+        <tr><td class="num">(6,4) ↔ (7,2)</td><td class="num">2</td><td class="num">17</td><td></td></tr>
+        <tr><td class="num">(7,0) ↔ (7,1)</td><td class="num">2</td><td class="num">14</td><td></td></tr>
+        <tr><td class="num">… 6 more</td><td class="num">2</td><td class="num">3 – 10</td><td></td></tr>
+        <tr class="trap"><td class="num">(0,0) ↔ (2,0)</td><td class="num">2</td><td class="num">2</td><td>the lure, with 15 others</td></tr>
       </tbody>
     </table>
   </div>
   <div class="body">
     <p>
-      Every swap in this table presents the player with the same number — two immediate
-      matches — and they clear 24, 15, 6, 4, 2 and 2. The visible payoff is constant across
-      all six and carries no information whatsoever about which one to take. The search
-      found that without being told to.
+      Every swap here presents the player with the same number — two immediate matches —
+      and they clear anything from 2 to 31. Sixteen of the thirty-eight clear exactly two
+      and stop. The visible payoff is constant across the whole group and carries no
+      information whatsoever about which one to take: picking among them at random averages
+      5.6 cells against a best of 31. The search found that without being told to.
     </p>
   </div>
 </section>
@@ -637,22 +543,22 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 
 <section>
   <div class="head">
-    <h2>What a wild costs an authored board</h2>
-    <span class="aside">The one glyph kind this method excludes.</span>
+    <h2>Why nothing here rolls a die</h2>
+    <span class="aside">What this method needs from the rules.</span>
   </div>
   <div class="body">
     <p>
-      A wild glyph fires a random one of the sixteen subsets of its four directions, so a
-      board carrying one has no fixed best line. Scoring the same board twenty-five times
-      with wilds at a quarter of the glyphs, the best line moves between 24 and 25 cells
-      and the solver count swings between 1 and 3 — the generator would be optimizing a
-      number that is not a property of the board.
+      Every score on this page is a property of the board. That only holds because every
+      glyph resolves the same way every time: the abilities are in
+      <code>src/board.js</code>'s <code>fire</code>, and none of them consults a random
+      number. Seeded randomness deals a board; from there the board is the whole answer.
     </p>
     <p>
-      At 12.5% wilds it happens to hold still across those runs, but that is luck rather
-      than a guarantee. A wild leaves an authored level without a fixed answer to author toward; generated
-      or endless play, where a surprise is a surprise rather than a broken promise.
-      <code>tools/trapBoards.js</code> prints a warning when <code>--wilds</code> is non-zero.
+      An ability with no fixed outcome would take that away. Its board would have no fixed
+      best line, so <code>deception</code>, <code>spread</code> and <code>solvers</code>
+      would all be samples rather than measurements, and the annealer would be optimizing a
+      number that is not a property of the thing it is mutating. There would also be nothing
+      for an author to author toward, and nothing for a player to have been right about.
     </p>
   </div>
 </section>
@@ -660,7 +566,7 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 <section>
   <div class="head">
     <h2>Yield</h2>
-    <span class="aside">Six colors, 2500 steps, four consecutive seeds. Cells cleared out of 40.</span>
+    <span class="aside">Six colors, 2500 steps, four consecutive seeds from the default. Cells cleared out of 40.</span>
   </div>
   <div class="scroll">
     <table>
@@ -668,23 +574,26 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
         <tr><th>Board</th><th>Best line</th><th>Greedy pick</th><th>Typical swap</th><th>Ratio</th><th>Solvers</th></tr>
       </thead>
       <tbody>
-        <tr><td class="num">1</td><td class="num">29</td><td class="num">2</td><td class="num">2</td><td class="num">14.5×</td><td class="num">1</td></tr>
-        <tr><td class="num">2</td><td class="num">32</td><td class="num">2</td><td class="num">1</td><td class="num">16×</td><td class="num">1</td></tr>
-        <tr><td class="num">3</td><td class="num">34</td><td class="num">2</td><td class="num">1</td><td class="num">17×</td><td class="num">1</td></tr>
+        <tr><td class="num">1</td><td class="num">29</td><td class="num">2</td><td class="num">1</td><td class="num">14.5×</td><td class="num">1</td></tr>
+        <tr><td class="num">2</td><td class="num">26</td><td class="num">2</td><td class="num">1</td><td class="num">13×</td><td class="num">1</td></tr>
+        <tr><td class="num">3</td><td class="num">22</td><td class="num">2</td><td class="num">1</td><td class="num">11×</td><td class="num">1</td></tr>
+        <tr><td class="num">4</td><td class="num">25</td><td class="num">2</td><td class="num">1</td><td class="num">12.5×</td><td class="num">1</td></tr>
       </tbody>
     </table>
   </div>
   <div class="body">
     <p>
       A typical swap clears exactly 1 cell on every board — the one the player aimed at,
-      with nothing following. Against that floor the line is worth 15 to 18 times the
-      greedy alternative, and on three of these four boards the lure and the line are
-      visually indistinguishable.
+      with nothing following. Against that floor the line is worth 11 to 15 times the
+      greedy alternative, and on all four the lure and the line are visually
+      indistinguishable.
     </p>
     <p>
-      At <code>--target 12</code> the same search yields best lines of 15–17 against a
-      greedy pick of 3 — a smaller board that still resolves to one answer. The dial goes
-      the other way too.
+      At <code>--target 12</code> the same search yields a best line of 14 against a greedy
+      pick of 2 — a smaller trap that still resolves to one answer. The dial goes the other
+      way too. Adding the rearrangers back in does not cost the method anything: at
+      <code>--rotators 0.125 --voids 0.125</code> the search still lands a 27-cell line
+      against a greedy pick of 2, with one solver.
     </p>
   </div>
 </section>
@@ -697,25 +606,26 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 node tools/trapBoards.js --boards 4               # four of them
 node tools/trapBoards.js --target 12              # a modest trap, not a wipe
 node tools/trapBoards.js --colors 4 --payoff 10   # tighter palette, higher floor
-node tools/trapBoards.js --blockers 0.25          # more eaters on the board
+node tools/trapBoards.js --blockers 0.25          # more anchors on the board
 node tools/trapBoards.js --voids 0.125            # add inward-pullers
-node tools/trapBoards.js --any-swap               # drop the neighbor restriction
+node tools/trapBoards.js --rotators 0.125         # add glyphs that turn their neighbors
+node tools/trapBoards.js --adjacent-only          # restrict to neighbor swaps
 node tools/trapBoards.js --json boards.json       # dump for a real prototype</code></pre>
   <div class="body">
     <p>
       <code>src/board.js</code> holds the board, the shove and the settle loop, shared with
-      <code>tools/swapBudget.js</code>. Board JSON carries backgrounds, glyphs, push flags, and
-      both marked swaps, so a generated level can be loaded straight into a build and
-      checked against its own solution.
+      <code>tools/swapBudget.js</code>. Board JSON carries backgrounds, glyph colors, the kind
+      in each cell and both marked swaps, so a generated level can be loaded straight into a
+      build and checked against its own solution.
     </p>
   </div>
 </section>
 
 <footer>
-  Board shown is <span class="mono">example_board.json</span>, seed 20260825, six colors,
-  50% pushers, 12.5% eaters, 3000 annealing steps, neighbor swaps. Wild glyphs are
-  excluded from authored boards — see below. Rules and measurements in
-  <span class="mono">SPEC.md</span>.
+  Board shown is <span class="mono">data/example_board.json</span>, seed 20260825, six
+  colors, 50% pulse, 12.5% anchor, 3000 annealing steps, any two cells — regenerate it with
+  <span class="mono">node tools/trapBoards.js --iters 3000 --json boards.json</span>. Rules
+  and measurements in <span class="mono">SPEC.md</span>.
 </footer>
 
 </div>
@@ -723,9 +633,14 @@ node tools/trapBoards.js --json boards.json       # dump for a real prototype</c
 <script>
 const D = JSON.parse(document.getElementById("board-data").textContent);
 const BG = D.bg, GL = D.glyph, KIND = D.kind;
-const MARK = { push:"\u2733", block:"\u25AE", wild:"?", void:"\u25CC" };
+const MARK = {
+  pulse:"\u2733", anchor:"\u25AE", sink:"\u25CC",
+  rotate:"\u21BB", rotateRev:"\u21BA",
+  pushUp:"\u2191", pushRight:"\u2192", pushDown:"\u2193", pushLeft:"\u2190",
+  swapOrth:"+", swapDiag:"\u00D7",
+};
 const W = D.w, H = D.h;
-const LINE = [D.line.a, D.line.z];
+const LINE = [D.solution.a, D.solution.z];
 const LURE = [D.lure.a, D.lure.z];
 const L = "abcdef";
 
