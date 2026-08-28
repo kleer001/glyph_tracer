@@ -16,14 +16,16 @@
 //   node tools/trapBoards.js --json boards.json
 
 import { pathToFileURL } from 'node:url';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import {
   ANCHOR,
+  COLOR_LETTERS,
   PLAIN,
   PULSE,
   ROTATE,
   SINK,
   copyBoard,
+  formatBoard,
   randomBoard,
   resolve,
   swapPairs,
@@ -32,7 +34,10 @@ import { mulberry32 } from '../src/rng.js';
 import { parseArgs } from './args.js';
 
 const KIND_MARK = { [PLAIN]: ' ', [PULSE]: '*', [ANCHOR]: '#', [ROTATE]: '@', [SINK]: 'o' };
-const LETTERS = 'abcdefghijklmnop';
+const LETTERS = COLOR_LETTERS;
+const GLYPHS = JSON.parse(
+  readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8'),
+).glyphs;
 
 const SPEC = {
   boards: { type: 'number', default: 1 },
@@ -177,6 +182,11 @@ function render(b) {
 function report(board, m) {
   console.log(render(board));
   console.log('\n  lowercase = cell background, UPPERCASE = glyph   * pushes   # eats   @ turns   o pulls inward\n');
+  // The same board in the level format, so a trap worth keeping is a paste rather than
+  // a transcription. See `parseBoard` in src/board.js.
+  console.log('  as a level board:\n');
+  for (const row of formatBoard(board, GLYPHS)) console.log(`      "${row}",`);
+  console.log();
   const { lure, solution: sol } = m;
   console.log(
     `  cells cleared:   best line ${String(m.best).padEnd(3)}   greedy pick ${String(lure.full).padEnd(3)}   typical swap ${m.median}`,
@@ -206,6 +216,8 @@ function toJson(board, m) {
     bg: board.bg,
     glyph: board.glyph,
     kind: board.kind,
+    // ready to paste into a level in data/levels.json
+    board: formatBoard(board, GLYPHS),
     solution: { a: m.solution.a, z: m.solution.z, clears: m.solution.full, steps: m.solution.steps },
     lure: { a: m.lure.a, z: m.lure.z, clears: m.lure.full },
     deception: m.deception,
