@@ -108,6 +108,95 @@ export function rollKind(mix, rand) {
   return PLAIN;
 }
 
+/**
+ * A palette index as a letter, so an authored board reads as text. Lowercase is the
+ * ground a piece stands on, uppercase the ink the piece is drawn in.
+ */
+export const COLOR_LETTERS = 'abcdefghijklmnop';
+const INK_LETTERS = COLOR_LETTERS.toUpperCase();
+const DEAD_CELL = '...';
+const EMPTY_PIECE = '--';
+
+/**
+ * A board written out as text: one three-character cell per piece, cells separated by
+ * whitespace, every row the same length.
+ *
+ *     aC.   an inert piece, ink C, standing on ground a
+ *     dB^   a push-up
+ *     e--   a live cell with nothing standing on it
+ *     ...   a cell that is not part of the board
+ *
+ * The third character is the glyph's `mark` from `data/glyphs.json`, which is where
+ * the alphabet lives — adding a glyph adds its character in one place. Board size and
+ * palette size come from the grid, so an authored level states neither.
+ *
+ * @param {string[]} rows
+ * @param {Array<object>} glyphs - the pack from data/glyphs.json.
+ * @param {{adjacentOnly?: boolean}} [opts]
+ */
+export function parseBoard(rows, glyphs, { adjacentOnly = false } = {}) {
+  if (!Array.isArray(rows) || !rows.length) {
+    throw new Error('an authored board needs rows'); // boundary
+  }
+  const byMark = new Map(glyphs.map((g) => [g.mark, g]));
+  const grid = rows.map((row, r) => {
+    if (typeof row !== 'string' || !row.trim()) {
+      throw new Error(`board row ${r} is not a row of cells`); // boundary
+    }
+    return row.trim().split(/\s+/);
+  });
+  const width = grid[0].length;
+  grid.forEach((cells, r) => {
+    if (cells.length !== width) {
+      throw new Error(`board row ${r} has ${cells.length} cells, row 0 has ${width}`); // boundary
+    }
+  });
+
+  const b = blankBoard({ width, height: grid.length, colors: 0, adjacentOnly });
+  let colors = 0;
+  grid.forEach((cells, r) => cells.forEach((cell, c) => {
+    const at = `[${r},${c}] "${cell}"`;
+    if (cell.length !== 3) throw new Error(`${at} is not three characters`); // boundary
+    if (cell === DEAD_CELL) {
+      b.alive[r][c] = false;
+      return;
+    }
+    const bg = COLOR_LETTERS.indexOf(cell[0]);
+    if (bg < 0) throw new Error(`${at}: "${cell[0]}" is not a ground colour`); // boundary
+    b.bg[r][c] = bg;
+    colors = Math.max(colors, bg + 1);
+    if (cell.slice(1) === EMPTY_PIECE) return; // live, with nothing standing on it
+    const ink = INK_LETTERS.indexOf(cell[1]);
+    if (ink < 0) throw new Error(`${at}: "${cell[1]}" is not a glyph colour`); // boundary
+    const piece = byMark.get(cell[2]);
+    if (!piece) throw new Error(`${at}: "${cell[2]}" is no glyph's mark`); // boundary
+    b.glyph[r][c] = ink;
+    b.kind[r][c] = piece.kind;
+    b.art[r][c] = piece.id;
+    colors = Math.max(colors, ink + 1);
+  }));
+  b.colors = colors;
+  return b;
+}
+
+/**
+ * The inverse of `parseBoard`, so a board a tool generated can be pasted into a level
+ * and played. One kind per glyph, so the mark is a lookup rather than a choice.
+ */
+export function formatBoard(b, glyphs) {
+  const byKind = new Map(glyphs.map((g) => [g.kind, g]));
+  return Array.from({ length: b.height }, (_, r) =>
+    Array.from({ length: b.width }, (_, c) => {
+      if (!b.alive[r][c]) return DEAD_CELL;
+      const ground = COLOR_LETTERS[b.bg[r][c]];
+      if (b.glyph[r][c] === null) return `${ground}${EMPTY_PIECE}`;
+      const piece = byKind.get(b.kind[r][c]);
+      if (!piece) throw new Error(`no glyph is drawn for kind "${b.kind[r][c]}"`); // boundary
+      return `${ground}${INK_LETTERS[b.glyph[r][c]]}${piece.mark}`;
+    }).join(' '),
+  );
+}
+
 export function copyBoard(b) {
   return {
     ...b,

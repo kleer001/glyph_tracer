@@ -1,18 +1,20 @@
 {
-  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation \u2014 the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind.",
+  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation — the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind.",
   "glyphs": [
     {
       "id": "inert",
       "letter": ".",
+      "mark": ".",
       "rot": 0,
       "flip": false,
       "name": "Inert",
       "kind": "",
-      "effect": "nothing \u2014 it matches, its cell goes, and no ability runs"
+      "effect": "nothing — it matches, its cell goes, and no ability runs"
     },
     {
       "id": "pulse",
       "letter": "O",
+      "mark": "O",
       "rot": 0,
       "flip": false,
       "name": "Pulse",
@@ -22,6 +24,7 @@
     {
       "id": "anchor",
       "letter": "H",
+      "mark": "H",
       "rot": 0,
       "flip": false,
       "name": "Anchor",
@@ -31,6 +34,7 @@
     {
       "id": "push-up",
       "letter": "A",
+      "mark": "^",
       "rot": 0,
       "flip": false,
       "name": "Push up",
@@ -40,6 +44,7 @@
     {
       "id": "push-right",
       "letter": "A",
+      "mark": ">",
       "rot": 90,
       "flip": false,
       "name": "Push right",
@@ -49,6 +54,7 @@
     {
       "id": "push-down",
       "letter": "A",
+      "mark": "v",
       "rot": 180,
       "flip": false,
       "name": "Push down",
@@ -58,6 +64,7 @@
     {
       "id": "push-left",
       "letter": "A",
+      "mark": "<",
       "rot": 270,
       "flip": false,
       "name": "Push left",
@@ -67,6 +74,7 @@
     {
       "id": "swap-orth",
       "letter": "+",
+      "mark": "+",
       "rot": 0,
       "flip": false,
       "name": "Swap orthogonal",
@@ -76,6 +84,7 @@
     {
       "id": "swap-diag",
       "letter": "X",
+      "mark": "X",
       "rot": 0,
       "flip": false,
       "name": "Swap diagonal",
@@ -85,6 +94,7 @@
     {
       "id": "rotate",
       "letter": "R",
+      "mark": "@",
       "rot": 0,
       "flip": false,
       "name": "Rotate",
@@ -94,6 +104,7 @@
     {
       "id": "rotate-rev",
       "letter": "R",
+      "mark": "%",
       "rot": 0,
       "flip": true,
       "name": "Rotate reversed",
@@ -103,6 +114,7 @@
     {
       "id": "sink",
       "letter": "S",
+      "mark": "S",
       "rot": 0,
       "flip": false,
       "name": "Sink",

@@ -1,31 +1,38 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { mulberry32 } from '../src/rng.js';
+import { dealArt } from '../src/level.js';
 import {
   ANCHOR,
+  applySwap,
+  blankBoard,
+  fire,
+  formatBoard,
+  gain,
+  matches,
+  parseBoard,
   PLAIN,
   PULSE,
   PUSH_DOWN,
   PUSH_LEFT,
   PUSH_RIGHT,
   PUSH_UP,
-  ROTATE,
-  ROTATE_REV,
-  SINK,
-  SWAP_DIAG,
-  SWAP_ORTH,
-  applySwap,
-  blankBoard,
-  fire,
-  gain,
-  matches,
   randomBoard,
   remaining,
   resolve,
+  ROTATE,
+  ROTATE_REV,
   settle,
+  SINK,
+  SWAP_DIAG,
+  SWAP_ORTH,
   swapPairs,
 } from '../src/board.js';
 
+const GLYPHS = JSON.parse(
+  readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8'),
+).glyphs;
 const RULES = { width: 5, height: 8, colors: 6, adjacentOnly: false };
 const rand = mulberry32(20260825);
 
@@ -293,4 +300,47 @@ test('a dead cell is never a legal half of a swap', () => {
   b.art[0][0] = 'pulse';
   b.alive[0][1] = false;
   assert.equal(gain(b, [0, 0], [0, 1]), 0);
+});
+
+// --- writing a board down ---------------------------------------------------
+
+// Round-tripping is the guarantee the format exists to make: a board a tool generated
+// can be written out, pasted into a level, and read back as the same board.
+test('a board survives being written out and read back', () => {
+  const b = randomBoard(RULES, { pulse: 0.25, anchor: 0.125, sink: 0.125, rotate: 0.125 }, mulberry32(11));
+  dealArt(b, GLYPHS, mulberry32(11));
+  const back = parseBoard(formatBoard(b, GLYPHS), GLYPHS, { adjacentOnly: RULES.adjacentOnly });
+  for (const layer of ['alive', 'bg', 'glyph', 'kind', 'art']) {
+    assert.deepEqual(back[layer], b[layer], layer);
+  }
+});
+
+test('a written board carries dead cells and empty ones', () => {
+  const rows = ['aB. ... cA^', 'b-- eCO dBS'];
+  const b = parseBoard(rows, GLYPHS);
+  assert.equal(b.alive[0][1], false);
+  assert.equal(b.alive[1][0], true);
+  assert.equal(b.glyph[1][0], null, 'a live cell with nothing standing on it');
+  assert.deepEqual(formatBoard(b, GLYPHS), rows);
+});
+
+test('the palette and the size come from the grid', () => {
+  const b = parseBoard(['aB. bA.', 'aB. bA.', 'aB. bA.'], GLYPHS);
+  assert.equal(b.width, 2);
+  assert.equal(b.height, 3);
+  assert.equal(b.colors, 2, 'only a and b are used');
+});
+
+test('a cell the format cannot mean fails loudly', () => {
+  assert.throws(() => parseBoard(['aB. bA'], GLYPHS), /is not three characters/);
+  assert.throws(() => parseBoard(['aB. 9A.'], GLYPHS), /"9" is not a ground colour/);
+  assert.throws(() => parseBoard(['aB. b9.'], GLYPHS), /"9" is not a glyph colour/);
+  assert.throws(() => parseBoard(['aB. bA9'], GLYPHS), /"9" is no glyph's mark/);
+  assert.throws(() => parseBoard([], GLYPHS), /needs rows/);
+});
+
+test('every glyph has a mark of its own', () => {
+  const marks = GLYPHS.map((g) => g.mark);
+  assert.equal(new Set(marks).size, GLYPHS.length, 'two glyphs share a mark');
+  for (const m of marks) assert.equal(m.length, 1, `"${m}" is not one character`);
 });
