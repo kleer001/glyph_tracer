@@ -10,8 +10,10 @@
 //   node tools/swapBudget.js --colors 4 6 8       # pick the palette sizes
 //   node tools/swapBudget.js --blockers 0.25      # fraction of glyphs that eat
 //   node tools/swapBudget.js --rotators 0.1 --voids 0.1
+//   node tools/swapBudget.js --shipped            # the mix data/rules.json actually deals
 //   node tools/swapBudget.js --show               # play one board out loud
 
+import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { ANCHOR, PULSE, ROTATE, SINK, randomBoard, swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
@@ -34,6 +36,10 @@ const SPEC = {
   // without shoving, which is the other way a cascade can start.
   rotators: { type: 'number', default: 0 },
   voids: { type: 'number', default: 0 },
+  // The flags above reach four of the eleven kinds. A board the game actually deals
+  // carries directional pushes too, and no flag can describe that — so this takes the
+  // mix whole, from the file the game reads.
+  shipped: { type: 'flag', default: false },
   show: { type: 'flag', default: false },
 };
 
@@ -60,7 +66,9 @@ function measure({ colors, rules, mix, trials, seed }) {
 function main() {
   const args = parseArgs(process.argv.slice(2), SPEC);
   const rules = { width: args.width, height: args.height };
-  const mix = { [ANCHOR]: args.blockers, [ROTATE]: args.rotators, [SINK]: args.voids, [PULSE]: args.pushers };
+  const mix = args.shipped
+    ? JSON.parse(readFileSync(new URL('../data/rules.json', import.meta.url), 'utf8')).mix
+    : { [ANCHOR]: args.blockers, [ROTATE]: args.rotators, [SINK]: args.voids, [PULSE]: args.pushers };
   const blurb = Object.entries(mix)
     .filter(([, v]) => v)
     .map(([k, v]) => `${(v * 100).toFixed(0)}% ${k}`)
