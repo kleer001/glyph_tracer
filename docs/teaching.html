@@ -1,5 +1,6 @@
 <meta charset="utf-8">
 <title>Teaching Glyph Tracer</title>
+<link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Martian+Mono:wght@400;600&display=swap">
@@ -90,12 +91,12 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
   <span class="eyebrow">Glyph Tracer · Level structure</span>
   <h1>Teaching a game with no tutorial text</h1>
   <p class="lede">
-    There are sixteen glyphs but only four primitives. Side count is the verb, fill is the
-    magnitude, the inner mark is the targeting, nesting is the range — so the curriculum
-    is not sixteen lessons, it is four, and the shapes carry the rest. What the levels
-    have to teach is the primitives, one at a time, in the order the rules depend on them —
-    plus the two things total reach adds: that the whole board is always in play, and that
-    a shove leaves holes worth moving into.
+    Twelve glyphs, twelve behaviors, no two alike, and the drawing is the only thing that
+    says which one a piece is carrying. Inert is the commonest piece on any board; the rest
+    either shoves material, holds it, or rearranges it. So the curriculum is not twelve
+    lessons in a row — it is those groups, one act at a time, in the order the rules depend
+    on them, plus the two things total reach adds: that the whole board is always in play,
+    and that a shove leaves holes worth moving into.
   </p>
 </header>
 
@@ -113,8 +114,8 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
     <div class="rung"><span class="n">06</span><span class="what">Activating shoves neighbors</span><span class="why">The first ability. Needs the rules above, because a shove is only legible once you know why a cell vanished.</span></div>
     <div class="rung"><span class="n">07</span><span class="what">A shoved glyph can activate</span><span class="why">The combo. This is the moment the game stops being one move at a time.</span></div>
     <div class="rung"><span class="n">08</span><span class="what">A shove leaves an empty cell behind</span><span class="why">Only shoving makes them — an activated cell dies, it does not empty. So this rung is unreachable until the one above it lands, and moving a piece onto one is a real move the board did not have before.</span></div>
-    <div class="rung"><span class="n">09</span><span class="what">Shape tells you the ability</span><span class="why">Only worth teaching once shoves exist — before that there is nothing for a verb to differ about.</span></div>
-    <div class="rung"><span class="n">10</span><span class="what">Sinks: edge, hole, eater</span><span class="why">One rule, three faces. Introduce the edge first — it is always visible and always present.</span></div>
+    <div class="rung"><span class="n">09</span><span class="what">The drawing tells you the ability</span><span class="why">Only worth teaching once one ability exists — before that there is nothing for a drawing to differ about. It is also where shoving stops being the whole story: a glyph can trade two neighbors or turn all four and spend no material doing it.</span></div>
+    <div class="rung"><span class="n">10</span><span class="what">Sinks: edge, hole, anchor</span><span class="why">One rule, three faces. Introduce the edge first — it is always visible and always present.</span></div>
     <div class="rung"><span class="n">11</span><span class="what">The visible payoff sorts almost nothing</span><span class="why">Last, and only last. Thirty swaps show two matches and one of them pays; that reads as a betrayal rather than a puzzle until the habit is twenty levels old.</span></div>
   </div>
 </section>
@@ -155,7 +156,7 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
           <tr><td class="num">5</td><td class="num">5x8</td><td class="num">3</td><td class="teach">Activating advances every line around it</td><td class="num">0.55</td><td class="num">9</td><td class="note">One O in an otherwise inert board. The player should see exactly four things move, and nothing else.</td></tr>
           <tr><td class="num">6</td><td class="num">5x8</td><td class="num">3</td><td class="teach">A shoved glyph can land on its own colour — the chain</td><td class="num">0.60</td><td class="num">10</td><td class="note">Author the board so the first pulse hands the player a second match it did not have to look for.</td></tr>
           <tr><td class="num">7</td><td class="num">5x8</td><td class="num">3</td><td class="teach">A line runs until it meets a sink</td><td class="num">0.66</td><td class="num">11</td><td class="note">The front piece falls off the board edge. Show the whole line move and one piece leave.</td></tr>
-          <tr><td class="num">8</td><td class="num">5x8</td><td class="num">4</td><td class="teach">The board drains, and the budget bites</td><td class="num">0.70</td><td class="num">11</td><td class="note">Fifth colour. A pulse that hits nothing is now the expensive mistake.</td></tr>
+          <tr><td class="num">8</td><td class="num">5x8</td><td class="num">4</td><td class="teach">The board drains, and the budget bites</td><td class="num">0.70</td><td class="num">11</td><td class="note">Fourth colour. A pulse that hits nothing is now the expensive mistake.</td></tr>
           <tr><td class="num">9</td><td class="num">5x8</td><td class="num">4</td><td class="teach">Set the chain up before you fire it</td><td class="num">0.76</td><td class="num">11</td><td class="note">The first level whose target is out of reach without arranging one pulse to feed another.</td></tr>
         </tbody>
       </table>
@@ -248,7 +249,7 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
         </tbody>
       </table>
     </div>
-    <div class="actfoot">The highest yield in the run: <strong>16.6</strong> at four colours. A turn moves four pieces at once and spends none of them, and a sink converts its own cell into the hole its neighbours fall into. Both are ways of getting paid for rearranging.</div>
+    <div class="actfoot">The highest yield at five colours: <strong>15.7</strong>, against the trade act's 14.5 and the wall act's 12.5. A turn moves four pieces at once and spends none of them, and a sink converts its own cell into the hole its neighbours fall into. Both are ways of getting paid for rearranging.</div>
   </div>
 </section>
 
@@ -279,36 +280,37 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
   </div>
   <div class="body">
     <p>
-      <strong>Palette size no longer decides whether you can match.</strong> Under the old
-      rule the best payoff on a fresh six-color board averaged 1.87, meaning a double hit
-      was sometimes not on offer at all, and at eight colors it fell to 1.70. Under total
-      reach it is exactly 2.00 at every palette size from two colors to eight — a double
-      is always somewhere. That is why Act I is flat at 12.0 whatever palette it uses, and
-      why palette only starts costing anything in Act II: it stopped gating whether you
-      find a match and now only gates how far the chain runs after you do.
+      <strong>Palette size does not decide whether you can match.</strong> Under neighbor
+      swaps the best payoff on a fresh six-color board averages 1.87, meaning a double hit
+      is sometimes not on offer at all, and it keeps falling as the palette grows. Let any
+      two cells swap and it is exactly 2.00 at every palette size from two colors to eight —
+      a double is always somewhere. That is why Act I is flat at 12.0 on the full board
+      whatever palette it uses, and why palette only starts costing anything in Act II:
+      reach is what decides whether a match is there to find, and palette gates only how far
+      the chain runs after you take it.
     </p>
     <p>
       <strong>The dials, ranked by what they are worth over a six-swap level.</strong>
-      Palette across 2–8 colors moves the yield by 8.5 cells (22.1 down to 13.6); eater
-      density across 0–50% moves it by 2.6; pusher density across 0–100% moves it by 3.7
-      and saturates early — going from half the board pushing to all of it buys 0.7. So
-      palette remains the difficulty curve, eaters are a usable second dial, and pusher
-      density is close to a switch rather than a slider.
+      On the full board at the sweep's default mix — 12.5% anchor, 50% pulse — palette across
+      2–8 colors moves the yield by 6.1 cells, 19.2 down to 13.1. Holding palette at six:
+      anchor density across 0–50% costs 2.6, 15.0 down to 12.4; pulse density across 0–100%
+      buys 2.6, 12.0 up to 14.6, and saturates early — going from half the board pulsing to
+      all of it buys 0.5. So palette is the widest dial by some margin, anchors are a usable
+      second, and pulse density is closer to a switch than a slider.
     </p>
     <p>
-      <strong>A trap is now a haystack rather than a decoy.</strong> On an annealed board
-      about thirty swaps tie for the best visible payoff instead of three or four. The
-      generator still lands a single solver every time and the best line is still worth
-      ten to fifteen times the tempting move, but the mechanism has changed: the player is
-      no longer choosing between a lure and a line, they are choosing one of thirty moves
-      that look identical, twenty-nine of which are duds. Picking among them averages 5–6
-      cells against a best of 22–29.
+      <strong>A trap is a haystack rather than a decoy.</strong> On an annealed board about
+      thirty swaps tie for the best visible payoff. The generator lands a single solver every
+      time and the best line is worth ten to fifteen times the tempting move, but the player
+      is not choosing between a lure and a line — they are choosing one of thirty moves that
+      look identical, twenty-nine of which are duds. Picking among them averages 5–6 cells
+      against a best of 22–29.
     </p>
     <p>
-      That is why <span class="mono">tools/trapBoards.js</span> now reports how many swaps
-      tie and what picking among them is worth. <span class="mono">deception</span> is
-      measured against the <em>worst</em> swap in that tied pool, which was a fair summary
-      when the pool held three moves and flatters the generator when it holds thirty.
+      That is why <span class="mono">tools/trapBoards.js</span> reports how many swaps tie
+      and what picking among them is worth. Its <span class="mono">deception</span> figure is
+      measured against the <em>worst</em> swap in that tied pool, which flatters the generator
+      once the pool holds thirty moves.
     </p>
   </div>
 </section>
@@ -321,10 +323,21 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
   <div class="body">
     <p>
       Every target above is the measured six-swap mean for that configuration multiplied by
-      the level's factor, rounded. The factor carries the difficulty curve here, and the
-      swap budget is held at six across the run so that it does. The factor is the design
-      and the mean is a measurement, so when a rule changes and the means move, the factors
-      stay and the targets follow them.
+      the level's factor, rounded. A configuration is a board size and a palette size
+      together — which is why each act keys its means <span class="mono">WxH@colors</span> —
+      because board size is the level's to state, not the rules'. The factor carries the
+      difficulty curve here, and the swap budget is held at six across the run so that it
+      does. The factor is the design and the mean is a measurement, so when a rule changes
+      and the means move, the factors stay and the targets follow them.
+    </p>
+    <p>
+      <strong>A small board is a different game, not an easier one.</strong> The run opens on
+      4x4, where six swaps yield 11.3 at two colors against the full board's 12.0 — and the
+      4x4 keeps falling as the palette grows, 11.3 down to 8.9 at six colors, where the full
+      board stays flat at 12.0 throughout. Pulses make it worse rather than better: at 25%
+      pulse the 4x4 drops to 10.7 while the full board climbs to 18.3. Sixteen cells cannot
+      refill what a shove spends off the edge, so the opening board is quieter on purpose and
+      its targets come off its own means.
     </p>
   </div>
   <div class="scroll">
@@ -352,19 +365,21 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
   </div>
   <div class="body">
     <p>
-      Act IV is last for a reason that is not difficulty pacing. A trap works by punishing a
-      habit, and the habit it punishes — <em>take the swap that shows the most immediate
-      matches</em> — is one the first three acts spend twenty levels installing. Every
-      Act I level rewards it, because with no pushers on the board the visible payoff
-      <em>is</em> the real payoff — and under total reach a maximal-looking swap is always
-      on offer, so the habit never once fails the player before Act IV. Acts II and III keep
-      rewarding it while quietly making it an approximation.
+      A trap belongs at the end of the run, for a reason that is not difficulty pacing. A
+      trap works by punishing a habit, and the habit it punishes — <em>take the swap that
+      shows the most immediate matches</em> — is one the run spends its whole length
+      installing. Every Act I level rewards it, because with nothing on the board that has an
+      ability the visible payoff <em>is</em> the real payoff — and under total reach a
+      maximal-looking swap is always on offer, so the habit never once fails the player
+      outright. Every act after it keeps rewarding the habit while quietly making it an
+      approximation: once abilities fire, what a swap shows and what it collects come apart.
     </p>
     <p>
-      Sprung in Act I it would likely read as an unfair board; sprung in Act IV the guess is
-      that it reads as the game revealing what it has been about. Which of those a player
-      feels is a playtest question, not something the sweeps can answer. Same board, different
-      meaning, and the only difference is how much practice the player has at being right.
+      Sprung in Act I it would likely read as an unfair board; sprung at the end of the run
+      the guess is that it reads as the game revealing what it has been about. Which of those
+      a player feels is a playtest question, not something the sweeps can answer. Same board,
+      different meaning, and the only difference is how much practice the player has at being
+      right.
     </p>
   </div>
 </section>
@@ -372,13 +387,14 @@ footer{border-top:1px solid var(--rule);padding-top:22px;font-size:13px;color:va
 <section>
   <div class="head">
     <h2>Authoring the levels</h2>
-    <span class="aside">Act I and II boards can be random. Act III and IV need generating.</span>
+    <span class="aside">Boards with no ability on them can be dealt at random. Boards that have to teach one line — or hide it — need generating.</span>
   </div>
   <pre><code># a mild trap for level 20 — a real line, but not a board wipe
-node tools/trapBoards.js --colors 6 --target 12 --payoff 8 --json lvl20.json
+node tools/trapBoards.js --colors 5 --target 11 --payoff 8 --json lvl20.json
 
-# level 23: the inverted case, tighter palette pressure
-node tools/trapBoards.js --colors 8 --target 14 --payoff 10 --iters 4000 --json lvl23.json
+# level 25, the last one: full palette, the rearrangers on the board
+node tools/trapBoards.js --colors 6 --target 16 --payoff 10 --iters 4000 \
+  --rotators 0.15 --voids 0.10 --json lvl25.json
 
 # confirm a hand-tuned config's yield before setting its target
 node tools/swapBudget.js --colors 6 --pushers 0.5 --blockers 0.125 --trials 300</code></pre>
@@ -408,12 +424,17 @@ node tools/swapBudget.js --colors 6 --pushers 0.5 --blockers 0.125 --trials 300<
   </div>
   <div class="body">
     <p>
-      <strong>⊘ Void</strong> sits at levels 19 and 20 in Act III rather than in an act of
-      its own, because it is the mirror of a push and reads against the shove rules.
-      <strong>⬠ Wild</strong> has no level in this run. It fires a random one of sixteen
-      subsets, so a board carrying one has no fixed best line to author toward, and a taught
-      level wants one unambiguous answer. Generated and endless play do not, which is where
-      a wild would cost nothing.
+      <strong>No glyph is left out.</strong> Each of the twelve appears in some act's mix and
+      the remainder of every board is inert, so nothing the engine runs goes unshown. Nor is
+      any of it settled at resolution time — the same board and the same swap come apart the
+      same way every time — which is what lets a taught level have one unambiguous answer to
+      author toward.
+    </p>
+    <p>
+      <strong>The trap</strong> has no level of its own. Every seed in the run comes from
+      <span class="mono">tools/makeLevels.js</span> playing candidate boards greedily until
+      one clears the target, which finds a fair board rather than a hostile one; a trap has to
+      be annealed on purpose.
     </p>
     <p>
       The <strong>upgrade tree</strong> sits outside this run entirely. This is the
@@ -424,11 +445,14 @@ node tools/swapBudget.js --colors 6 --pushers 0.5 --blockers 0.125 --trials 300<
 </section>
 
 <footer>
-  All yields measured with <span class="mono">tools/swapBudget.js</span>, 300 levels per
-  configuration, greedy play, 5×8 board, six swaps, any two cells swappable. Each act
-  carries the means its targets were built from. Trap figures from
-  <span class="mono">tools/trapBoards.js</span>. Rules in <span class="mono">SPEC.md</span>;
-  generation method in <span class="mono">trapping.html</span>.
+  Every yield is greedy play over a six-swap budget with any two cells swappable, at the
+  board size and palette its configuration names — <span class="mono">src/level.js</span>
+  does the measuring, and each act carries the means its targets were built from. Palette
+  and density sweeps from <span class="mono">tools/swapBudget.js</span>; fresh-board
+  openings and payoffs from <span class="mono">tools/boardShapes.js</span>; trap figures
+  from <span class="mono">tools/trapBoards.js</span>. Rules in
+  <span class="mono">SPEC.md</span>; generation method in
+  <span class="mono">trapping.html</span>.
 </footer>
 
 </div>
