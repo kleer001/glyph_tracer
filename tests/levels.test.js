@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { swapPairs } from '../src/board.js';
+import { applySwap, copyBoard, gain, swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
 import { dealLevel, loadRun, nextAfter, outcome } from '../src/levels.js';
 
@@ -40,7 +40,23 @@ test('every shipped level can be won', () => {
     // spec's stated size is absent on a level that carries its board, and wrong for
     // any level smaller than the default.
     const { width, height } = dealt.board;
-    const run = greedyPlay(dealt.board, dealt.budget, dealt.rand, swapPairs({ ...RULES, width, height }));
+    const pairs = swapPairs({ ...RULES, width, height });
+
+    if (dealt.budget === 1) {
+      // One swap is the whole level, so every swap can be tried and the answer is
+      // exact. Greedy is the wrong instrument here: a level built to reward reading a
+      // glyph offers a visible match that falls short, and greedy takes it.
+      const answers = pairs.filter(([a, z]) => {
+        if (!gain(dealt.board, a, z)) return false;
+        const probe = copyBoard(dealt.board);
+        return applySwap(probe, a, z, dealt.rand).activated >= level.target;
+      });
+      assert.equal(answers.length, 1,
+        `level ${level.id}: ${answers.length} swaps reach a target of ${level.target}, on a budget of 1`);
+      continue;
+    }
+
+    const run = greedyPlay(dealt.board, dealt.budget, dealt.rand, pairs);
     assert.ok(run.cleared >= level.target,
       `level ${level.id}: greedy play clears ${run.cleared}, target is ${level.target}`);
   }

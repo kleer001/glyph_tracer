@@ -44,6 +44,20 @@
         },
         {
           "id": 4,
+          "teaches": "A pushed piece can land on its own colour and go too",
+          "budget": 1,
+          "target": 3,
+          "note": "The column above the A is grounded so both pieces it moves land matched. The single visible match on the board clears one and loses the level.",
+          "board": [
+            "bA.",
+            "dB.",
+            "cD.",
+            "fE.",
+            "cF^"
+          ]
+        },
+        {
+          "id": 5,
           "teaches": "Turned over, it points the other way",
           "budget": 1,
           "target": 1,
@@ -57,7 +71,21 @@
           ]
         },
         {
-          "id": 5,
+          "id": 6,
+          "teaches": "The same reward, pointing down",
+          "budget": 1,
+          "target": 3,
+          "note": "The mirror of the level before it, so the reading is the only thing being asked for.",
+          "board": [
+            "cFv",
+            "fE.",
+            "cD.",
+            "dB.",
+            "bA."
+          ]
+        },
+        {
+          "id": 7,
           "teaches": "On its side it works across",
           "budget": 1,
           "target": 1,
@@ -67,7 +95,17 @@
           ]
         },
         {
-          "id": 6,
+          "id": 8,
+          "teaches": "Aim across, and both pieces pay",
+          "budget": 1,
+          "target": 3,
+          "note": "Turned on its side the same board pays the same way.",
+          "board": [
+            "cF> fE. cD. dB. bA."
+          ]
+        },
+        {
+          "id": 9,
           "teaches": "And the other way across",
           "budget": 1,
           "target": 1,
@@ -77,7 +115,17 @@
           ]
         },
         {
-          "id": 7,
+          "id": 10,
+          "teaches": "And the other way across",
+          "budget": 1,
+          "target": 3,
+          "note": "The last of the four. By here the rotation should be read without counting.",
+          "board": [
+            "bA. dB. cD. fE. cF<"
+          ]
+        },
+        {
+          "id": 11,
           "teaches": "O advances all four lines at once",
           "budget": 1,
           "target": 1,
@@ -89,7 +137,21 @@
           ]
         },
         {
-          "id": 8,
+          "id": 12,
+          "teaches": "One O, four lines, four more cleared",
+          "budget": 1,
+          "target": 5,
+          "note": "Each arm is grounded to land its inner piece matched, so the O pays four times over. Six other swaps score one and fall short.",
+          "board": [
+            "c-- c-- bE. c-- c--",
+            "c-- c-- cB. c-- c--",
+            "aD. cA. f-- cE. eB.",
+            "c-- c-- cD. cFO c--",
+            "c-- c-- dA. c-- c--"
+          ]
+        },
+        {
+          "id": 13,
           "teaches": "A line stops at H, and nothing past it moves",
           "budget": 1,
           "target": 1,
@@ -99,7 +161,17 @@
           ]
         },
         {
-          "id": 9,
+          "id": 14,
+          "teaches": "What the H stops behind it lands on its own colour",
+          "budget": 1,
+          "target": 3,
+          "note": "The line is three long and ends at the anchor, so two pieces slide and both land matched.",
+          "board": [
+            "cF> fE. cD. dB. bA. cAH cE."
+          ]
+        },
+        {
+          "id": 15,
           "teaches": "+ trades above with below, and left with right",
           "budget": 1,
           "target": 1,
@@ -111,7 +183,19 @@
           ]
         },
         {
-          "id": 10,
+          "id": 16,
+          "teaches": "Both pairs land on their own colours",
+          "budget": 1,
+          "target": 5,
+          "note": "Every cell in the diamond is grounded for the piece the + sends to it.",
+          "board": [
+            "cF+ eB. c--",
+            "aD. f-- dA.",
+            "c-- bE. c--"
+          ]
+        },
+        {
+          "id": 17,
           "teaches": "X trades the corners instead",
           "budget": 1,
           "target": 1,
@@ -123,7 +207,19 @@
           ]
         },
         {
-          "id": 11,
+          "id": 18,
+          "teaches": "All four corners land on theirs",
+          "budget": 1,
+          "target": 5,
+          "note": "The mirror of the + proof, on the corners.",
+          "board": [
+            "eA. cFX bD.",
+            "c-- f-- c--",
+            "dB. c-- aE."
+          ]
+        },
+        {
+          "id": 19,
           "teaches": "R turns the four around it one step clockwise",
           "budget": 1,
           "target": 1,
@@ -135,7 +231,19 @@
           ]
         },
         {
-          "id": 12,
+          "id": 20,
+          "teaches": "The whole ring lands home in one turn",
+          "budget": 1,
+          "target": 5,
+          "note": "Four cells, each grounded for the piece the turn brings it.",
+          "board": [
+            "cF@ dB. c--",
+            "eD. f-- bA.",
+            "c-- aE. c--"
+          ]
+        },
+        {
+          "id": 21,
           "teaches": "Its mirror turns them back",
           "budget": 1,
           "target": 1,
@@ -147,7 +255,19 @@
           ]
         },
         {
-          "id": 13,
+          "id": 22,
+          "teaches": "The other way round, and the same reward",
+          "budget": 1,
+          "target": 5,
+          "note": "The same board turned the other way, so only the letter decides whether it pays.",
+          "board": [
+            "cF% aB. c--",
+            "bD. f-- eA.",
+            "c-- dE. c--"
+          ]
+        },
+        {
+          "id": 23,
           "teaches": "S opens a hole and everything falls inward",
           "budget": 1,
           "target": 1,
@@ -157,6 +277,20 @@
             "c-- c-- cE. c-- c--",
             "cB. cA. fE. cB. cD.",
             "c-- c-- cD. c-- c--",
+            "c-- c-- cFS c-- c--"
+          ]
+        },
+        {
+          "id": 24,
+          "teaches": "Everything it pulls in lands on its own colour",
+          "budget": 1,
+          "target": 5,
+          "note": "Each arm is grounded for the piece the pull brings inward. Eight other swaps score and fall short.",
+          "board": [
+            "c-- c-- cA. c-- c--",
+            "c-- c-- aE. c-- c--",
+            "cB. bA. fE. dB. cD.",
+            "c-- c-- eD. c-- c--",
             "c-- c-- cFS c-- c--"
           ]
         }
@@ -171,7 +305,7 @@
       },
       "levels": [
         {
-          "id": 14,
+          "id": 25,
           "width": 4,
           "height": 4,
           "colors": 2,
@@ -182,7 +316,7 @@
           "seed": 20268744
         },
         {
-          "id": 15,
+          "id": 26,
           "width": 4,
           "height": 4,
           "colors": 2,
@@ -193,7 +327,7 @@
           "seed": 20276663
         },
         {
-          "id": 16,
+          "id": 27,
           "width": 5,
           "height": 8,
           "colors": 2,
@@ -204,7 +338,7 @@
           "seed": 20284582
         },
         {
-          "id": 17,
+          "id": 28,
           "width": 5,
           "height": 8,
           "colors": 3,
@@ -225,7 +359,7 @@
       },
       "levels": [
         {
-          "id": 18,
+          "id": 29,
           "width": 5,
           "height": 8,
           "colors": 3,
@@ -236,7 +370,7 @@
           "seed": 20300420
         },
         {
-          "id": 19,
+          "id": 30,
           "width": 5,
           "height": 8,
           "colors": 3,
@@ -247,7 +381,7 @@
           "seed": 20308339
         },
         {
-          "id": 20,
+          "id": 31,
           "width": 5,
           "height": 8,
           "colors": 3,
@@ -258,7 +392,7 @@
           "seed": 20316258
         },
         {
-          "id": 21,
+          "id": 32,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -269,7 +403,7 @@
           "seed": 20324177
         },
         {
-          "id": 22,
+          "id": 33,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -293,7 +427,7 @@
       },
       "levels": [
         {
-          "id": 23,
+          "id": 34,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -304,7 +438,7 @@
           "seed": 20340015
         },
         {
-          "id": 24,
+          "id": 35,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -315,7 +449,7 @@
           "seed": 20347934
         },
         {
-          "id": 25,
+          "id": 36,
           "width": 5,
           "height": 8,
           "colors": 5,
@@ -326,7 +460,7 @@
           "seed": 20355853
         },
         {
-          "id": 26,
+          "id": 37,
           "width": 5,
           "height": 8,
           "colors": 5,
@@ -337,7 +471,7 @@
           "seed": 20363772
         },
         {
-          "id": 27,
+          "id": 38,
           "width": 5,
           "height": 8,
           "colors": 6,
@@ -362,7 +496,7 @@
       },
       "levels": [
         {
-          "id": 28,
+          "id": 39,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -373,7 +507,7 @@
           "seed": 20379610
         },
         {
-          "id": 29,
+          "id": 40,
           "width": 5,
           "height": 8,
           "colors": 5,
@@ -384,7 +518,7 @@
           "seed": 20387529
         },
         {
-          "id": 30,
+          "id": 41,
           "width": 5,
           "height": 8,
           "colors": 5,
@@ -395,7 +529,7 @@
           "seed": 20395448
         },
         {
-          "id": 31,
+          "id": 42,
           "width": 5,
           "height": 8,
           "colors": 6,
@@ -418,7 +552,7 @@
       },
       "levels": [
         {
-          "id": 32,
+          "id": 43,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -429,7 +563,7 @@
           "seed": 20411286
         },
         {
-          "id": 33,
+          "id": 44,
           "width": 5,
           "height": 8,
           "colors": 5,
@@ -440,7 +574,7 @@
           "seed": 20419205
         },
         {
-          "id": 34,
+          "id": 45,
           "width": 5,
           "height": 8,
           "colors": 5,
@@ -451,7 +585,7 @@
           "seed": 20427124
         },
         {
-          "id": 35,
+          "id": 46,
           "width": 5,
           "height": 8,
           "colors": 6,
@@ -475,7 +609,7 @@
       },
       "levels": [
         {
-          "id": 36,
+          "id": 47,
           "width": 5,
           "height": 8,
           "colors": 5,
@@ -486,7 +620,7 @@
           "seed": 20442962
         },
         {
-          "id": 37,
+          "id": 48,
           "width": 5,
           "height": 8,
           "colors": 6,
@@ -497,7 +631,7 @@
           "seed": 20450882
         },
         {
-          "id": 38,
+          "id": 49,
           "width": 5,
           "height": 8,
           "colors": 6,

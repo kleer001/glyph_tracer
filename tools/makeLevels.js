@@ -16,7 +16,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { gain, swapPairs } from '../src/board.js';
+import { applySwap, copyBoard, gain, swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
 import { dealLevel, loadRun } from '../src/levels.js';
 import { parseArgs } from './args.js';
@@ -38,17 +38,29 @@ function greedyClears(spec, budget) {
 }
 
 /**
- * How many swaps on a level's opening board score at all.
+ * How many swaps score at all, and how many of those actually reach the target.
  *
- * A level meant to teach one character wants exactly one, and getting there by hand is
- * fiddly: a filler piece whose ink matches some other cell's ground quietly adds a
- * second answer, and on a one-swap budget the player can take it and lose without ever
- * seeing the glyph fire.
+ * The second number is the one that matters. A level with a single swap budget has one
+ * answer or it has none, and a board written by hand looks right long before it is: a
+ * filler piece whose ink matches some other cell's ground quietly adds a second way to
+ * finish, and the level stops being about the thing it was built to teach.
+ *
+ * Swaps that score but fall short are not a problem — they are the level asking whether
+ * the player has understood, rather than counted.
  */
-function scoringSwaps(spec, budget) {
-  const { board } = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
+function answers(spec, budget, resolve) {
+  const { board, rand } = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
   const pairs = swapPairs({ ...RULES, width: board.width, height: board.height });
-  return pairs.filter(([a, z]) => gain(board, a, z) > 0).length;
+  let scores = 0;
+  let reach = 0;
+  for (const [a, z] of pairs) {
+    if (!gain(board, a, z)) continue;
+    scores += 1;
+    if (!resolve) continue; // a level with swaps to spare is not asking this question
+    const probe = copyBoard(board);
+    if (applySwap(probe, a, z, rand).activated >= spec.target) reach += 1;
+  }
+  return { scores, reach };
 }
 
 /**
@@ -77,15 +89,20 @@ function main() {
   const pack = JSON.parse(readFileSync(PACK, 'utf8'));
   const budget = loadRun(pack, GLYPHS).budget;
 
-  console.log('level  act         board  source    target  greedy  swaps  seed');
-  console.log('-'.repeat(73));
+  console.log('level  act         board  source    target  greedy  score  answer  seed');
+  console.log('-'.repeat(81));
   let changed = 0;
   for (const act of pack.acts) {
     for (const level of act.levels) {
       const spec = { ...level, act };
+      const single = (level.budget ?? budget) === 1;
       let source = 'authored';
       let greedy;
-      if (level.board) {
+      if (level.board && single) {
+        // One swap is the whole level, so every swap can be tried. That is a complete
+        // answer rather than a lower bound, and it is checked below against `reach`.
+        greedy = greedyClears(spec, budget);
+      } else if (level.board) {
         greedy = greedyClears(spec, budget);
         if (greedy < level.target) {
           throw new Error(
@@ -103,25 +120,28 @@ function main() {
         changed += 1;
       }
       const dealt = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
-      const swaps = scoringSwaps(spec, budget);
+      const { scores, reach } = answers(spec, budget, single);
       console.log(
         `${String(level.id).padStart(5)}  ${act.name.padEnd(11)}`
         + `${`${dealt.board.width}x${dealt.board.height}`.padStart(5)}  ${source.padEnd(8)}  `
         + `${String(level.target).padStart(6)}  ${String(greedy).padStart(6)}  `
-        + `${String(swaps).padStart(5)}  ${level.seed ?? '—'}`,
+        + `${String(scores).padStart(5)}  ${String(single ? reach : '—').padStart(6)}  ${level.seed ?? '—'}`
+        + (single && greedy < level.target ? '   greedy misses' : ''),
       );
-      // A budget of one and more than one answer means a player can spend the level on
-      // a swap that never fires the glyph the level exists to teach.
-      if ((level.budget ?? budget) === 1 && swaps !== 1) {
+      // Winnable, and winnable one way. A second answer means the level can be finished
+      // without the character it exists to teach; none at all means it cannot be
+      // finished. Greedy falling short is not a fault here — on a level built to reward
+      // reading the glyph, it is the level working.
+      if (single && reach !== 1) {
         throw new Error(
-          `level ${level.id}: ${swaps} swaps score, and the budget is 1 — the level has more than one answer`,
+          `level ${level.id}: the budget is 1 and ${reach} swaps reach the target`,
         ); // boundary
       }
     }
   }
 
   const total = pack.acts.reduce((n, a) => n + a.levels.length, 0);
-  console.log(`\n${total} levels across ${pack.acts.length} acts, every one reachable greedily.`);
+  console.log(`\n${total} levels across ${pack.acts.length} acts, every one winnable.`);
   console.log(changed ? `${changed} seed(s) newly chosen (marked *)` : 'no seed needed changing');
   if (args.write) {
     writeFileSync(PACK, `${JSON.stringify(pack, null, 2)}\n`);
