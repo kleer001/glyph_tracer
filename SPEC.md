@@ -31,75 +31,55 @@ shape and pattern only.
 
 ## The grammar
 
-A glyph's ability is readable from its drawing. Six primitives:
+A glyph is a Roman letter, turned or mirrored. The letterform is the verb and the turn
+is the direction — `A` sends its line the way its apex points, and a mirrored `R` turns
+the ring the other way round. Eight drawings carry the twelve glyphs: six letters
+(`A H O R S X`) plus two authored forms, a cross and a full stop, sized off the same
+face's stem width and cap height.
 
-| Primitive | Reads as | Encodes |
-|---|---|---|
-| Side count | how the form relates to a 4-grid | the **verb** |
-| Fill | hollow → half → solid | **magnitude** — how many cells it shoves, 1 / 2 / 3 |
-| Inner mark | dot, cross, X, slash | **targeting** |
-| Nesting | shape inside itself | **range** (skips to distance 2) |
-| Rotation | which way it points | **direction** |
-| Closure | closed vs open arc | effect **stops here** vs **carries to the next swap** |
+Direction lives in the **kind**, not in the drawing. Every glyph has its own kind and no
+two share one, which is why `src/board.js` never reads the art layer: the drawing says
+what a piece is without deciding what it does. `data/glyphs.json` pairs the two.
 
-Side count is load-bearing. A square agrees with the grid's 4-fold symmetry, so it
-holds. A triangle has an odd count and a point, so it pushes. A pentagon cannot agree
-with anything orthogonal, so it disrupts. A hexagon tessellates, so it flows. A circle
-has no sides, so direction is meaningless to it and it radiates. This does not need
-teaching; it is how the shapes already behave.
+Nothing resolves randomly. Given a board and a swap, the outcome is fixed — see *Why
+nothing is random at resolution time* below.
 
-Because the grammar is compositional, new glyphs need no new rules — only new
-combinations. Ship 16; the rest is the upgrade pool.
+## The twelve
 
-## The 16
+`data/glyphs.json` is the set — letter, turn, mirror, kind — and `src/board.js`'s
+`fire()` is what each kind does. The table is here for the shape of the family; where it
+and the code disagree, the code is right.
 
-Unicode codepoints are the **drawing reference**, not the render path. A glyph is
-generated from its form, fill, mark and rotation (see Rendering).
-
-### A — Circle / RADIATE (all 8 neighbors, no direction)
-
-| Glyph | Code | Name | Effect |
+| Glyph | Name | Kind | Effect |
 |---|---|---|---|
-| ○ | U+25CB | Pulse | nudge all neighbors, mag 1 |
-| ● | U+25CF | Detonate | mag 3, consumes self |
-| ⊙ | U+2299 | Charged | fires twice |
-| ◎ | U+25CE | Echo | fires at range 2, skips the adjacent ring |
+| `.` | Inert | — | nothing. It matches, its cell goes, and no ability runs |
+| `O` | Pulse | `pulse` | advances the line in all four directions by one |
+| `H` | Anchor | `anchor` | absorbs whatever is shoved into it and stays put |
+| `A` | Push up | `pushUp` | advances the line above by one |
+| `A` turned 90° | Push right | `pushRight` | advances the line to the right by one |
+| `A` turned 180° | Push down | `pushDown` | advances the line below by one |
+| `A` turned 270° | Push left | `pushLeft` | advances the line to the left by one |
+| `+` | Swap orthogonal | `swapOrth` | exchanges upper with lower, and left with right |
+| `X` | Swap diagonal | `swapDiag` | exchanges both corner pairs — the only ability that reaches a corner |
+| `R` | Rotate | `rotate` | turns the four neighbours one step clockwise |
+| `R` mirrored | Rotate reversed | `rotateRev` | the same turn anticlockwise |
+| `S` | Sink | `sink` | draws all four lines inward; its own cell dies first and is the hole they fall into |
 
-### B — Square / EAT (agrees with the grid; stability)
-
-| Glyph | Code | Name | Effect |
-|---|---|---|---|
-| □ | U+25A1 | Anchor | eats one glyph shoved into it, then behaves normally |
-| ■ | U+25A0 | Wall | eats everything shoved into it, indefinitely |
-| ⊞ | U+229E | Bind orthogonal | makes the 4 edge-neighbors eaters |
-| ⊠ | U+22A0 | Bind diagonal | makes the 4 corner-neighbors eaters |
-
-### C — Triangle / PUSH (apex = direction)
-
-| Glyph | Code | Name | Effect |
-|---|---|---|---|
-| △ | U+25B3 | Push up | 1 cell |
-| ▷ | U+25B7 | Push right | 1 cell |
-| ▼ | U+25BC | Slam down | mag 3 |
-| ◬ | U+25EC | Double push | pushes, then pushes again |
-
-### D — Odd forms / OPERATORS
-
-| Glyph | Code | Name | Effect |
-|---|---|---|---|
-| ◇ | U+25C7 | Swap | exchange with any one neighbor |
-| ⬠ | U+2B20 | Wild | pushes a random one of the 16 subsets of its four neighbors |
-| ⬡ | U+2B21 | Flow | the next match is free — it does not spend a turn |
-| ⊘ | U+2298 | Void | pulls its four neighbors inward; its own cell is the sink they fall into |
-
-Open-form candidates if visible carry-over markers are wanted later: ◠ U+25E0, ◡ U+25E1.
+Inert is the commonest piece on a board and the only one with no kind. How much of a
+board is anything else is a `mix` — one per act in `data/levels.json`, and a default in
+`data/rules.json`.
 
 ## Rendering
 
-Color roles, four-layer paint order, magnitude clips, mark geometry and n-gon offsets
-live in `RENDER_SPEC.md`. `src/glyphShapes.js` implements that geometry and
-`src/render.js` paints it to canvas. `docs/specimen.html` is the plate — all 108 shape
-combinations on a fixed pair.
+Color roles, paint order and the gloss live in `RENDER_SPEC.md`. `src/glyphShapes.js`
+turns a glyph into primitives and `src/render.js` paints them to canvas.
+
+The letterforms ship as SVG paths in `data/glyphPaths.json`, baked out of DejaVu Serif
+Bold by `tools/bakeGlyphs.py` and normalised to a cap height of 1, so size and vertical
+aim stay `data/geometry.json`'s to set and no webfont is waited on before the first
+frame. `fonts/README.md` carries the licence trail and the rebake commands. `+` and `.`
+are authored from that face's stem width and cap height rather than baked, which is why
+substituting another face means remeasuring and not just rebaking.
 
 ## Palette
 
@@ -111,136 +91,46 @@ matters: it is what keeps any ground/ink pair apart. Carried in `data/palette.js
 Glyph interior and keyline are near-black. Highlight and shadow are separate tuning in
 `data/gloss.json`; `RENDER_SPEC.md` says how they are painted.
 
-## The four moving kinds
+## The kinds
 
-A glyph has exactly one kind. Only three of them move anything, and all three run through
-the same shove-and-sink machinery — a pull is a shove aimed the other way, and a wild is a
-push over a random subset.
+A glyph has exactly one kind, and the kinds are exported by name from `src/board.js`.
+Four families:
 
-| Kind | Glyphs | Effect |
+| Family | Kinds | What they do to the board |
 |---|---|---|
-| **push** | ○ ● ⊙ ◎ △ ▷ ▼ ◬ | shoves each of its four orthogonal neighbors one cell outward |
-| **void** | ⊘ | pulls those four inward. Its own cell dies first, and that hole is the sink each arm runs into: the glyph nearest the centre is eaten and the rest of the arm advances one. Upgradable — see below |
-| **wild** | ⬠ | pushes a random one of the 2⁴ = 16 subsets of its four directions — including all four, and including none |
-| **block** | □ ■ ⊞ ⊠ | shoves nothing; eats whatever is shoved into it and stays put |
+| **Inert** | `''` | nothing. Matching is the whole of it |
+| **Shove** | `pulse`, `pushUp`, `pushRight`, `pushDown`, `pushLeft` | advance a line by one — all four for a pulse, the one it names for a push |
+| **Sink** | `anchor`, `sink` | an anchor swallows a line's front glyph where it stands; a sink kills its own cell and pulls all four arms into the hole |
+| **Rearrange** | `swapOrth`, `swapDiag`, `rotate`, `rotateRev` | move pieces between cells without a line, and without consuming any |
 
-`ABCDE` with a void at `C`: the void's cell dies, `B` and `D` are eaten falling inward,
-and `A` and `E` are drawn one step toward the centre — leaving `_ A × E _`. Verified in
-`src/board.js`'s self-test alongside the ABCD eater case.
+Shove and sink run through the same machinery: a pull is a shove aimed the other way, so
+to draw an arm inward it is the far end that gets shoved. The rearrangers do not touch it
+at all — an exchange or a turn moves pieces directly and consumes none of them, where a
+shove eats the front of its line unless the line ends on a live empty cell. What a
+rearranger moves can still land on its own colour and activate, so it chains without
+paying for the chain.
 
-### They are texture, not throughput
+An anchor is an ordinary piece and not furniture: one standing on its own colour matches,
+activates, and its cell goes like any other.
 
-Swapping a quarter of the pushers out for voids and wilds barely moves the numbers. Six
-colors, neighbor swaps, 200 levels per row:
+`ABCDE` with a sink at `C`: the sink's cell dies, `B` and `D` are eaten falling inward,
+and `A` and `E` are drawn one step toward the centre — leaving `. A x E .`. Pinned in
+`tests/board.test.js` alongside the ABCD anchor case.
 
-| Mix | Cascade | Deepest | 6 swaps | Left of 40 |
-|---|---|---|---|---|
-| 12.5% eat, 50% push | 1.20 | 2.06 | 9.9 | 26.9 |
-| + 12.5% void | 1.20 | 2.04 | 9.8 | 27.3 |
-| + 12.5% wild | 1.19 | 1.98 | 9.8 | 26.8 |
-| + both | 1.17 | 1.95 | 9.7 | 27.1 |
-| 12.5% eat, 50% void, no push | 1.15 | 1.89 | 9.2 | 28.1 |
+### Why nothing is random at resolution time
 
-A void moves the same quantity of material as a push, in the opposite direction; a wild
-moves half as much on average. What they change is *where* material ends up — a void
-compacts the board inward and opens the rim, a push does the reverse — which is a tactical
-difference the aggregate cannot see.
-
-### Void has two states, not three
-
-An upgraded void also **destroys the squares its pull empties**. Under a clear-N goal that
-is a large upgrade and a legible one — you watch the rim collapse. 250 levels, 25% voids,
-six colors:
-
-| Void | Activations | Cells gone |
-|---|---|---|
-| base — pulls, leaves the outer cell empty | 10.1 | 10.1 |
-| upgraded — the emptied squares die too | 10.0 | **14.9** |
-
-Note where the gain is. The upgrade does not help you *match* anything; activations go
-slightly down. It converts emptied squares straight into cleared cells, which is the
-objective.
-
-A third tier that pulls new glyphs in from off-board was considered and dropped. It does
-not punish the player — a void eats four glyphs, glyphs are the fuel, and handing them
-back helps: 10.4 cells gone against the base 10.1. Spawning eaters instead barely differs
-at 10.2. And an incoming glyph that could never activate is just an eater, which the
-square family already provides, so the mechanic collapses into eater density — a dial that
-already exists at level-authoring time:
-
-| Eaters | Cascade | 6 swaps | Cells gone |
-|---|---|---|---|
-| 0% | 1.35 | 11.0 | 13.6 |
-| 12.5% | 1.20 | 9.9 | 13.1 |
-| 25% | 1.13 | 9.3 | 12.8 |
-| 50% | 1.05 | 8.6 | 12.6 |
-
-Eaters are ordinary glyphs, incidentally — one sitting on its own color activates and
-clears like anything else. They absorb shoves; they are not permanent furniture.
-
-### What an emptied square vanishing would cost
-
-Tempting as a global rule, and it would collapse the two void states into one. The price:
-an alive-but-empty cell is the only ending where a shove line advances without eating its
-front glyph. Every other ending — edge, dead cell, eater — costs one. Over 200 levels,
-shove lines end on an empty cell **17.2%** of the time, so the rule would tax roughly a
-sixth of every pusher's work. Measured, not forbidden.
-
-### The inflow pool
-
-*Designed and measured this session; **not implemented**. The numbers below come from a
-scratch subclass of `Board`, not from `src/board.js`.*
-
-When a void's pull reaches the board rim the arm's outer cell is left vacant. A level
-carries a **pool** — a weighted, infinite bag of glyph kinds — and that vacancy draws from
-it. The pool is a level property, authored rather than chosen by the player.
-
-**Only void arms draw from it.** Pushes shove glyphs off the edge constantly; if every rim
-vacancy refilled, demand runs 6.4–7.3 draws per six-swap level and barely moves with the
-board mix, so the pool empties on schedule no matter how the player plays. Restricted to
-void arms, demand tracks what the player actually does:
-
-| Board mix | Void arms only | Every rim vacancy |
-|---|---|---|
-| no voids | 0.0 | 6.6 |
-| 12.5% void | 1.8 | 6.4 |
-| 25% void | 3.1 | 7.3 |
-| 50% void, no push | 6.1 | 6.1 |
-
-**It does not break authoring.** This was the worry, since random inflow is what disqualifies
-wild glyphs. It does not apply: an incoming glyph is generated so it can never land
-pre-matched, so it cannot activate in the cascade that summoned it. The randomness lands
-*between* moves rather than inside one. An annealed board with a 28-cell best line and a
-single solver, re-scored 30 times with the pool live, returned 28 and 1 every time — no
-movement at any pool weighting.
-
-That invariant is doing double duty: it keeps every activation player-caused, and it is
-what makes the pool safe for `tools/trapBoards.js`. Dropping it costs both at once, which
-is worth knowing before it goes.
-
-**The pool sets kind, not color.** Colour is still derived from the cell the glyph lands
-on, which is what guarantees the no-pre-match rule. Weighting colours as well would be a
-second and blunter dial; deliberately left unspecified.
-
-The pool is where the progression layer lives: weight it toward pushers and the rim
-re-arms, toward eaters and the player's own voids clog their edges. A curse the player
-loads themselves.
-
-### What a wild costs an authored board
-
-A wild has no fixed outcome, so a board carrying one has no fixed best line. Scoring one
-board 25 times with wilds at 25% of glyphs, the best line moves between 24 and 25 cells and
-the solver count swings between 1 and 3 — the trap generator would be optimizing a number
-that is not a property of the board. At 12.5% it held still across those runs, but by luck
-rather than guarantee.
-
-`tools/trapBoards.js` says as much when `--wilds` is non-zero. Generated and endless play
-never needed a fixed answer, so a wild costs nothing there.
+A piece whose ability picked its own outcome would leave an authored board with no fixed
+best line, and the trap generator in `tools/trapBoards.js` would be annealing toward a
+number that is not a property of the board. Every ability therefore resolves the same way
+every time. Randomness belongs to the deal — seeded, reproducible from a level's seed —
+and never to a swap. `tools/swapBudget.js` and `tools/trapBoards.js` take `--rotators` as
+the knob for the rearranger that touches the most cells without shoving.
 
 ## Swap-budget results
 
-Measured by `tools/swapBudget.js` — 5x8, 120 levels per row, greedy play, 50% of glyphs push
-and 12.5% eat. Every figure below is a sample, so re-running a sweep moves it by a
+Measured by `tools/swapBudget.js` — 5x8, 120 levels per row, greedy play, half the glyphs
+shoving all four ways and an eighth of them eating what is shoved in (`--pushers 0.5
+--blockers 0.125`). Every figure below is a sample, so re-running a sweep moves it by a
 decimal or two; the shape of each column is the result, not its last digit.
 
 **Any two cells:**
@@ -277,9 +167,9 @@ level total: 13.2 cleared at ten swaps whether there are no eaters or a quarter 
 Eaters redistribute the clearing rather than reducing it — they slow the opening (6.0 at
 three swaps versus 7.3 with none) and the level catches up later.
 
-Past 25% they start costing real yield. Around 12.5% — which is what the square family
-would give at two glyphs in sixteen — the cost is a fifth of the cascade depth for
-nothing off the total.
+Past 25% they start costing real yield. Around 12.5% the cost is a fifth of the cascade
+depth for nothing off the total, which is where the anchor share in `data/rules.json`
+sits.
 
 ### The edge rule is what makes combos work
 
@@ -356,9 +246,10 @@ and the objectives built from them: **deception** = best − lure, **spread** = 
 median (both differences, not totals), **solvers** = how many swaps reach 80% of best
 (1 is a clean puzzle).
 
-Simulated annealing over single-cell mutations — background color, glyph color, or whether
-that glyph pushes or eats. Boards failing the minimum-payoff gate are penalized rather than
-discarded so the search can walk through them.
+Simulated annealing over single-cell mutations — background color, glyph color, or the
+cell's kind, drawn from the mix the run was given plus inert. Boards failing the
+minimum-payoff gate are penalized rather than discarded so the search can walk through
+them.
 
 ### It works, and easily
 
@@ -387,6 +278,70 @@ one clearing 2 and the other twenty-odd.
 size instead of running away to clearing the whole board. At `--target 12` on six colors:
 best line 14 against a greedy pick of 2 and a typical swap of 1, still one solver.
 
+## Measured under a retired engine
+
+The figures in this section were taken on an engine that had four kinds — named push,
+block, void and wild — behind sixteen drawings. That engine is gone; the kinds above
+replaced it. These are **costs measured under it, not rules**: nothing here is current
+policy and nothing here is a reason to refuse a change. Re-run `tools/swapBudget.js` to
+bring any of it forward.
+
+### Void and wild were texture, not throughput
+
+Swapping a quarter of the pushers out for voids and wilds barely moved the numbers. Six
+colors, neighbor swaps, 200 levels per row:
+
+| Mix | Cascade | Deepest | 6 swaps | Left of 40 |
+|---|---|---|---|---|
+| 12.5% eat, 50% push | 1.20 | 2.06 | 9.9 | 26.9 |
+| + 12.5% void | 1.20 | 2.04 | 9.8 | 27.3 |
+| + 12.5% wild | 1.19 | 1.98 | 9.8 | 26.8 |
+| + both | 1.17 | 1.95 | 9.7 | 27.1 |
+| 12.5% eat, 50% void, no push | 1.15 | 1.89 | 9.2 | 28.1 |
+
+A void moved the same quantity of material as a push, in the opposite direction. What it
+changed is *where* material ends up — a void compacts the board inward and opens the rim,
+a push does the reverse — which is a tactical difference the aggregate cannot see. That
+much still describes what `sink` does against a pulse.
+
+### A sink upgrade that also kills the squares it empties
+
+Never implemented — `src/board.js`'s `sink` kills its own cell and no other. Under a
+clear-N goal it measured as a large upgrade and a legible one, since the rim visibly
+collapses. 250 levels, 25% voids, six colors:
+
+| Void | Activations | Cells gone |
+|---|---|---|
+| base — pulls, leaves the outer cell empty | 10.1 | 10.1 |
+| upgraded — the emptied squares die too | 10.0 | **14.9** |
+
+Note where the gain is. The upgrade does not help you *match* anything; activations go
+slightly down. It converts emptied squares straight into cleared cells, which is the
+objective.
+
+A further tier that pulled new glyphs in from off-board was measured and dropped. It did
+not punish the player — a void eats four glyphs, glyphs are the fuel, and handing them
+back helped: 10.4 cells gone against the base 10.1. Spawning eaters instead barely
+differed at 10.2. And an incoming glyph that can never activate is just an eater, so the
+mechanic collapses into eater density — a dial that already exists at level-authoring
+time, as `mix` in `data/levels.json`.
+
+### What an emptied square vanishing would cost
+
+An alive-but-empty cell is the only ending where a shove line advances without eating its
+front glyph; every other ending — edge, dead cell, eater — costs one. That is still true
+of `shove()`, and it is why an emptied square cannot simply vanish. Over 200 levels of
+the retired engine, shove lines ended on an empty cell **17.2%** of the time, so a rule
+that killed emptied squares would have taxed roughly a sixth of every pusher's work.
+
+### The inflow pool
+
+A weighted per-level bag of glyph kinds, drawn from when a void's pull left a rim cell
+vacant. Designed and measured against the retired engine and **never implemented** —
+nothing in `src/` or `data/` carries it. What survives is the constraint it was designed
+around: an incoming piece must be generated so it cannot land pre-matched, or the
+board's best line stops being a property of the board.
+
 ## Files
 
 | | |
@@ -398,25 +353,24 @@ best line 14 against a greedy pick of 2 and a typical swap of 1, still one solve
 | `src/levels.js` | the shipped run: acts, level specs, win and loss |
 | `src/progress.js` | what the player has finished, and how well |
 | `src/picker.js` | the level sheet, one fold per act |
-| `src/glyphShapes.js` | the render spec's geometry, as pure functions |
+| `src/glyphShapes.js` | what to draw for one glyph, as pure functions |
 | `src/render.js` | the compositor layers that paint a board to canvas |
 | `src/animate.js` | folding a resolved settle back into phases you can watch |
 | `src/main.js` | canvas, pointer and data loading — the only browser-facing module |
-| `data/` | rules, palette, gloss, the 16 glyphs, the level pack, stage factors, animation timings, the example board |
+| `data/` | rules, palette, glyph geometry, gloss, the baked letterforms, the twelve glyphs, the level pack, stage factors, animation timings, the example board |
 | `tools/swapBudget.js` | palette and budget sweeps |
 | `tools/trapBoards.js` | trap generation, `--json` to dump boards |
 | `tools/boardShapes.js` | what board size and palette size do to the same dial |
 | `tools/makeLevels.js` | builds `data/levels.json` from the run in `docs/teaching.html` |
+| `tools/bakeGlyphs.py` | cuts `data/glyphPaths.json` out of the face; `--check` fails if it is stale |
 | `LEVELS.md` | the shipped run as a list |
-| `dev/` | browser pages that tune `data/gloss.json` and `data/animation.json` |
+| `fonts/` | the licence trail for the baked letterforms. No font ships |
+| `dev/` | browser pages that tune `data/geometry.json`, `data/gloss.json` and `data/animation.json` |
 | `tests/` | `node --test`; `exampleBoard.test.js` also fails if `docs/trapping.html`'s embedded board has drifted from `data/example_board.json` |
-| `docs/specimen.html` | the 108-combination glyph plate |
+| `docs/specimen.html` | the specimen plate the render spec was locked against |
 | `docs/trapping.html` | writeup of how trap boards are generated |
-| `docs/teaching.html` | 25-level structure introducing every mechanic in dependency order |
+| `docs/teaching.html` | the run: every mechanic introduced in dependency order, and the target policy |
 | `docs/board-size.html` | why the board is 5x8, and what every other shape would have cost |
-
-`ABILITIES.md` is referenced by neither the code nor the tests; the sixteen abilities
-are tabulated above and carried as data in `data/glyphs.json`.
 
 ## Settled so far
 
@@ -430,13 +384,11 @@ are tabulated above and carried as data in `data/glyphs.json`.
 | Swap budget | 6, held fixed across a run. It was chosen where the yield curve flattened under neighbour swaps; with total reach on this board the curve keeps paying past twelve, so six is now a choice rather than a measured floor |
 | Palette size | the difficulty curve once pushers are on the board. With no pushers and total reach it stops mattering — a double hit is always somewhere |
 | Palette | six hues 60 degrees apart — three primaries, three secondaries, off the pure corners |
-| Level goal | score target |
-
 | Level goal | clear N cells in X swaps, both precomputed with margin |
-| Void | two states: base, and an upgrade that also kills the squares it empties |
-| Inflow | a per-level weighted pool, drawn from by void arms at the rim |
+| Glyph set | twelve, one deterministic ability each. Roman letters, turned or mirrored |
+| Determinism | a swap's outcome is fixed. Randomness is in the seeded deal only |
+| Drawing | baked SVG paths ship with the game; no font, no webfont |
 
 Still open: the scoring formula itself (cells cleared is the objective; whether cascades
-carry a multiplier is undecided), and how the pool is earned across a run. Level structure
-for the base rules is drafted in `docs/teaching.html`; the inflow pool is specified above
-but not built.
+carry a multiplier is undecided), and whether a glyph is ever upgraded across a run. The
+run is designed in `docs/teaching.html` and generated from it.
