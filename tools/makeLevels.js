@@ -16,7 +16,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { swapPairs } from '../src/board.js';
+import { gain, swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
 import { dealLevel, loadRun } from '../src/levels.js';
 import { parseArgs } from './args.js';
@@ -35,6 +35,20 @@ function greedyClears(spec, budget) {
   const { board } = dealt;
   const candidates = swapPairs({ ...RULES, width: board.width, height: board.height });
   return greedyPlay(board, budget, dealt.rand, candidates).cleared;
+}
+
+/**
+ * How many swaps on a level's opening board score at all.
+ *
+ * A level meant to teach one character wants exactly one, and getting there by hand is
+ * fiddly: a filler piece whose ink matches some other cell's ground quietly adds a
+ * second answer, and on a one-swap budget the player can take it and lose without ever
+ * seeing the glyph fire.
+ */
+function scoringSwaps(spec, budget) {
+  const { board } = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
+  const pairs = swapPairs({ ...RULES, width: board.width, height: board.height });
+  return pairs.filter(([a, z]) => gain(board, a, z) > 0).length;
 }
 
 /**
@@ -63,8 +77,8 @@ function main() {
   const pack = JSON.parse(readFileSync(PACK, 'utf8'));
   const budget = loadRun(pack, GLYPHS).budget;
 
-  console.log('level  act         board  source    target  greedy  seed');
-  console.log('-'.repeat(66));
+  console.log('level  act         board  source    target  greedy  swaps  seed');
+  console.log('-'.repeat(73));
   let changed = 0;
   for (const act of pack.acts) {
     for (const level of act.levels) {
@@ -89,12 +103,20 @@ function main() {
         changed += 1;
       }
       const dealt = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
+      const swaps = scoringSwaps(spec, budget);
       console.log(
         `${String(level.id).padStart(5)}  ${act.name.padEnd(11)}`
         + `${`${dealt.board.width}x${dealt.board.height}`.padStart(5)}  ${source.padEnd(8)}  `
         + `${String(level.target).padStart(6)}  ${String(greedy).padStart(6)}  `
-        + `${level.seed ?? '—'}`,
+        + `${String(swaps).padStart(5)}  ${level.seed ?? '—'}`,
       );
+      // A budget of one and more than one answer means a player can spend the level on
+      // a swap that never fires the glyph the level exists to teach.
+      if ((level.budget ?? budget) === 1 && swaps !== 1) {
+        throw new Error(
+          `level ${level.id}: ${swaps} swaps score, and the budget is 1 — the level has more than one answer`,
+        ); // boundary
+      }
     }
   }
 
