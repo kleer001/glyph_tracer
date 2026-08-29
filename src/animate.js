@@ -135,7 +135,7 @@ function restingSprites(board, timing) {
         to: [r, c],
         scaleFrom: 1,
         scaleTo: 1,
-        shake: false,
+        spin: false,
         delay: 0,
         ...timing,
       });
@@ -218,7 +218,7 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       to: end,
       scaleFrom: 1,
       scaleTo: kind === 'eaten' || kind === 'destroyed' ? 0 : 1,
-      shake: kind === 'destroyed',
+      spin: kind === 'destroyed',
       delay: delayFor(origin, activated, staggerMs),
       moveMs: stepMs,
       shrinkMs,
@@ -242,7 +242,7 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       cleared, // nothing has died yet on this beat
       holdMs,
       tiles: tilesOf(snapshot, [], activated, staggerMs, shrinkMs),
-      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, shake: false })),
+      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, spin: false })),
     }));
     cleared += activated.length;
     phases.push(phaseOf({
@@ -282,9 +282,11 @@ const lerp = (from, to, t) => from + (to - from) * t;
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 /** Sample one phase at `elapsed` ms into it, in cell space. */
-function sampleFrame(phase, elapsed, shake) {
+function sampleFrame(phase, elapsed, spin) {
   const at = (delay, duration) => clamp01((elapsed - delay) / Math.max(1, duration));
-  const wobbleAt = (t) => (shake ? shake.amplitude * Math.sin(t * shake.cycles * 2 * Math.PI) : 0);
+  // A cell being destroyed turns as it collapses. The angle is in radians; the
+  // renderer turns tile and piece together about the cell's own centre.
+  const spinAt = (t) => (spin ? spin.turns * t * 2 * Math.PI : 0);
   return {
     // how much of this swap's clearing has actually happened on screen
     cleared: phase.cleared ?? 0,
@@ -292,8 +294,9 @@ function sampleFrame(phase, elapsed, shake) {
       const t = at(tile.delay, tile.shrinkMs);
       return {
         bg: tile.bg,
-        x: tile.c + (tile.dying ? wobbleAt(t) : 0),
+        x: tile.c,
         y: tile.r,
+        spin: tile.dying ? spinAt(t) : 0,
         scale: tile.dying ? 1 - t : 1,
       };
     }),
@@ -305,8 +308,9 @@ function sampleFrame(phase, elapsed, shake) {
       return {
         art: sprite.art,
         ink: sprite.ink,
-        x: lerp(sprite.from[1], sprite.to[1], moved) + (sprite.shake ? wobbleAt(shrunk) : 0),
+        x: lerp(sprite.from[1], sprite.to[1], moved),
         y: lerp(sprite.from[0], sprite.to[0], moved),
+        spin: sprite.spin ? spinAt(shrunk) : 0,
         scale: lerp(sprite.scaleFrom, sprite.scaleTo, shrunk),
       };
     }),
@@ -318,11 +322,11 @@ function sampleFrame(phase, elapsed, shake) {
  * @returns {?object} null once the timeline has run out, so the caller knows to
  *   go back to drawing the board itself.
  */
-export function sampleTimeline(timeline, elapsed, shake) {
+export function sampleTimeline(timeline, elapsed, spin) {
   let remaining = elapsed;
   for (const phase of timeline.phases) {
     const span = phase.tweenMs + phase.holdMs;
-    if (remaining < span) return sampleFrame(phase, Math.min(remaining, phase.tweenMs), shake);
+    if (remaining < span) return sampleFrame(phase, Math.min(remaining, phase.tweenMs), spin);
     remaining -= span;
   }
   return null;

@@ -164,7 +164,7 @@ export async function start(canvas, panels) {
 
   const tick = (now) => {
     if (!playing) return; // a tap cut the playback short and already drew the settled board
-    const drawList = sampleTimeline(playing.timeline, now - playing.startedAt, data.animation.shake);
+    const drawList = sampleTimeline(playing.timeline, now - playing.startedAt, data.animation.spin);
     if (!drawList) {
       playing = null;
       drawBoard();

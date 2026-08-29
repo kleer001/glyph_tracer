@@ -277,6 +277,25 @@ function placed(layout, item, view) {
   return { x: x + inset, y: y + inset, size };
 }
 
+/**
+ * Run `paint` with the canvas turned about the box's own centre. A cell being
+ * destroyed spins while it collapses, and its piece has to turn with it.
+ */
+function spun(ctx, box, angle, paint) {
+  if (!angle) {
+    paint();
+    return;
+  }
+  const cx = box.x + box.size / 2;
+  const cy = box.y + box.size / 2;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.translate(-cx, -cy);
+  paint();
+  ctx.restore();
+}
+
 /** Layer 0: the terrain. Backgrounds are fixed; a dead cell is simply not there. */
 export function createGroundLayer(view = VIEW) {
   return {
@@ -288,7 +307,7 @@ export function createGroundLayer(view = VIEW) {
       for (const tile of tiles) {
         const box = placed(layout, tile, view);
         if (box.size <= 0) continue;
-        drawTile(ctx, box, palette.colors[tile.bg].hex, frame.gloss);
+        spun(ctx, box, tile.spin, () => drawTile(ctx, box, palette.colors[tile.bg].hex, frame.gloss));
       }
     },
   };
@@ -307,21 +326,23 @@ export function createGlyphLayer(view = VIEW) {
       ctx.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
       ctx.clip();
       for (const sprite of sprites) {
-        const { x, y, size } = placed(layout, sprite, view);
-        if (size <= 0) continue;
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.scale(size / CELL, size / CELL);
-        drawGlyph(
-          ctx,
-          glyphsById.get(sprite.art),
-          { ink: palette.colors[sprite.ink].hex, core: palette.core, key: palette.key },
-          frame.gloss,
-          frame.geometry,
-          size,
-          frame.glyphPaths,
-        );
-        ctx.restore();
+        const box = placed(layout, sprite, view);
+        if (box.size <= 0) continue;
+        spun(ctx, box, sprite.spin, () => {
+          ctx.save();
+          ctx.translate(box.x, box.y);
+          ctx.scale(box.size / CELL, box.size / CELL);
+          drawGlyph(
+            ctx,
+            glyphsById.get(sprite.art),
+            { ink: palette.colors[sprite.ink].hex, core: palette.core, key: palette.key },
+            frame.gloss,
+            frame.geometry,
+            box.size,
+            frame.glyphPaths,
+          );
+          ctx.restore();
+        });
       }
     },
   };

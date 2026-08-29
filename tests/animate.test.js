@@ -26,7 +26,7 @@ const TIMING = { swapMsPerCell: 55, swapMinMs: 110, stepMs: 200 };
 // Most of these build their timeline from a self-swap, whose travel is nothing, so
 // the swap beat lands on its floor.
 const FLOOR = TIMING.swapMinMs;
-const SHAKE = { amplitude: 0.07, cycles: 3 };
+const SPIN = { turns: 1 };
 const rand = mulberry32(20260825);
 
 // Backgrounds are all color 5 and no cell holds a piece, so only what a test puts
@@ -154,8 +154,8 @@ test('the swap phase carries the two pieces to each other', () => {
     timing: TIMING,
   });
   const span = swapDurationFor([0, 0], [7, 4], TIMING);
-  const start = sampleTimeline(timeline, 0, SHAKE);
-  const mid = sampleTimeline(timeline, span / 2, SHAKE);
+  const start = sampleTimeline(timeline, 0, SPIN);
+  const mid = sampleTimeline(timeline, span / 2, SPIN);
   const pulseStart = start.sprites.find((s) => s.art === 'pulse');
   const pulseMid = mid.sprites.find((s) => s.art === 'pulse');
   assert.deepEqual([pulseStart.x, pulseStart.y], [0, 0]);
@@ -174,14 +174,14 @@ test('a dying cell shrinks to nothing over its phase', () => {
     recorder,
     timing: TIMING,
   });
-  const at = (t) => sampleTimeline(timeline, FLOOR + t, SHAKE);
+  const at = (t) => sampleTimeline(timeline, FLOOR + t, SPIN);
   const tileAt = (t) => at(t).tiles.find((tile) => Math.round(tile.x) === 2 && tile.y === 3);
   assert.ok(Math.abs(tileAt(0).scale - 1) < 1e-9, 'starts full size');
   assert.ok(Math.abs(tileAt(TIMING.stepMs / 2).scale - 0.5) < 1e-9, 'half way, half size');
-  assert.equal(sampleTimeline(timeline, timeline.totalMs, SHAKE), null, 'then it is over');
+  assert.equal(sampleTimeline(timeline, timeline.totalMs, SPIN), null, 'then it is over');
 });
 
-test('a dying cell wobbles about its column and an ordinary one does not', () => {
+test('a dying cell turns as it collapses and an ordinary one does not', () => {
   const b = bareBoard();
   b.bg[3][2] = 1;
   place(b, 3, 2, { glyph: 1 });
@@ -189,14 +189,14 @@ test('a dying cell wobbles about its column and an ordinary one does not', () =>
   const recorder = createRecorder();
   settle(b, rand, recorder);
   const timeline = buildTimeline({ before: b, swap: [[3, 2], [3, 2]], recorder, timing: TIMING });
-  // A quarter of the way through the first wobble is where it is furthest out.
-  const frame = sampleTimeline(timeline, FLOOR + TIMING.stepMs / 12, SHAKE);
+  // A quarter of the way through the shrink is a quarter of the way round.
+  const frame = sampleTimeline(timeline, FLOOR + TIMING.stepMs / 4, SPIN);
   const dying = frame.tiles.filter((t) => t.scale < 1);
   assert.equal(dying.length, 1, 'exactly one cell is being destroyed');
-  assert.ok(Math.abs(dying[0].x - 2) - SHAKE.amplitude < 1e-9, 'wobbles by the amplitude');
-  assert.ok(Math.abs(dying[0].x - 2) > 1e-6, 'and is genuinely off its column');
+  assert.ok(Math.abs(dying[0].spin - SPIN.turns * Math.PI / 2) < 1e-9, 'a quarter turn in');
+  assert.equal(dying[0].x, 2, 'and it stays on its own column while it turns');
   for (const tile of frame.tiles.filter((t) => t.scale === 1)) {
-    assert.equal(tile.x, Math.round(tile.x), 'a cell that is not dying sits on its column');
+    assert.equal(tile.spin, 0, 'a cell that is not dying does not turn');
   }
 });
 
@@ -221,8 +221,8 @@ test('a timeline is spent once its phases are', () => {
     recorder: { steps: [] },
     timing: TIMING,
   });
-  assert.ok(sampleTimeline(timeline, FLOOR - 1, SHAKE));
-  assert.equal(sampleTimeline(timeline, FLOOR, SHAKE), null);
+  assert.ok(sampleTimeline(timeline, FLOOR - 1, SPIN));
+  assert.equal(sampleTimeline(timeline, FLOOR, SPIN), null);
 });
 
 // --- the timing knobs -------------------------------------------------------
@@ -254,8 +254,8 @@ test('a hold adds still time after each phase without moving anything', () => {
   assert.equal(held.phases.length, plain.phases.length);
   assert.equal(held.totalMs, plain.totalMs + 100 * plain.phases.length);
   // Through the hold the frame is whatever the phase ended on.
-  const atEnd = sampleTimeline(held, FLOOR, SHAKE);
-  const inHold = sampleTimeline(held, FLOOR + 60, SHAKE);
+  const atEnd = sampleTimeline(held, FLOOR, SPIN);
+  const inHold = sampleTimeline(held, FLOOR + 60, SPIN);
   assert.deepEqual(inHold, atEnd, 'nothing moves during a hold');
 });
 
@@ -279,7 +279,7 @@ test('a staggered piece has not started while its delay is still running', () =>
   const step = staggered.phases[1];
   const late = step.sprites.find((s) => s.delay > 0 && String(s.from) !== String(s.to));
   assert.ok(late, 'something is delayed and moving');
-  const frame = sampleTimeline(staggered, FLOOR + late.delay / 2, SHAKE);
+  const frame = sampleTimeline(staggered, FLOOR + late.delay / 2, SPIN);
   const drawn = frame.sprites.find((s) => s.art === late.art && Math.abs(s.y - late.from[0]) < 1e-9);
   assert.ok(drawn, 'it is still sitting where it started');
 });
@@ -312,8 +312,7 @@ test('data/animation.json carries every knob the timeline reads', async () => {
     assert.ok(anim[key] >= 0);
   }
   assert.equal(typeof anim.splitBeats, 'boolean');
-  assert.equal(typeof anim.shake.amplitude, 'number');
-  assert.equal(typeof anim.shake.cycles, 'number');
+  assert.equal(typeof anim.spin.turns, 'number');
 });
 
 test('shrink runs on its own clock, not the movement clock', () => {
@@ -324,7 +323,7 @@ test('shrink runs on its own clock, not the movement clock', () => {
   // Halfway through a 600ms shrink the piece is half gone, while a piece that only
   // travels has finished its 200ms move long before.
   const step = slowShrink.phases[1];
-  const frame = sampleTimeline(slowShrink, FLOOR + 300, SHAKE);
+  const frame = sampleTimeline(slowShrink, FLOOR + 300, SPIN);
   const dying = frame.sprites.filter((s) => s.scale > 0 && s.scale < 1);
   assert.ok(dying.length, 'something is mid-shrink');
   assert.ok(dying.every((s) => Math.abs(s.scale - 0.5) < 0.05), 'and it is about half gone');
@@ -479,5 +478,5 @@ test('a timeline says how much has cleared by each phase, not by the end', () =>
     'the count should pass through the middle rather than jump');
 
   // and the sampler hands it on, so the HUD can read it
-  assert.equal(sampleTimeline(timeline, 0, timing.shake).cleared, 0);
+  assert.equal(sampleTimeline(timeline, 0, timing.spin).cleared, 0);
 });
