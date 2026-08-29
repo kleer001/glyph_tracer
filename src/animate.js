@@ -286,7 +286,18 @@ function sampleFrame(phase, elapsed, spin) {
   const at = (delay, duration) => clamp01((elapsed - delay) / Math.max(1, duration));
   // A cell being destroyed turns as it collapses. The angle is in radians; the
   // renderer turns tile and piece together about the cell's own centre.
-  const spinAt = (t) => (spin ? spin.turns * t * 2 * Math.PI : 0);
+  //
+  // The turn has to wait for the shrink to make room for it. A square of side s
+  // at angle a is s(|cos a| + |sin a|) wide, so at full size any angle at all
+  // throws its corners over the cells beside it. The most a cell at scale u may
+  // turn is asin(1 / (u * sqrt 2)) - PI/4: nothing at u = 1, opening to 45 degrees
+  // at u = 1/sqrt 2, past which a shrunk square fits inside the cell it is leaving
+  // whichever way it faces. That envelope's own speed runs away to infinity at the
+  // release point, so the spin takes a power curve under it instead. The exponent
+  // is what holds the corners in at any number of turns, and comes out a plain
+  // square law for the one turn the game plays.
+  const ease = 2 + Math.log2(spin?.turns || 1) / 2;
+  const spinAt = (t) => (spin ? spin.turns * t ** ease * 2 * Math.PI : 0);
   return {
     // how much of this swap's clearing has actually happened on screen
     cleared: phase.cleared ?? 0,

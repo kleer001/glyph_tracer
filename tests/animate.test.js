@@ -189,15 +189,16 @@ test('a dying cell turns as it collapses and an ordinary one does not', () => {
   const recorder = createRecorder();
   settle(b, rand, recorder);
   const timeline = buildTimeline({ before: b, swap: [[3, 2], [3, 2]], recorder, timing: TIMING });
-  // A quarter of the way through the shrink is a quarter of the way round.
-  const frame = sampleTimeline(timeline, FLOOR + TIMING.stepMs / 4, SPIN);
+  const frame = sampleTimeline(timeline, FLOOR + TIMING.stepMs / 2, SPIN);
   const dying = frame.tiles.filter((t) => t.scale < 1);
   assert.equal(dying.length, 1, 'exactly one cell is being destroyed');
-  assert.ok(Math.abs(dying[0].spin - SPIN.turns * Math.PI / 2) < 1e-9, 'a quarter turn in');
-  assert.equal(dying[0].x, 2, 'and it stays on its own column while it turns');
+  assert.ok(dying[0].spin > 0, 'and it has turned');
+  assert.equal(dying[0].x, 2, 'while staying on its own column');
   for (const tile of frame.tiles.filter((t) => t.scale === 1)) {
     assert.equal(tile.spin, 0, 'a cell that is not dying does not turn');
   }
+  assert.ok(sampleTimeline(timeline, FLOOR, SPIN).tiles.every((t) => t.spin === 0),
+    'a full-size cell has no room to turn at all');
 });
 
 test('a static frame is every live cell and every piece, at rest', () => {
@@ -302,6 +303,37 @@ test('the knobs are no-ops at zero, so the timeline is what it always was', () =
   const zeroed = timelineFor({ ...TIMING, holdMs: 0, staggerMs: 0, splitBeats: false });
   assert.equal(zeroed.totalMs, bare.totalMs);
   assert.deepEqual(zeroed.phases.map((p) => p.tweenMs), bare.phases.map((p) => p.tweenMs));
+});
+
+// A turning square is wider than a still one, so the corners of a cell that spun too
+// early would sweep over the cells beside it. The turn is held under what the shrink
+// has made room for: at scale u a square may turn asin(1 / (u * sqrt 2)) - PI/4 and no
+// further, which is nothing at all until it has begun to shrink.
+test('a dying cell never turns further than its own shrinking footprint allows', () => {
+  const envelope = (scale) => {
+    const room = 1 / (Math.SQRT2 * scale);
+    return room > 1 ? Infinity : Math.asin(room) - Math.PI / 4;
+  };
+  for (const turns of [0.5, 1, 2, 4]) {
+    const b = bareBoard();
+    b.bg[3][2] = 1;
+    place(b, 3, 2, { glyph: 1 });
+    const recorder = createRecorder();
+    settle(b, rand, recorder);
+    const timeline = buildTimeline({ before: b, swap: [[3, 2], [3, 2]], recorder, timing: TIMING });
+    for (let ms = 0; ms <= timeline.totalMs; ms += 2) {
+      const frame = sampleTimeline(timeline, ms, { turns });
+      if (!frame) break;
+      for (const tile of frame.tiles) {
+        if (tile.scale >= 1) {
+          assert.equal(tile.spin, 0, `turns ${turns}: a full-size cell turned at ${ms}ms`);
+          continue;
+        }
+        assert.ok(tile.spin <= envelope(tile.scale),
+          `turns ${turns}: at ${ms}ms a cell at scale ${tile.scale} turned ${tile.spin} rad`);
+      }
+    }
+  }
 });
 
 test('data/animation.json carries every knob the timeline reads', async () => {
