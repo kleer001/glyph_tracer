@@ -16,6 +16,18 @@ pure-ASCII so the guess cannot corrupt them, but that is a belt, not a home.
 fragments cannot satisfy that test without breaking the publisher, which is
 why they sit here instead.
 
-| file | page |
-|---|---|
-| `juice-bench.html` | Glyph Tracer Juice Bench — the priced shelf of visual work, with live demos and the palette and silhouette measurements. Text version: `docs/JUICE.md`. |
+| file | page | source |
+|---|---|---|
+| `juice-bench.html` | Glyph Tracer Juice Bench — the priced shelf of visual work, with live demos and the palette and silhouette measurements. Text version: `docs/JUICE.md`. | hand-written |
+| `burst-bench.html` | Glyph Tracer Burst Sandbox — tune a cleared cell's throw on a live board. | **generated** |
+
+`burst-bench.html` is built, not edited. It is the whole engine and every data file
+inlined into one page, because an Artifact has no origin to fetch from and cannot import
+`src/` or read `data/`. Rebuild it after changing either:
+
+```sh
+python3 tools/buildBurstArtifact.py
+```
+
+Edit `tools/burst-artifact.template.html` for the page itself, never the built file. The
+sandbox it mirrors, `dev/burst.html`, stays the one that loads `src/` live.

@@ -1,0 +1,461 @@
+<title>Glyph Tracer Burst Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --paper:   #EDEEF0;
+  --surface: #F7F8F9;
+  --sunk:    #E2E4E7;
+  --ink:     #16171A;
+  --dim:     #6B6F76;
+  --hair:    #D3D6DA;
+  --accent:  #3B51D6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:   #141518;
+    --surface: #1C1E22;
+    --sunk:    #101114;
+    --ink:     #E6E7EA;
+    --dim:     #969BA3;
+    --hair:    #2E3138;
+    --accent:  #93A2FF;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:   #141518;
+  --surface: #1C1E22;
+  --sunk:    #101114;
+  --ink:     #E6E7EA;
+  --dim:     #969BA3;
+  --hair:    #2E3138;
+  --accent:  #93A2FF;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Newsreader, Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0 20px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+
+header { padding: 60px 0 30px; display: flex; flex-direction: column; gap: 13px; }
+.eyebrow {
+  font-family: "Martian Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--dim); margin: 0;
+}
+h1 {
+  font-size: clamp(34px, 6vw, 52px); font-weight: 300; line-height: 1.03;
+  letter-spacing: -0.022em; margin: 0; text-wrap: balance;
+}
+h1 em { font-style: italic; font-weight: 400; }
+.standfirst { font-size: 19px; line-height: 1.5; color: var(--dim); margin: 0; max-width: 62ch; }
+
+.cols {
+  display: grid; grid-template-columns: 250px minmax(0, 1fr) 236px; gap: 18px;
+  align-items: start; border-top: 1px solid var(--hair); padding-top: 26px;
+}
+@media (max-width: 980px) { .cols { grid-template-columns: 250px minmax(0, 1fr); } }
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+
+.panel { background: var(--surface); border: 1px solid var(--hair); border-radius: 4px; padding: 15px 14px; }
+.panel + .panel { margin-top: 16px; }
+h2 {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.11em; text-transform: uppercase; color: var(--dim); margin: 0 0 11px;
+}
+.grp + .grp { margin-top: 17px; }
+
+.row { display: grid; grid-template-columns: 62px 1fr 48px; align-items: center; gap: 8px; margin-bottom: 6px; }
+.row label { font-size: 13px; color: var(--dim); }
+.row output {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px;
+  text-align: right; font-variant-numeric: tabular-nums; color: var(--ink);
+}
+input[type=range] { width: 100%; accent-color: var(--accent); }
+
+.stage {
+  background: var(--sunk); border: 1px solid var(--hair); border-radius: 4px;
+  padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 13px;
+}
+canvas { display: block; width: 100%; max-width: 440px; height: auto; cursor: pointer; border-radius: 3px; }
+.bar { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; }
+button {
+  font-family: "Martian Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--hair); border-radius: 3px; padding: 7px 11px; cursor: pointer;
+}
+button:hover { border-color: var(--dim); }
+button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.readout {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10.5px; color: var(--dim);
+  text-align: center; line-height: 1.75; white-space: pre-line; font-variant-numeric: tabular-nums;
+}
+.presets { display: flex; flex-direction: column; gap: 5px; }
+.presets button { text-align: left; text-transform: none; letter-spacing: 0; font-size: 10.5px; }
+pre {
+  background: var(--sunk); border: 1px solid var(--hair); border-radius: 3px; padding: 10px;
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 9.5px; line-height: 1.6;
+  overflow-x: auto; margin: 0; color: var(--ink);
+}
+.hint { font-size: 13px; color: var(--dim); margin: 9px 0 0; line-height: 1.5; }
+footer {
+  border-top: 1px solid var(--hair); margin-top: 34px; padding-top: 20px;
+  font-size: 14px; color: var(--dim); max-width: 66ch;
+}
+code {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 0.78em;
+  background: var(--surface); border: 1px solid var(--hair); border-radius: 3px; padding: 0.1em 0.35em;
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Glyph Tracer &middot; burst sandbox</p>
+  <h1>Throw it <em>outward</em></h1>
+  <p class="standfirst">A cleared cell throws its colour. Every grain travels along a ray from
+  the cell it came from and nothing pulls it down &mdash; this board has no gravity, so a burst
+  that arced downward would be the only thing on screen obeying a force the game does not have.
+  Motion is polar: an angle that never changes, a radius that does.</p>
+</header>
+
+<div class="cols">
+
+  <div class="panel">
+    <div class="grp">
+      <h2>The throw</h2>
+      <div class="row"><label for="count">count</label><input type="range" id="count" min="4" max="120" step="2"><output id="count-o"></output></div>
+      <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="80" step="1"><output id="speed-o"></output></div>
+      <div class="row"><label for="push">push</label><input type="range" id="push" min="-60" max="60" step="2"><output id="push-o"></output></div>
+      <div class="row"><label for="drag">drag</label><input type="range" id="drag" min="0" max="120" step="2"><output id="drag-o"></output></div>
+      <div class="row"><label for="scatter">scatter</label><input type="range" id="scatter" min="0" max="100" step="5"><output id="scatter-o"></output></div>
+      <div class="row"><label for="jitter">jitter</label><input type="range" id="jitter" min="0" max="100" step="5"><output id="jitter-o"></output></div>
+    </div>
+    <div class="grp">
+      <h2>The life</h2>
+      <div class="row"><label for="life">life</label><input type="range" id="life" min="150" max="2400" step="50"><output id="life-o"></output></div>
+      <div class="row"><label for="fade">fade</label><input type="range" id="fade" min="4" max="40" step="1"><output id="fade-o"></output></div>
+      <div class="row"><label for="rate">rate</label><input type="range" id="rate" min="20" max="200" step="5"><output id="rate-o"></output></div>
+    </div>
+    <div class="grp">
+      <h2>The grain</h2>
+      <div class="row"><label for="size">size</label><input type="range" id="size" min="10" max="160" step="5"><output id="size-o"></output></div>
+      <div class="row"><label for="endsize">end size</label><input type="range" id="endsize" min="0" max="100" step="5"><output id="endsize-o"></output></div>
+      <div class="row"><label for="inkmix">ink mix</label><input type="range" id="inkmix" min="0" max="100" step="5"><output id="inkmix-o"></output></div>
+      <div class="row"><label for="seed">seed</label><input type="range" id="seed" min="1" max="99" step="1"><output id="seed-o"></output></div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <canvas id="screen" width="880" height="880" role="button" tabindex="0"
+            aria-label="Game board. Click a cell to clear it and throw its colour."></canvas>
+    <div class="bar">
+      <button type="button" id="all">burst every cell</button>
+      <button type="button" id="refill">refill</button>
+      <button type="button" id="trails">trails off</button>
+    </div>
+    <p class="readout" id="readout"></p>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Presets</h2>
+      <div class="presets">
+        <button type="button" data-preset="pop">pop &mdash; short and sharp</button>
+        <button type="button" data-preset="drift">drift &mdash; slow, long fade</button>
+        <button type="button" data-preset="ring">ring &mdash; even, no jitter</button>
+        <button type="button" data-preset="implode">implode &mdash; push inward</button>
+      </div>
+      <p class="hint">Click any cell to clear it. The board is dealt from a seed, so the same
+      cells come back on refill.</p>
+    </div>
+    <div class="panel">
+      <h2>Settings</h2>
+      <pre id="dump"></pre>
+      <p class="hint">Ready for a data file the day a layer reads it.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>This runs the game's own renderer &mdash; the same compositor, the same tile and glyph
+  drawing, the same seeded deal &mdash; with the burst added as a fourth layer above ground,
+  glyphs and selection. <code>push</code> is an outward acceleration and <code>drag</code>
+  pulls each grain's speed toward <code>push / drag</code> rather than to a stop, which is
+  what lets a burst pop hard and then keep creeping outward. Set <code>push</code> negative
+  to make it fall inward instead.</p>
+</footer>
+
+</div>
+
+<script type="module">
+/*__DATA__*/
+
+/*__ENGINE__*/
+
+/* ---- the sandbox itself, sealed off from the engine's names ---- */
+(() => {
+  'use strict';
+  const PALETTE = resolvePalette(DATA_PALETTE);
+  const GLOSS = DATA_GLOSS;
+  const GEOMETRY = DATA_GEOMETRY;
+  const GLYPH_PATHS = DATA_GLYPHPATHS.paths;
+  const GLYPHS = DATA_GLYPHS.glyphs;
+  const RULES = DATA_RULES;
+  const byId = new Map(GLYPHS.map((g) => [g.id, g]));
+
+  const canvas = document.getElementById('screen');
+  const ctx = canvas.getContext('2d');
+  // The canvas is drawn at twice its widest CSS size, so the gutter and padding are
+  // doubled with it and the board keeps the proportions the game ships.
+  const VIEW_HERE = { ...VIEW, hudHeight: 0, pad: 36, gap: 8 };
+  const TAU = Math.PI * 2;
+  const BOARD_SEED = 708;
+
+  let board = null;
+  const particles = [];
+
+  function deal() {
+    const rand = mulberry32(BOARD_SEED);
+    board = randomBoard(
+      { ...RULES, width: 5, height: 5, colors: PALETTE.colors.length }, RULES.mix, rand,
+    );
+    dealArt(board, GLYPHS, rand);
+    particles.length = 0;
+  }
+
+  /**
+   * A grain is polar about the cell that threw it: `a` never changes, `r` does. There is
+   * no second axis for a force to act on, which is what keeps the throw radial.
+   */
+  function throwFrom(r, c) {
+    const layout = boardLayout(board, canvas.width, canvas.height, VIEW_HERE);
+    const { x, y } = cellOrigin(layout, r, c, VIEW_HERE);
+    const cx = x + layout.cell / 2;
+    const cy = y + layout.cell / 2;
+    const ground = PALETTE.colors[board.bg[r][c]].hex;
+    const ink = board.glyph[r][c] === null ? ground : PALETTE.colors[board.glyph[r][c]].hex;
+
+    // Seeded off the cell, so the same cell throws the same burst every time.
+    const rand = mulberry32(state.seed * 1000 + r * 31 + c);
+    const spread = (TAU / state.count) * (state.scatter / 100);
+    for (let i = 0; i < state.count; i++) {
+      const even = ((i + 0.5) / state.count) * TAU;
+      const vary = 1 + (rand() - 0.5) * 2 * (state.jitter / 100);
+      particles.push({
+        cx,
+        cy,
+        a: even + (rand() - 0.5) * 2 * spread,
+        r: layout.cell * 0.16,
+        v: (state.speed / 10) * layout.cell * vary,
+        born: performance.now(),
+        life: state.life,
+        size: (state.size / 1000) * layout.cell * (0.6 + rand() * 0.8),
+        hex: rand() < state.inkmix / 100 ? ink : ground,
+        cell: layout.cell,
+      });
+    }
+    board.alive[r][c] = false;
+    board.glyph[r][c] = null;
+    board.art[r][c] = null;
+    board.kind[r][c] = '';
+  }
+
+  /** Layer three: what the cleared cells threw. Reads the frame and nothing else. */
+  const burstLayer = {
+    name: 'burst',
+    draw(c2, frame) {
+      for (const p of frame.particles) {
+        if (!(p.alpha > 0)) continue;
+        c2.globalAlpha = p.alpha;
+        c2.fillStyle = p.hex;
+        c2.beginPath();
+        c2.arc(p.cx + Math.cos(p.a) * p.r, p.cy + Math.sin(p.a) * p.r, p.radius, 0, TAU);
+        c2.fill();
+      }
+      c2.globalAlpha = 1;
+    },
+  };
+  const scene = createCompositor()
+    .add(createGroundLayer(VIEW_HERE))
+    .add(createGlyphLayer(VIEW_HERE))
+    .add(burstLayer);
+
+  /**
+   * Advance every grain. Radial only: acceleration is `push` outward along the ray, and
+   * drag pulls the speed toward `push / drag` rather than to zero, so a burst can pop
+   * hard and then keep creeping outward.
+   */
+  function advance(dt) {
+    const now = performance.now();
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      const t = ((now - p.born) * (state.rate / 100)) / p.life;
+      if (t >= 1) { particles.splice(i, 1); continue; }
+      const step = dt * (state.rate / 100);
+      p.v += ((state.push / 10) * p.cell - (state.drag / 10) * p.v) * step;
+      p.r += p.v * step;
+      p.alpha = Math.pow(1 - t, state.fade / 10);
+      p.radius = Math.max(0, p.size * (1 - t * (1 - state.endsize / 100)));
+    }
+  }
+
+  let last = performance.now();
+  let trails = false;
+
+  function drawParticlesOnly() {
+    for (const p of particles) {
+      if (!(p.alpha > 0)) continue;
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.hex;
+      ctx.beginPath();
+      ctx.arc(p.cx + Math.cos(p.a) * p.r, p.cy + Math.sin(p.a) * p.r, p.radius, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 1 / 20);
+    last = now;
+    advance(dt);
+
+    if (trails) {
+      // Nothing is cleared, so the previous frame stays underneath and a low-alpha wash
+      // eats it slowly. The board goes with it, because the board is not redrawn either.
+      ctx.fillStyle = 'rgba(231,232,234,.20)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawParticlesOnly();
+    } else {
+      scene.render(ctx, {
+        width: canvas.width,
+        height: canvas.height,
+        ...staticFrame(board),
+        particles,
+        layout: boardLayout(board, canvas.width, canvas.height, VIEW_HERE),
+        palette: PALETTE,
+        gloss: GLOSS,
+        geometry: GEOMETRY,
+        glyphPaths: GLYPH_PATHS,
+        glyphsById: byId,
+      });
+    }
+
+    const alive = board.alive.flat().filter(Boolean).length;
+    const terminal = state.drag ? (state.push / state.drag).toFixed(2) : 'unbounded';
+    document.getElementById('readout').textContent =
+      `${particles.length} grain${particles.length === 1 ? '' : 's'} in the air`
+      + ` \u00b7 ${alive} cell${alive === 1 ? '' : 's'} left\n`
+      + `terminal speed ${terminal} cells/s \u00b7 no vertical force`;
+    requestAnimationFrame(frame);
+  }
+
+  // --- controls -------------------------------------------------------------
+  const KEYS = ['count', 'speed', 'push', 'drag', 'scatter', 'jitter',
+    'life', 'fade', 'rate', 'size', 'endsize', 'inkmix', 'seed'];
+  const PRESETS = {
+    pop:     { count: 34, speed: 30, push: 12,  drag: 30, scatter: 65, jitter: 50, life: 700,  fade: 12, rate: 100, size: 95, endsize: 25, inkmix: 40, seed: 7 },
+    drift:   { count: 48, speed: 12, push: 4,   drag: 10, scatter: 80, jitter: 60, life: 1800, fade: 8,  rate: 50,  size: 80, endsize: 45, inkmix: 55, seed: 7 },
+    ring:    { count: 36, speed: 26, push: 0,   drag: 18, scatter: 0,  jitter: 0,  life: 900,  fade: 12, rate: 100, size: 85, endsize: 30, inkmix: 0,  seed: 7 },
+    implode: { count: 38, speed: 38, push: -34, drag: 6,  scatter: 45, jitter: 35, life: 1100, fade: 18, rate: 70,  size: 90, endsize: 10, inkmix: 60, seed: 7 },
+  };
+  const state = { ...PRESETS.pop };
+  const SHOWN = {
+    speed: (v) => (v / 10).toFixed(1),
+    push: (v) => (v / 10).toFixed(1),
+    drag: (v) => (v / 10).toFixed(1),
+    fade: (v) => (v / 10).toFixed(1),
+    size: (v) => `${(v / 10).toFixed(1)}%`,
+    scatter: (v) => `${v}%`,
+    jitter: (v) => `${v}%`,
+    endsize: (v) => `${v}%`,
+    inkmix: (v) => `${v}%`,
+    rate: (v) => `${v}%`,
+    life: (v) => `${v}ms`,
+  };
+
+  function writeControls() {
+    for (const k of KEYS) {
+      document.getElementById(k).value = String(state[k]);
+      document.getElementById(`${k}-o`).textContent = (SHOWN[k] ?? String)(state[k]);
+    }
+    document.getElementById('dump').textContent = JSON.stringify({
+      burst: {
+        count: state.count,
+        speed: state.speed / 10,
+        push: state.push / 10,
+        drag: state.drag / 10,
+        scatter: state.scatter / 100,
+        jitter: state.jitter / 100,
+        lifeMs: state.life,
+        fade: state.fade / 10,
+        size: state.size / 1000,
+        endSize: state.endsize / 100,
+        inkMix: state.inkmix / 100,
+      },
+    }, null, 2);
+  }
+  for (const k of KEYS) {
+    document.getElementById(k).addEventListener('input', (e) => {
+      state[k] = Number(e.target.value);
+      writeControls();
+    });
+  }
+  for (const b of document.querySelectorAll('[data-preset]')) {
+    b.addEventListener('click', () => {
+      Object.assign(state, PRESETS[b.dataset.preset]);
+      writeControls();
+      particles.length = 0;
+    });
+  }
+  document.getElementById('refill').addEventListener('click', deal);
+  document.getElementById('all').addEventListener('click', () => {
+    for (let r = 0; r < board.height; r++) {
+      for (let c = 0; c < board.width; c++) if (board.alive[r][c]) throwFrom(r, c);
+    }
+  });
+  document.getElementById('trails').addEventListener('click', (e) => {
+    trails = !trails;
+    e.target.classList.toggle('on', trails);
+    e.target.textContent = trails ? 'trails on \u2014 board not redrawn' : 'trails off';
+  });
+
+  /** The canvas is drawn larger than it is shown, so a click has to be scaled back. */
+  function hit(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const scale = canvas.width / rect.width;
+    const layout = boardLayout(board, canvas.width, canvas.height, VIEW_HERE);
+    return cellAt(layout, board, (clientX - rect.left) * scale, (clientY - rect.top) * scale, VIEW_HERE);
+  }
+  canvas.addEventListener('click', (e) => {
+    const at = hit(e.clientX, e.clientY);
+    if (at && board.alive[at[0]][at[1]]) throwFrom(at[0], at[1]);
+  });
+  canvas.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    for (let r = 0; r < board.height; r++) {
+      for (let c = 0; c < board.width; c++) {
+        if (board.alive[r][c]) { throwFrom(r, c); return; }
+      }
+    }
+  });
+
+  deal();
+  writeControls();
+  requestAnimationFrame(frame);
+})();
+</script>
