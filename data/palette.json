@@ -1,6 +1,6 @@
 {
   "note": "Every palette is six colours a piece and a cell can both be drawn in, so what matters is that no two are confusable — including for the roughly one man in twelve with a red-green colour deficiency. Deficiencies flatten hue and leave lightness alone, so separation is bought by spreading the six in lightness rather than by spacing them evenly in hue. `core` and `key` are the glyph interior and its keyline, shared by every palette. Switch palette by changing `default`. Measured by tools/palette.js, which simulates each deficiency and reports the closest pair.",
-  "default": "trace",
+  "default": "lively",
   "core": "#101216",
   "key": "#000000",
   "palettes": {
@@ -54,12 +54,14 @@
     },
     "lively": {
       "name": "Lively",
-      "note": "Colourful without glare: the yellow stays light but softens to cream, and the green goes deep enough to stop competing with the cyan. `use` takes red, yellow, green and blue, the four of the six that sit furthest apart — dropping cyan and magenta removes the only two crowded pairs.",
+      "note": "Colourful without glare: the yellow stays light but softens to cream, and the green goes deep enough to stop competing with the cyan. Its closest pair is 0.236 against Trace's 0.171 — further apart and calmer at once. Of its six, red, yellow, green and blue stand furthest apart at 0.342, which is the set `use` would name for a four-colour run.",
       "colors": [
         { "name": "red", "hex": "#F33122" },
         { "name": "yellow", "hex": "#EFE8A7" },
         { "name": "green", "hex": "#298800" },
-        { "name": "blue", "hex": "#536CF9" }
+        { "name": "cyan", "hex": "#57B8C2" },
+        { "name": "blue", "hex": "#536CF9" },
+        { "name": "magenta", "hex": "#C201B8" }
       ]
     }
   }

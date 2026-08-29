@@ -74,3 +74,24 @@ test('an edited colour is marked as changed', () => {
   assert.equal(lines[0].changed, false);
   assert.doesNotMatch(lines[0].text, /\*/);
 });
+
+// The copier once wrote only the live colours, which silently deleted the rest of a
+// palette's definition — and the round-trip test could not see it, because the file it
+// compared against had been written by the same broken copier.
+test('copying a palette keeps every colour it defines, live or not', () => {
+  const palette = {
+    id: 'x', name: 'X', note: '',
+    defined: [
+      { name: 'a', hex: '#111111' }, { name: 'b', hex: '#222222' },
+      { name: 'c', hex: '#333333' }, { name: 'd', hex: '#444444' },
+    ],
+    use: [0, 2],
+    colors: [{ name: 'a', hex: '#111111' }, { name: 'c', hex: '#333333' }],
+  };
+  const parsed = JSON.parse(`{${paletteFileText(palette)}}`).x;
+  assert.equal(parsed.colors.length, 4, 'all four defines survive');
+  assert.deepEqual(parsed.use, [0, 2], 'and the set that is live');
+  // a palette that uses everything says nothing, rather than repeating itself
+  const all = { ...palette, use: [0, 1, 2, 3], colors: palette.defined };
+  assert.equal(JSON.parse(`{${paletteFileText(all)}}`).x.use, undefined);
+});

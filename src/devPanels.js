@@ -25,18 +25,27 @@ export function rgbToHex({ r, g, b }) {
  * you copy off the panel is what you paste back over it. `core` and `key` are shared by
  * every palette and sit at the top level of that file, so they are not part of a block.
  *
- * @param {{id: string, name: string, note: string, colors: Array}} palette - resolved.
+ * Every colour the palette DEFINES is written, not only the live ones — a palette that
+ * plays four of its six still has six, and copying back the four would throw the other
+ * two away along with any `use` that named them.
+ *
+ * @param {{id: string, name: string, note: string, colors: Array, defined?: Array,
+ *   use?: Array<number>}} palette - resolved.
  * @returns {string}
  */
 export function paletteFileText(palette) {
-  const colors = palette.colors.map((c) => `        { "name": ${JSON.stringify(c.name)}, "hex": "${c.hex}" }`);
+  const defined = palette.defined ?? palette.colors;
+  const colors = defined.map((c) => `        { "name": ${JSON.stringify(c.name)}, "hex": "${c.hex}" }`);
+  const live = palette.use ?? defined.map((_, i) => i);
+  const usesAll = live.length === defined.length && live.every((v, i) => v === i);
   return [
     `    ${JSON.stringify(palette.id)}: {`,
     `      "name": ${JSON.stringify(palette.name)},`,
     `      "note": ${JSON.stringify(palette.note)},`,
     '      "colors": [',
     colors.join(',\n'),
-    '      ]',
+    usesAll ? '      ]' : '      ],',
+    ...(usesAll ? [] : [`      "use": [${live.join(', ')}]`]),
     '    }',
     '',
   ].join('\n');
