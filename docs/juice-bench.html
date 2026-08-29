@@ -1,0 +1,1042 @@
+<title>Glyph Tracer Juice Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --paper:      #EDEEF0;
+  --surface:    #F7F8F9;
+  --ink:        #16171A;
+  --dim:        #6B6F76;
+  --hair:       #D3D6DA;
+  --accent:     #3B51D6;
+  --board-bg:   #E7E8EA;
+  --chip-cheap-bg:  #DCE8DC;  --chip-cheap-ink:  #23491F;
+  --chip-mod-bg:    #EDE6CE;  --chip-mod-ink:    #5A4711;
+  --chip-exp-bg:    #EEDAD7;  --chip-exp-ink:    #6E2318;
+  --fail:       #A3271A;
+  --pass:       #2C5E22;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:    #141518;
+    --surface:  #1C1E22;
+    --ink:      #E6E7EA;
+    --dim:      #969BA3;
+    --hair:     #2E3138;
+    --accent:   #93A2FF;
+    --chip-cheap-bg: #1E2E1C; --chip-cheap-ink: #A7CDA0;
+    --chip-mod-bg:   #322B16; --chip-mod-ink:   #DCC584;
+    --chip-exp-bg:   #34211D; --chip-exp-ink:   #E3A79C;
+    --fail:     #E8897B;
+    --pass:     #8CC57E;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:    #141518;
+  --surface:  #1C1E22;
+  --ink:      #E6E7EA;
+  --dim:      #969BA3;
+  --hair:     #2E3138;
+  --accent:   #93A2FF;
+  --chip-cheap-bg: #1E2E1C; --chip-cheap-ink: #A7CDA0;
+  --chip-mod-bg:   #322B16; --chip-mod-ink:   #DCC584;
+  --chip-exp-bg:   #34211D; --chip-exp-ink:   #E3A79C;
+  --fail:     #E8897B;
+  --pass:     #8CC57E;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Newsreader, Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.65;
+  margin: 0;
+  padding: 0 20px 96px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 780px; margin: 0 auto; }
+
+.lede { display: flex; flex-direction: column; gap: 14px; padding: 72px 0 40px; }
+.eyebrow {
+  font-family: "Martian Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--dim); margin: 0;
+}
+h1 {
+  font-size: clamp(38px, 7vw, 60px); font-weight: 300; line-height: 1.02;
+  letter-spacing: -0.022em; margin: 0; text-wrap: balance;
+}
+h1 em { font-style: italic; font-weight: 400; }
+.standfirst { font-size: 21px; line-height: 1.5; color: var(--dim); margin: 0; max-width: 34em; }
+
+h2 {
+  font-size: 30px; font-weight: 400; letter-spacing: -0.015em; line-height: 1.15;
+  margin: 0; text-wrap: balance;
+}
+h3 {
+  font-size: 20px; font-weight: 600; letter-spacing: -0.005em; margin: 0; text-wrap: balance;
+}
+section { display: flex; flex-direction: column; gap: 20px; padding: 44px 0; border-top: 1px solid var(--hair); }
+section > p, section > ul { margin: 0; }
+p { margin: 0; max-width: 65ch; }
+ul { margin: 0; padding-left: 1.25em; max-width: 65ch; display: flex; flex-direction: column; gap: 8px; }
+a { color: var(--accent); text-underline-offset: 2px; }
+strong { font-weight: 600; }
+
+code, .mono {
+  font-family: "Martian Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.78em;
+}
+code { background: var(--surface); border: 1px solid var(--hair); border-radius: 3px; padding: 0.1em 0.35em; }
+
+/* --- the bench: a framed instrument --------------------------------------- */
+.bench {
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.bench-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px;
+  padding: 11px 16px; border-bottom: 1px solid var(--hair);
+}
+.bench-head .label {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink);
+}
+.bench-head .note { font-size: 14px; color: var(--dim); line-height: 1.4; }
+.bench-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.bench canvas { display: block; width: 100%; height: auto; border-radius: 3px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+button {
+  font-family: "Martian Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink); background: var(--paper);
+  border: 1px solid var(--hair); border-radius: 3px;
+  padding: 7px 12px; cursor: pointer;
+}
+button:hover { border-color: var(--dim); }
+button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.readout {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 11px;
+  color: var(--dim); font-variant-numeric: tabular-nums;
+}
+
+/* --- data tables ---------------------------------------------------------- */
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; color: inherit; }
+th, td {
+  padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--hair);
+  font-size: 15px;
+}
+th:first-child, td:first-child { text-align: left; white-space: nowrap; }
+thead th {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim);
+}
+td.fail { color: var(--fail); font-weight: 600; }
+td.pass { color: var(--pass); }
+.swatch {
+  display: inline-block; width: 11px; height: 11px; border-radius: 2px;
+  border: 1px solid rgba(0,0,0,.28); margin-right: 7px; vertical-align: -1px;
+}
+
+/* --- ranked candidates ---------------------------------------------------- */
+.rank { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; max-width: none; }
+.rank li {
+  display: grid; grid-template-columns: 2.2rem 1fr; gap: 4px 14px;
+  padding: 18px 0; border-bottom: 1px solid var(--hair);
+}
+.rank li:first-child { border-top: 1px solid var(--hair); }
+.rank .n {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 12px; font-weight: 600;
+  color: var(--dim); padding-top: 4px; font-variant-numeric: tabular-nums;
+}
+.rank .hd { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.rank p { grid-column: 2; font-size: 16.5px; line-height: 1.55; color: var(--dim); }
+.rank p strong { color: var(--ink); font-weight: 500; }
+.chip {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 9px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 3px; white-space: nowrap;
+}
+.chip.cheap { background: var(--chip-cheap-bg); color: var(--chip-cheap-ink); }
+.chip.moderate { background: var(--chip-mod-bg); color: var(--chip-mod-ink); }
+.chip.expensive { background: var(--chip-exp-bg); color: var(--chip-exp-ink); }
+
+.callout {
+  border-left: 2px solid var(--accent); padding: 2px 0 2px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 620px) { .pair { grid-template-columns: 1fr; } }
+
+footer {
+  border-top: 1px solid var(--hair); padding-top: 24px; margin-top: 44px;
+  font-size: 14px; color: var(--dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+</style>
+
+<div class="wrap">
+
+<header class="lede">
+  <p class="eyebrow">Glyph Tracer &middot; visual research</p>
+  <h1>What the board could do <em>while it drains</em></h1>
+  <p class="standfirst">Eleven agents read the sister repos, the studio shelves and the field. Two
+  questions they could only guess at were measured instead. Everything below is a price tag, not a plan.</p>
+</header>
+
+<section>
+  <h2>The game as it stands</h2>
+  <p>Swap two pieces. One that lands on its own colour activates, fires an ability, and its cell
+  goes away. No gravity, no refill &mdash; the board drains, and the holes are the score. One swap can
+  set off a chain a dozen links deep.</p>
+  <p>What plays today: linear tweens, a stagger wave across shoved pieces, move-then-clear split
+  beats, and a shrink-with-a-turn on a destroyed cell. Everything is a candidate to sit on top of that.</p>
+</section>
+
+<section>
+  <p class="eyebrow">Measurement 01</p>
+  <h2>The keyline is the contrast mechanism</h2>
+  <p>Four colours on the board, and every glyph wears one of them on a tile wearing another. That
+  makes six pairs that all have to stay legible. Three of them don't &mdash; not by a little.</p>
+
+  <div class="bench">
+    <div class="bench-head">
+      <span class="label">WCAG contrast &middot; live palette</span>
+      <span class="note">W3C G207 sets 3:1 as the floor for graphics that carry meaning.</span>
+    </div>
+    <div class="bench-body">
+      <div class="scroll"><table id="contrast"></table></div>
+    </div>
+  </div>
+
+  <p>Red, green and blue are near-identical in luminance and differ only in hue. What separates a
+  red glyph from a green tile is the black keyline, which measures <strong>4.62:1 to 5.27:1</strong>
+  against every colour on the board. It is not a finishing touch &mdash; it is the whole mechanism, and
+  thinning it for a cleaner look breaks three pairs outright.</p>
+
+  <div class="callout">
+    <p><strong>Yellow against the paper background is 1.02:1.</strong> A yellow tile and an empty
+    cell are the same luminance. Only the gutter and the tile's own shadow tell them apart &mdash; which
+    is a problem for a game where noticing the holes is the point.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Measurement 02</p>
+  <h2>The rotations are fine. The letters collide.</h2>
+  <p>Four of the twelve glyphs are one letterform at four rotations, and the received wisdom says
+  rotated letters confuse players. Rendering each glyph as a solid silhouette and comparing every
+  pair by overlap says otherwise.</p>
+
+  <div class="bench">
+    <div class="bench-head">
+      <span class="label">Silhouette overlap &middot; intersection over union</span>
+      <span class="note">Higher means harder to tell apart at a glance.</span>
+    </div>
+    <div class="bench-body">
+      <canvas id="silhouettes" width="1400" height="170"></canvas>
+      <div class="scroll"><table id="iou"></table></div>
+    </div>
+  </div>
+
+  <p>The four rotations don't appear anywhere near the top &mdash; <strong>A</strong> is asymmetric enough
+  that turning it makes four separate shapes. The collisions are between different letters that
+  happen to share a build: <strong>H</strong> and <strong>R</strong> are both tall and two-stemmed,
+  and R against its own mirror is the old b/d problem.</p>
+  <p>Ink coverage runs 5.2% of the cell for the dot up to 9.1% for H &mdash; a 1.8&times; spread in weight
+  across a set meant to read as one family.</p>
+</section>
+
+<section>
+  <p class="eyebrow">Candidate 01 &middot; cheap</p>
+  <h2>Easing</h2>
+  <p>Linear motion reads as mechanical, because nothing starts and stops instantly. This is the
+  largest change in feel per line edited, and the sister game already runs the curve.</p>
+
+  <div class="bench">
+    <div class="bench-head">
+      <span class="label">Linear vs cubic ease-out</span>
+      <span class="note">Same distance, same duration. Only the curve differs.</span>
+    </div>
+    <div class="bench-body">
+      <canvas id="easing" width="1400" height="440"></canvas>
+      <div class="controls">
+        <button type="button" data-play="easing" aria-pressed="true">Playing</button>
+        <span class="readout" id="easing-out"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Candidate 02 &middot; cheap</p>
+  <h2>Hit stop</h2>
+  <p>Freeze everything for a beat at the instant a piece lands on its colour, then resume. The
+  apparatus already exists &mdash; a phase can already hold still. It costs a number.</p>
+
+  <div class="bench">
+    <div class="bench-head">
+      <span class="label">Four-link chain, with and without</span>
+      <span class="note">The lower board holds 70&thinsp;ms at each landing.</span>
+    </div>
+    <div class="bench-body">
+      <canvas id="hitstop" width="1400" height="420"></canvas>
+      <div class="controls">
+        <button type="button" data-play="hitstop" aria-pressed="true">Playing</button>
+        <span class="readout" id="hitstop-out"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Candidate 03 &middot; cheap</p>
+  <h2>Escalation across the chain</h2>
+  <p>A twelve-link chain plays every link identically today. Scaling the feedback with the link
+  index is the mechanic's own drama, and nothing else on this list produces it. The cap matters as
+  much as the ramp: past a point, more intensity stops reading as more.</p>
+
+  <div class="bench">
+    <div class="bench-head">
+      <span class="label">Eight links &middot; flat vs ramped</span>
+      <span class="note">Ramp raises hold, shrink speed and turn together, then caps at link six.</span>
+    </div>
+    <div class="bench-body">
+      <canvas id="escalate" width="1400" height="420"></canvas>
+      <div class="controls">
+        <button type="button" data-play="escalate" aria-pressed="true">Playing</button>
+        <span class="readout" id="escalate-out"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Candidate 04 &middot; cheap</p>
+  <h2>Sit the board in a well</h2>
+  <p>Tiles float on the page today, so a cleared cell is a hole in the page. Recess the grid and the
+  same hole becomes a hole <em>in the board</em> &mdash; a state rather than an absence of rendering. For a
+  game whose premise is that the board drains, one shadow decides whether emptiness reads as progress
+  or as a bug.</p>
+
+  <div class="bench">
+    <div class="bench-head">
+      <span class="label">The same half-drained board</span>
+      <span class="note">Identical tiles, identical holes. Only the ground changes.</span>
+    </div>
+    <div class="bench-body">
+      <canvas id="well" width="1400" height="560"></canvas>
+      <div class="controls">
+        <button type="button" id="well-toggle" aria-pressed="false">Show the well</button>
+        <span class="readout">Watch the yellow tiles &mdash; they are 1.02:1 against the paper.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Candidate 08 &middot; moderate</p>
+  <h2>A burst on the clear</h2>
+  <p>Pooled particles as filled arcs in the colour of the piece that died. Needs a new layer and a
+  clock on the frame, which the renderer doesn't carry yet.</p>
+  <p>Motion is <strong>polar about the cell that threw it</strong> &mdash; a fixed angle and a growing
+  radius, so there is no second axis for a force to act on. A burst that arced downward would be the
+  only thing on screen obeying gravity, which this board does not have. Drag pulls each grain toward a
+  slow terminal creep rather than to a stop. Every knob is on a slider in
+  <code>dev/burst.html</code>.</p>
+
+  <div class="bench">
+    <div class="bench-head">
+      <span class="label">Seeded burst &middot; tap a tile</span>
+      <span class="note">Seeded from the cell, so a run reproduces.</span>
+    </div>
+    <div class="bench-body">
+      <canvas id="burst" width="1400" height="420" tabindex="0" role="button"
+              aria-label="Tap a tile to clear it and fire a particle burst"></canvas>
+      <div class="controls">
+        <button type="button" id="burst-reset">Refill the board</button>
+        <span class="readout" id="burst-out">tap a tile</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>The whole shelf, priced</h2>
+  <p><span class="chip cheap">cheap</span> is lines inside a layer that already exists.
+  <span class="chip moderate">moderate</span> is a new layer or a new field on the frame.
+  <span class="chip expensive">expensive</span> is a new render path.</p>
+
+  <ol class="rank">
+    <li><span class="n">01</span><div class="hd"><h3>Easing on every tween</h3><span class="chip cheap">cheap</span></div>
+      <p>Cubic ease-out for a piece arriving, ease-in-out for a cell dying. <strong>treasure_trash</strong> already runs both, plus an accelerate-then-cruise curve for momentum pushes.</p></li>
+
+    <li><span class="n">02</span><div class="hd"><h3>Hit stop on activation</h3><span class="chip cheap">cheap</span></div>
+      <p>A hold in the phase list at each landing. Durations in circulation cluster at 50&ndash;200&thinsp;ms; the frame counts quoted around fighting games are not reliably sourced, so <strong>tune it rather than trust them</strong>.</p></li>
+
+    <li><span class="n">03</span><div class="hd"><h3>Segment welding</h3><span class="chip cheap">cheap</span></div>
+      <p>Consecutive steps restart the clock every beat. Merging a run into one envelope removes the stutter &mdash; exactly what a twelve-link chain needs.</p></li>
+
+    <li><span class="n">04</span><div class="hd"><h3>Escalation across the chain</h3><span class="chip cheap">cheap</span></div>
+      <p>Available today, before any new layer exists, because it is a function of values already passed to <code>phaseOf</code>.</p></li>
+
+    <li><span class="n">05</span><div class="hd"><h3>Inset the board into a well</h3><span class="chip cheap">cheap</span></div>
+      <p>One inset shadow in the ground layer. The cheapest change that makes emptiness read as progress.</p></li>
+
+    <li><span class="n">06</span><div class="hd"><h3>A flash on activation</h3><span class="chip cheap">cheap</span></div>
+      <p><code>globalCompositeOperation = 'lighter'</code> is a state flag, effectively free. Needs elapsed time on the frame first.</p></li>
+
+    <li><span class="n">07</span><div class="hd"><h3>Move preview</h3><span class="chip moderate">moderate</span></div>
+      <p>Normally expensive; here the engine already resolves a swap on a copy without committing it. A deterministic cascade is the ideal case. The argument is <strong>Into the Breach</strong>'s &mdash; sacrifice cool ideas for clarity, every time.</p></li>
+
+    <li><span class="n">08</span><div class="hd"><h3>Particle burst on a clear</h3><span class="chip moderate">moderate</span></div>
+      <p>Cost is in <code>globalAlpha</code> changes and <code>beginPath</code>/<code>arc</code> pairs, not geometry. Published per-frame figures are poorly sourced &mdash; measure.</p></li>
+
+    <li><span class="n">09</span><div class="hd"><h3>Feedback for a dud swap</h3><span class="chip moderate">moderate</span></div>
+      <p>A swap that achieves nothing currently produces nothing at all. Something is owed here.</p></li>
+
+    <li><span class="n">10</span><div class="hd"><h3>Glow and bloom</h3><span class="chip expensive">expensive</span></div>
+      <p><code>shadowBlur</code> is among the slowest canvas operations; layered strokes are the cheap approximation. A centred halo needs only zero offsets and an <em>opaque</em> shadow colour &mdash; a transparent one is what renders nothing.</p></li>
+  </ol>
+</section>
+
+<section>
+  <h2>Ruled out, with reasons</h2>
+  <ul>
+    <li><strong>Chromatic aberration, ripple, shockwave.</strong> Canvas 2D has no displacement primitive. They need <code>getImageData</code>, which stalls the pipeline. WebGL or nothing.</li>
+    <li><strong>Full-canvas trails.</strong> The renderer reassigns <code>canvas.width</code> every frame to track device pixel ratio, which wipes the buffer the trick depends on.</li>
+    <li><strong>Anything built on gravity or refill.</strong> Most match-3 technique is about falling and cascading. This board does neither.</li>
+    <li><strong>Ambient occlusion in the gutters.</strong> Invisible at tile size, muddy where it isn't.</li>
+    <li><strong>Parallax.</strong> A turn-based board has nothing to parallax against.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>One disagreement worth settling on purpose</h2>
+  <p>The research split cleanly, and both halves are defensible.</p>
+  <ul>
+    <li><strong>Decorate the clear.</strong> A burst, a flash, a pop at every activation &mdash; standard across the genre, and what makes a clear feel like a reward.</li>
+    <li><strong>Let the absence speak.</strong> Put nothing on an empty cell. Where emptiness is the score, silence reads louder than confetti, and effects piled on a hole compete with the thing they celebrate.</li>
+  </ul>
+  <div class="callout">
+    <p>They reconcile in one reading: <strong>juice the dying piece, leave the hole alone.</strong>
+    The piece is an event and can be loud. The hole is a state and should be quiet.</p>
+  </div>
+  <p>And one constraint sits over all of it: this game has no audio. Whatever the hook is, it has to
+  read silently, at phone size, in about three seconds &mdash; which puts the weight on the two things a
+  still frame can show. The chain building, and the board draining.</p>
+</section>
+
+<footer>
+  <p>Contrast figures computed from the shipped palette; overlap figures from the shipped glyph
+  geometry. Both are reproducible from the repo &mdash; the ranked shelf lives in <code>docs/JUICE.md</code>.</p>
+</footer>
+
+</div>
+
+<script>
+'use strict';
+
+const COLORS = [
+  { name: 'red',    hex: '#F33122' },
+  { name: 'yellow', hex: '#EFE8A7' },
+  { name: 'green',  hex: '#298800' },
+  { name: 'blue',   hex: '#536CF9' },
+];
+const PAPER = '#E7E8EA';
+const KEY = '#000000';
+
+/* ---- colour maths ------------------------------------------------------- */
+const srgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+const lin = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+const lum = (hex) => { const [r, g, b] = srgb(hex).map(lin); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+
+/* ---- the contrast table ------------------------------------------------- */
+(function contrastTable() {
+  const t = document.getElementById('contrast');
+  const head = document.createElement('thead');
+  const hr = document.createElement('tr');
+  hr.append(document.createElement('th'));
+  for (const c of COLORS) {
+    const th = document.createElement('th');
+    th.textContent = c.name;
+    hr.append(th);
+  }
+  const paperTh = document.createElement('th');
+  paperTh.textContent = 'paper';
+  hr.append(paperTh);
+  const keyTh = document.createElement('th');
+  keyTh.textContent = 'keyline';
+  hr.append(keyTh);
+  head.append(hr);
+  t.append(head);
+
+  const body = document.createElement('tbody');
+  for (const a of COLORS) {
+    const tr = document.createElement('tr');
+    const label = document.createElement('td');
+    const sw = document.createElement('span');
+    sw.className = 'swatch';
+    sw.style.background = a.hex;
+    label.append(sw, document.createTextNode(a.name));
+    tr.append(label);
+    for (const b of COLORS) {
+      const td = document.createElement('td');
+      if (a === b) { td.textContent = '\u2014'; td.style.color = 'var(--dim)'; }
+      else {
+        const r = ratio(a.hex, b.hex);
+        td.textContent = r.toFixed(2);
+        td.className = r < 3 ? 'fail' : 'pass';
+      }
+      tr.append(td);
+    }
+    const p = document.createElement('td');
+    const pr = ratio(a.hex, PAPER);
+    p.textContent = pr.toFixed(2);
+    p.className = pr < 3 ? 'fail' : 'pass';
+    tr.append(p);
+    const k = document.createElement('td');
+    k.textContent = ratio(a.hex, KEY).toFixed(2);
+    k.className = 'pass';
+    tr.append(k);
+    body.append(tr);
+  }
+  t.append(body);
+})();
+
+/* ---- the silhouette table ----------------------------------------------- */
+const IOU = [
+  ['anchor (H)', 'rotate (R)', 0.69],
+  ['anchor (H)', 'rotate-rev (mirrored R)', 0.69],
+  ['rotate (R)', 'rotate-rev (mirrored R)', 0.66],
+  ['rotate-rev', 'sink (S)', 0.61],
+  ['push-up (A)', 'push-down (A rotated 180\u00b0)', 0.31],
+];
+(function iouTable() {
+  const t = document.getElementById('iou');
+  t.innerHTML = '<thead><tr><th>pair</th><th>overlap</th></tr></thead>';
+  const body = document.createElement('tbody');
+  for (const [a, b, v] of IOU) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.textContent = a + '  \u00b7  ' + b;
+    const n = document.createElement('td');
+    n.textContent = v.toFixed(2);
+    n.className = v > 0.6 ? 'fail' : 'pass';
+    tr.append(td, n);
+    body.append(tr);
+  }
+  t.append(body);
+  const cap = document.createElement('caption');
+  cap.style.cssText = 'caption-side:bottom;text-align:left;padding-top:10px;font-size:14px;color:var(--dim)';
+  cap.textContent = 'The last row is the closest of the four rotations \u2014 half the overlap of the letterform collisions.';
+  t.append(cap);
+})();
+
+/* ---- shared board drawing ------------------------------------------------ */
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+function fit(cv) {
+  const w = cv.clientWidth || 700;
+  const h = cv.height / (cv.width / w);
+  cv.width = Math.round(w * DPR);
+  cv.height = Math.round(h * DPR);
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  return { ctx, w, h };
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function tile(ctx, x, y, s, hex, { scale = 1, spin = 0, glyph = null, ink = null } = {}) {
+  if (scale <= 0) return;
+  const size = s * scale;
+  const off = (s - size) / 2;
+  const cx = x + off + size / 2, cy = y + off + size / 2;
+  ctx.save();
+  if (spin) { ctx.translate(cx, cy); ctx.rotate(spin); ctx.translate(-cx, -cy); }
+  const r = size * 0.16;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.22)';
+  ctx.shadowOffsetY = size * 0.03;
+  ctx.shadowBlur = size * 0.07;
+  roundRect(ctx, x + off, y + off, size, size, r);
+  ctx.fillStyle = hex;
+  ctx.fill();
+  ctx.restore();
+  ctx.save();
+  roundRect(ctx, x + off, y + off, size, size, r);
+  ctx.clip();
+  const g = ctx.createLinearGradient(0, y + off, 0, y + off + size * 0.55);
+  g.addColorStop(0, 'rgba(255,255,255,.26)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x + off, y + off, size, size);
+  ctx.strokeStyle = 'rgba(255,255,255,.30)';
+  ctx.lineWidth = Math.max(1, size * 0.035);
+  roundRect(ctx, x + off + 2, y + off + 2, size - 4, size - 4, Math.max(0, r - 2));
+  ctx.stroke();
+  ctx.restore();
+  if (glyph) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.font = '600 ' + Math.round(size * 0.6) + 'px Newsreader, Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(1.5, size * 0.045);
+    ctx.strokeStyle = KEY;
+    ctx.strokeText(glyph, 0, size * 0.02);
+    ctx.fillStyle = ink || '#fff';
+    ctx.fillText(glyph, 0, size * 0.02);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function hole(ctx, x, y, s, { well = false } = {}) {
+  if (!well) return;
+  const r = s * 0.16;
+  ctx.save();
+  roundRect(ctx, x, y, s, s, r);
+  ctx.fillStyle = 'rgba(0,0,0,.055)';
+  ctx.fill();
+  ctx.clip();
+  ctx.strokeStyle = 'rgba(0,0,0,.13)';
+  ctx.lineWidth = 3;
+  roundRect(ctx, x, y - 2, s, s, r);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* ---- playback plumbing --------------------------------------------------- */
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rigs = {};
+function register(id, rig) {
+  rigs[id] = rig;
+  rig.playing = !REDUCED;
+  rig.t0 = performance.now();
+  const btn = document.querySelector('[data-play="' + id + '"]');
+  if (btn) {
+    btn.setAttribute('aria-pressed', String(rig.playing));
+    btn.textContent = rig.playing ? 'Playing' : 'Play';
+    btn.addEventListener('click', () => {
+      rig.playing = !rig.playing;
+      rig.t0 = performance.now() - (rig.playing ? 0 : 0);
+      btn.setAttribute('aria-pressed', String(rig.playing));
+      btn.textContent = rig.playing ? 'Playing' : 'Play';
+    });
+  }
+  rig.draw(0);
+}
+function loop(now) {
+  for (const id in rigs) {
+    const rig = rigs[id];
+    if (!rig.playing) continue;
+    rig.draw((now - rig.t0) % rig.span);
+  }
+  requestAnimationFrame(loop);
+}
+
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
+
+/* ---- 1. easing ----------------------------------------------------------- */
+(function easing() {
+  const cv = document.getElementById('easing');
+  const out = document.getElementById('easing-out');
+  const TRAVEL = 900, PAUSE = 700;
+  const rig = {
+    span: TRAVEL + PAUSE,
+    draw(ms) {
+      const { ctx, w, h } = fit(cv);
+      ctx.fillStyle = PAPER;
+      ctx.fillRect(0, 0, w, h);
+      const s = Math.min(w * 0.11, 74);
+      const gap = s * 0.09;
+      const lanes = [
+        { y: h * 0.20, label: 'linear', f: (t) => t, col: COLORS[0] },
+        { y: h * 0.56, label: 'cubic ease-out', f: easeOutCubic, col: COLORS[3] },
+      ];
+      const x0 = w * 0.07, x1 = w * 0.58;
+      const t = clamp01(ms / TRAVEL);
+      for (const lane of lanes) {
+        ctx.save();
+        ctx.setLineDash([3, 6]);
+        ctx.strokeStyle = 'rgba(0,0,0,.16)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0 + s / 2, lane.y + s / 2);
+        ctx.lineTo(x1 + s / 2, lane.y + s / 2);
+        ctx.stroke();
+        ctx.restore();
+        const e = lane.f(t);
+        tile(ctx, x0 + (x1 - x0) * e, lane.y, s, lane.col.hex, { glyph: 'A', ink: COLORS[1].hex });
+        ctx.fillStyle = 'rgba(0,0,0,.62)';
+        ctx.font = '600 12px "Martian Mono", monospace';
+        ctx.fillText(lane.label.toUpperCase(), x0, lane.y - 12);
+      }
+      // the curves themselves
+      const px = w * 0.79, py = h * 0.20, pw = w * 0.16, ph = h * 0.62;
+      ctx.strokeStyle = 'rgba(0,0,0,.14)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px, py, pw, ph);
+      for (const lane of lanes) {
+        ctx.beginPath();
+        for (let i = 0; i <= 40; i++) {
+          const u = i / 40;
+          const X = px + pw * u, Y = py + ph * (1 - lane.f(u));
+          i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+        }
+        ctx.strokeStyle = lane.col.hex;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      out.textContent = 'travel ' + TRAVEL + 'ms \u00b7 progress ' + (t * 100).toFixed(0) + '%';
+    },
+  };
+  register('easing', rig);
+})();
+
+/* ---- 2. hit stop --------------------------------------------------------- */
+(function hitstop() {
+  const cv = document.getElementById('hitstop');
+  const out = document.getElementById('hitstop-out');
+  const LINKS = 4, STEP = 260, HOLD = 70, TAIL = 800;
+  const plainSpan = LINKS * STEP + TAIL;
+  const heldSpan = LINKS * (STEP + HOLD) + TAIL;
+  const rig = {
+    span: Math.max(plainSpan, heldSpan),
+    draw(ms) {
+      const { ctx, w, h } = fit(cv);
+      ctx.fillStyle = PAPER;
+      ctx.fillRect(0, 0, w, h);
+      const s = Math.min(w * 0.105, 70);
+      const gap = s * 0.1;
+      const lanes = [
+        { y: h * 0.17, label: 'no hold', step: STEP, hold: 0 },
+        { y: h * 0.56, label: 'hold 70ms at each landing', step: STEP, hold: HOLD },
+      ];
+      for (const lane of lanes) {
+        const x0 = (w - (LINKS * (s + gap) - gap)) / 2;
+        ctx.fillStyle = 'rgba(0,0,0,.62)';
+        ctx.font = '600 12px "Martian Mono", monospace';
+        ctx.fillText(lane.label.toUpperCase(), x0, lane.y - 12);
+        for (let i = 0; i < LINKS; i++) {
+          const start = i * (lane.step + lane.hold);
+          const local = ms - start;
+          let scale = 1, spin = 0;
+          if (local >= 0) {
+            const shrink = clamp01(local / lane.step);
+            scale = 1 - shrink;
+            spin = Math.pow(shrink, 2) * Math.PI * 2;
+          }
+          const x = x0 + i * (s + gap);
+          if (scale <= 0.001) hole(ctx, x, lane.y, s, { well: false });
+          else tile(ctx, x, lane.y, s, COLORS[i % 4].hex, {
+            scale, spin, glyph: 'HRAO'[i], ink: COLORS[(i + 1) % 4].hex,
+          });
+        }
+      }
+      out.textContent = 'four links \u00b7 ' + (heldSpan - plainSpan) + 'ms longer with the holds';
+    },
+  };
+  register('hitstop', rig);
+})();
+
+/* ---- 3. escalation ------------------------------------------------------- */
+(function escalate() {
+  const cv = document.getElementById('escalate');
+  const out = document.getElementById('escalate-out');
+  const LINKS = 8, BASE = 200, CAP = 6, TAIL = 900;
+  const ramp = (i) => 1 + 0.9 * (Math.min(i, CAP) / CAP);
+  let flatEnds = [], rampEnds = [];
+  (function plan() {
+    let a = 0, b = 0;
+    for (let i = 0; i < LINKS; i++) {
+      flatEnds.push({ start: a, dur: BASE, turns: 1 });
+      a += BASE + 40;
+      const k = ramp(i);
+      rampEnds.push({ start: b, dur: BASE / k, turns: k });
+      b += BASE / k + 40 * k;
+    }
+  })();
+  const span = Math.max(flatEnds.at(-1).start + BASE, rampEnds.at(-1).start + BASE) + TAIL;
+  const rig = {
+    span,
+    draw(ms) {
+      const { ctx, w, h } = fit(cv);
+      ctx.fillStyle = PAPER;
+      ctx.fillRect(0, 0, w, h);
+      const s = Math.min(w * 0.085, 58);
+      const gap = s * 0.12;
+      const lanes = [
+        { y: h * 0.17, label: 'every link identical', plan: flatEnds },
+        { y: h * 0.56, label: 'ramped, capped at link six', plan: rampEnds },
+      ];
+      for (const lane of lanes) {
+        const x0 = (w - (LINKS * (s + gap) - gap)) / 2;
+        ctx.fillStyle = 'rgba(0,0,0,.62)';
+        ctx.font = '600 12px "Martian Mono", monospace';
+        ctx.fillText(lane.label.toUpperCase(), x0, lane.y - 12);
+        lane.plan.forEach((p, i) => {
+          const local = ms - p.start;
+          let scale = 1, spin = 0;
+          if (local >= 0) {
+            const t = clamp01(local / p.dur);
+            scale = 1 - t;
+            spin = p.turns * Math.pow(t, 2 + Math.log2(p.turns) / 2) * Math.PI * 2;
+          }
+          const x = x0 + i * (s + gap);
+          if (scale > 0.001) {
+            tile(ctx, x, lane.y, s, COLORS[i % 4].hex, {
+              scale, spin, glyph: 'HRAOSX+>'[i], ink: COLORS[(i + 2) % 4].hex,
+            });
+          }
+        });
+      }
+      out.textContent = 'link 1 turns once \u00b7 link 6 and after turn 1.9\u00d7, and land sooner';
+    },
+  };
+  register('escalate', rig);
+})();
+
+/* ---- 4. the well --------------------------------------------------------- */
+(function wellDemo() {
+  const cv = document.getElementById('well');
+  const btn = document.getElementById('well-toggle');
+  let well = false;
+  // a fixed half-drained board: 5 wide, 8 tall, some cells gone
+  const W = 5, H = 8;
+  const seedRand = (s) => () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const rnd = seedRand(708);
+  const cells = [];
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      const gone = rnd() < 0.42;
+      cells.push({ r, c, gone, col: Math.floor(rnd() * 4), g: 'HRAOSX+>v<'[Math.floor(rnd() * 10)] });
+    }
+  }
+  function draw() {
+    const { ctx, w, h } = fit(cv);
+    ctx.fillStyle = PAPER;
+    ctx.fillRect(0, 0, w, h);
+    const pad = 26;
+    const s = Math.min((w - pad * 2 - (W - 1) * 6) / W, (h - pad * 2 - (H - 1) * 6) / H);
+    const gap = 6;
+    const spanW = W * s + (W - 1) * gap, spanH = H * s + (H - 1) * gap;
+    const ox = (w - spanW) / 2, oy = (h - spanH) / 2;
+    if (well) {
+      const inset = 12;
+      ctx.save();
+      roundRect(ctx, ox - inset, oy - inset, spanW + inset * 2, spanH + inset * 2, 14);
+      ctx.fillStyle = 'rgba(0,0,0,.055)';
+      ctx.fill();
+      ctx.clip();
+      ctx.strokeStyle = 'rgba(0,0,0,.16)';
+      ctx.lineWidth = 5;
+      roundRect(ctx, ox - inset, oy - inset - 3, spanW + inset * 2, spanH + inset * 2, 14);
+      ctx.stroke();
+      ctx.restore();
+    }
+    for (const cell of cells) {
+      const x = ox + cell.c * (s + gap), y = oy + cell.r * (s + gap);
+      if (cell.gone) hole(ctx, x, y, s, { well });
+      else tile(ctx, x, y, s, COLORS[cell.col].hex, {
+        glyph: cell.g, ink: COLORS[(cell.col + 1 + Math.floor(cell.r / 3)) % 4].hex,
+      });
+    }
+  }
+  btn.addEventListener('click', () => {
+    well = !well;
+    btn.setAttribute('aria-pressed', String(well));
+    btn.textContent = well ? 'Hide the well' : 'Show the well';
+    draw();
+  });
+  draw();
+  window.addEventListener('resize', draw);
+})();
+
+/* ---- 5. particle burst --------------------------------------------------- */
+(function burstDemo() {
+  const cv = document.getElementById('burst');
+  const out = document.getElementById('burst-out');
+  const reset = document.getElementById('burst-reset');
+  const W = 8, H = 3;
+  let cells = [];
+  let parts = [];
+  let lastFrame = performance.now();
+  function fill() {
+    cells = [];
+    for (let r = 0; r < H; r++)
+      for (let c = 0; c < W; c++)
+        cells.push({ r, c, gone: false, col: (r * W + c * 3) % 4, g: 'HRAOSX+>'[(r * 3 + c) % 8] });
+    parts = [];
+    out.textContent = 'tap a tile';
+  }
+  fill();
+  reset.addEventListener('click', fill);
+
+  let geom = null;
+  function layout(w, h) {
+    const s = Math.min((w - 40 - (W - 1) * 6) / W, (h - 40 - (H - 1) * 6) / H);
+    const gap = 6;
+    const spanW = W * s + (W - 1) * gap, spanH = H * s + (H - 1) * gap;
+    return { s, gap, ox: (w - spanW) / 2, oy: (h - spanH) / 2 };
+  }
+  // Polar about the cell that threw it: the angle never changes, the radius does. There
+  // is no second axis for a force to act on, which is what keeps the throw radial on a
+  // board that has no gravity to borrow.
+  const BURST = { count: 34, speed: 3.0, push: 1.2, drag: 3.0, life: 900, fade: 1.6,
+                  size: 0.095, endSize: 0.25, scatter: 0.65, jitter: 0.5, inkMix: 0.4 };
+  function pop(cell, cx, cy, s) {
+    let n = (cell.r * 31 + cell.c * 17 + 1) * 2654435761 % 2147483647;
+    const rnd = () => (n = (n * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const ground = COLORS[cell.col].hex;
+    const ink = COLORS[(cell.col + 2) % 4].hex;
+    const spread = (Math.PI * 2 / BURST.count) * BURST.scatter;
+    for (let i = 0; i < BURST.count; i++) {
+      const even = ((i + 0.5) / BURST.count) * Math.PI * 2;
+      parts.push({
+        cx, cy,
+        a: even + (rnd() - 0.5) * 2 * spread,
+        r: s * 0.16,
+        v: BURST.speed * s * (1 + (rnd() - 0.5) * 2 * BURST.jitter),
+        born: performance.now(),
+        size: BURST.size * s * (0.6 + rnd() * 0.8),
+        hex: rnd() < BURST.inkMix ? ink : ground,
+        cell: s,
+      });
+    }
+    out.textContent = parts.length + ' particles live \u00b7 radial, seeded from the cell';
+  }
+  cv.addEventListener('click', (e) => {
+    const rect = cv.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    if (!geom) return;
+    for (const cell of cells) {
+      if (cell.gone) continue;
+      const x = geom.ox + cell.c * (geom.s + geom.gap), y = geom.oy + cell.r * (geom.s + geom.gap);
+      if (px >= x && px <= x + geom.s && py >= y && py <= y + geom.s) {
+        cell.gone = true;
+        pop(cell, x + geom.s / 2, y + geom.s / 2, geom.s);
+        return;
+      }
+    }
+  });
+  cv.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    const live = cells.filter((c) => !c.gone);
+    if (!live.length || !geom) return;
+    const cell = live[Math.floor(live.length / 2)];
+    cell.gone = true;
+    pop(cell, geom.ox + cell.c * (geom.s + geom.gap) + geom.s / 2,
+        geom.oy + cell.r * (geom.s + geom.gap) + geom.s / 2, geom.s);
+  });
+
+  function frame() {
+    const { ctx, w, h } = fit(cv);
+    geom = layout(w, h);
+    ctx.fillStyle = PAPER;
+    ctx.fillRect(0, 0, w, h);
+    for (const cell of cells) {
+      const x = geom.ox + cell.c * (geom.s + geom.gap), y = geom.oy + cell.r * (geom.s + geom.gap);
+      if (cell.gone) hole(ctx, x, y, geom.s, { well: true });
+      else tile(ctx, x, y, geom.s, COLORS[cell.col].hex, {
+        glyph: cell.g, ink: COLORS[(cell.col + 2) % 4].hex,
+      });
+    }
+    const now = performance.now();
+    const step = Math.min((now - lastFrame) / 1000, 1 / 20);
+    lastFrame = now;
+    parts = parts.filter((p) => now - p.born < BURST.life);
+    ctx.save();
+    for (const p of parts) {
+      const t = (now - p.born) / BURST.life;
+      // Drag pulls the speed toward push/drag rather than to zero, so the burst pops
+      // hard and then keeps creeping outward instead of stopping dead.
+      p.v += (BURST.push * p.cell - BURST.drag * p.v) * step;
+      p.r += p.v * step;
+      ctx.globalAlpha = Math.pow(1 - t, BURST.fade);
+      ctx.fillStyle = p.hex;
+      ctx.beginPath();
+      ctx.arc(p.cx + Math.cos(p.a) * p.r, p.cy + Math.sin(p.a) * p.r,
+              Math.max(0, p.size * (1 - t * (1 - BURST.endSize))), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    if (!parts.length && out.textContent.endsWith('cell')) { /* keep the message */ }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ---- silhouette strip ---------------------------------------------------- */
+(function silhouettes() {
+  const cv = document.getElementById('silhouettes');
+  const SET = [
+    { g: 'H', id: 'anchor' }, { g: 'R', id: 'rotate' }, { g: 'R', id: 'rotate-rev', flip: true },
+    { g: 'S', id: 'sink' }, { g: 'O', id: 'pulse' }, { g: 'X', id: 'swap-diag' },
+    { g: '+', id: 'swap-orth' }, { g: '\u00b7', id: 'inert' },
+    { g: 'A', id: 'push-up', rot: 0 }, { g: 'A', id: 'push-right', rot: 90 },
+    { g: 'A', id: 'push-down', rot: 180 }, { g: 'A', id: 'push-left', rot: 270 },
+  ];
+  function draw() {
+    const { ctx, w, h } = fit(cv);
+    ctx.clearRect(0, 0, w, h);
+    const cols = w < 460 ? 6 : 12;
+    const rows = Math.ceil(SET.length / cols);
+    const s = Math.min((w - 12) / cols, (h - 26) / rows);
+    const ox = (w - cols * s) / 2;
+    SET.forEach((item, i) => {
+      const c = i % cols, r = Math.floor(i / cols);
+      const x = ox + c * s, y = 8 + r * s;
+      const hot = ['anchor', 'rotate', 'rotate-rev'].includes(item.id);
+      ctx.save();
+      ctx.translate(x + s / 2, y + s / 2);
+      if (item.rot) ctx.rotate((item.rot * Math.PI) / 180);
+      if (item.flip) ctx.scale(-1, 1);
+      ctx.font = '600 ' + Math.round(s * 0.62) + 'px Newsreader, Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = hot ? '#A3271A' : 'rgba(0,0,0,.82)';
+      ctx.fillText(item.g, 0, s * 0.02);
+      ctx.restore();
+      ctx.font = '600 8px "Martian Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(0,0,0,.42)';
+      ctx.fillText(item.id, x + s / 2, y + s * 0.94);
+    });
+  }
+  document.fonts.ready.then(draw);
+  draw();
+  window.addEventListener('resize', draw);
+})();
+
+document.fonts.ready.then(() => {
+  for (const id in rigs) rigs[id].draw(0);
+});
+window.addEventListener('resize', () => { for (const id in rigs) rigs[id].draw(0); });
+requestAnimationFrame(loop);
+</script>

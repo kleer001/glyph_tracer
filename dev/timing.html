@@ -118,7 +118,6 @@ pre{background:var(--sunk);border:1px solid var(--rule);padding:11px;font-family
 import { blankBoard, createRecorder, applySwap, copyBoard, ANCHOR, PULSE, SINK } from '../src/board.js';
 import { buildTimeline, sampleTimeline, staticFrame, swapDurationFor } from '../src/animate.js';
 import { createCompositor } from '../src/compositor.js';
-import { playableGlyphs } from '../src/level.js';
 import { mulberry32 } from '../src/rng.js';
 import { boardLayout, createGlyphLayer, createGroundLayer, VIEW } from '../src/render.js';
 
@@ -127,7 +126,7 @@ const GLOSS = await (await fetch('../data/gloss.json')).json();
 const GEOMETRY = await (await fetch('../data/geometry.json')).json();
 const PATHS = (await (await fetch('../data/glyphPaths.json')).json()).paths;
 const SHIPPED = await (await fetch('../data/animation.json')).json();
-const GLYPHS = playableGlyphs((await (await fetch('../data/glyphs.json')).json()).glyphs);
+const GLYPHS = (await (await fetch('../data/glyphs.json')).json()).glyphs;
 const RULES = await (await fetch('../data/rules.json')).json();
 const byId = new Map(GLYPHS.map((g) => [g.id, g]));
 const rand = mulberry32(7);
