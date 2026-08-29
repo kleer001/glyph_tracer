@@ -13,6 +13,20 @@
 // times slower and finds chains three times longer, because it can build structures no
 // rule of thumb would suggest.
 //
+// What it costs, on a 5x8 at four colours. Depth keeps climbing with time and the
+// returns fall off fast, so half a second is the setting worth having: a whole run of
+// levels builds in under a minute.
+//
+//     iters   chain   cells   time
+//      3000    12-13   20-33   0.6s      <- the useful one
+//     12000    ~16     ~28     36s
+//
+// A board dealt at random offers 2-3 steps clearing 4-7 cells, for comparison.
+//
+// One caveat worth knowing before using these as levels: the annealer may rewrite which
+// glyph sits in any cell, so it packs the board with abilities and the result looks
+// nothing like a dealt board. Constraining the mix is not a knob this has yet.
+//
 // Usage:
 //   node tools/maxCombo.js                       # anneal one board, print it
 //   node tools/maxCombo.js --mode grow
@@ -38,7 +52,7 @@ const SPEC = {
   mode: { type: 'string', default: 'anneal' }, // grow | anneal | both
   boards: { type: 'number', default: 1 },
   colors: { type: 'number', default: 4 },
-  iters: { type: 'number', default: 6000 },
+  iters: { type: 'number', default: 3000 },
   seed: { type: 'number', default: 708 },
   compare: { type: 'flag', default: false },
 };
