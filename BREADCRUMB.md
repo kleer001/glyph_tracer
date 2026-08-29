@@ -10,17 +10,35 @@ drawn as Roman letters turned or mirrored and baked into SVG paths the game ship
 is **49 levels in 7 acts**: 24 authored tutorial levels that teach one character each, then
 the 25 dealt levels of the original six acts.
 
+**The whole game is four colours.** Every level, tutorial and dealt, indexes red, yellow,
+green and blue; `data/palette.json`'s `lively` defines six and its `use` names those four.
+
 **A level can carry its board as text**, so a board can be written by hand or generated and
 pasted in. `data/levels.json` is the run — nothing generates it. 153 tests pass.
+
+## What a player said
+
+One person outside the project has played it, on a build from before the four-colour work.
+They enjoyed it. Three things got in the way, and all three are now closed:
+
+- **The colours bothered them.** The palette was six hues at even weight with a yellow at
+  L 0.95 holding every scrap of chroma sRGB has — the one cell that glared. Now `lively`.
+- **They assumed it was Candy Crush and only tried adjacent swaps.** Tutorial level 2 exists
+  to break that: a board where the only swap that scores is between the two far ends.
+- **They were intimidated by how many colours there were.** Now four.
+
+That is the whole record. It is worth knowing these three decisions came from a person
+rather than from taste — and worth knowing the sample is one.
 
 ## Where things stand
 
 - **Palette is `lively` and settled — do not reopen.** The owner called further palette work
   bikeshedding. Rotation between several palettes is **deferred**, not cancelled.
-- **The four-colour question is parked.** The owner asked for the whole game at four colours
-  and then moved on before it was built. `main.js` reports what it would cost: 34 of 49
-  levels need more than four (22 of them tutorial levels, which need relabelling; 12 dealt
-  levels, which need their targets re-measured).
+- **Four colours is done.** The 24 tutorial boards were rewritten and the 25 dealt levels
+  rebuilt: act means re-measured at four, targets recomputed from them, seeds re-searched.
+  The factor column was not touched — it is the ramp, and it was never about the palette.
+  Means at four: match 10.3 on 4x4 and 12.0 on 5x8, shove 15.1, aim 13.2, wall 12.7,
+  trade 15.6, turn 16.7.
 - **Documents are deliberately stale.** The owner's instruction: let them get out of date
   until told otherwise. `SPEC.md`, `RENDER_SPEC.md` and `docs/` are all behind the code, and
   that is fine. Do not spend time on them.
@@ -41,8 +59,10 @@ pasted in. `data/levels.json` is the run — nothing generates it. 153 tests pas
 - [ ] #8 Graft **L2** from the studio — `GAME-SHEET.md` and `personas/`. Read
       `shelves/L2/README.md`. The four lenses are **cast per game**: their questions come
       from what Glyph Tracer promises and what it descends from. Authoring, not copying.
-- [ ] #9 (needs: #8) Playtest with someone who isn't the owner. `shelves/L2/PLAYTEST.md` is
-      method that stays on the shelf; what belongs in the game is what a test taught it.
+- [ ] #9 (needs: #8) Playtest properly. One informal test has happened — see above — and
+      everything it found is fixed, which means the next one will find different things.
+      `shelves/L2/PLAYTEST.md` is method that stays on the shelf; what belongs in the game
+      is what a test taught it.
 
 ## The level format
 
@@ -76,10 +96,11 @@ with a piece already on its own colour, which `randomBoard` cannot deal.
 - Only four inks are legal under that rule, so eight surrounding cells cannot be eight
   colours. Where a glyph touches one set of neighbours and not the other, **leave the
   untouched set empty** rather than filled.
-- **At four colours the rule leaves only two legal filler inks**, which is not enough for the
-  `+`, `X` and rotate levels. Verified alternative: make the four neighbours the four **A
-  rotations** in one colour — the letter carries what the colour cannot, it uses only
-  symbols already taught by that point, and it still gives exactly one answer.
+- **At four colours the rule leaves only two legal filler inks** — the game's grounds are
+  `c` for filler and `d` for the target, so only `A` and `B` match no ground. That is not
+  enough to tell four neighbours apart, so on the `+`, `X` and rotate levels the four
+  neighbours are the four **A rotations** in one colour: the letter carries what the colour
+  cannot, and every symbol used is one already taught by then.
 - `makeLevels` refuses a one-swap level with more than one answer. On a budget of one every
   swap can simply be tried, so it resolves them exhaustively rather than trusting greedy
   play — **greedy is the wrong instrument for a level built to reward reading a glyph**, and
@@ -151,6 +172,10 @@ only the live colours, so rewriting the file through it dropped every colour a `
 aside — and the round-trip test could not see it, because it compared the file against the
 same broken copier that wrote it. **A round-trip test against generated output proves
 nothing.** Assert against the definition instead.
+
+**`makeLevels` assigns seeds before it validates.** `loadRun` rightly refuses a pack whose
+dealt levels have no seed, and choosing those seeds is the tool's whole job — so it reads
+the budget itself, assigns, and only then runs the same check the game makes.
 
 **Gotchas:** the Bash tool's working directory persists across calls — use absolute paths;
 `pkill -f <name>` will kill the node process you just started as well as the old one;
