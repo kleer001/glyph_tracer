@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Glyph Tracer — silhouette sandbox</title>
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Martian+Mono:wght@400;600&display=swap">
+<style>
+:root{--paper:#E7E8EA;--panel:#F3F4F5;--sunk:#DBDDE0;--ink1:#16171A;--ink2:#53565C;--ink3:#83868D;--rule:#C5C7CB;--warn:#A3271A;--ok:#2C5E22}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink1);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:14px}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 26px 80px}
+.mono{font-family:"Martian Mono","SFMono-Regular",Consolas,monospace}
+.eyebrow{font-family:"Martian Mono",monospace;font-size:10px;font-weight:600;
+  letter-spacing:.17em;text-transform:uppercase;color:var(--ink3)}
+h1{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:10px 0 0}
+.lede{margin:12px 0 0;max-width:70ch;color:var(--ink2);line-height:1.6}
+h2{font-size:14px;font-weight:800;letter-spacing:-.01em;margin:34px 0 12px}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:18px}
+.plate{display:flex;flex-wrap:wrap;gap:10px}
+.spec{display:flex;flex-direction:column;align-items:center;gap:5px}
+.spec canvas{background:#fff;border:1px solid var(--rule);border-radius:3px;display:block}
+.spec .id{font-family:"Martian Mono",monospace;font-size:9px;color:var(--ink3)}
+table{border-collapse:collapse;margin-top:8px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 14px;text-align:right;border-bottom:1px solid var(--rule);font-size:13px}
+th:first-child,td:first-child{text-align:left}
+th{font-family:"Martian Mono",monospace;font-size:9px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink3)}
+td.warn{color:var(--warn);font-weight:700}
+td.ok{color:var(--ok)}
+.note{color:var(--ink2);margin:10px 0 0;max-width:70ch;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Glyph Tracer</p>
+  <h1>Silhouette sandbox</h1>
+  <p class="lede">Every glyph rendered as a solid shape, with its own keyline and shadow
+  turned off, then compared with every other glyph by intersection over union. A high
+  overlap means two pieces occupy the cell the same way — the thing a player has to
+  overcome to tell them apart at a glance.</p>
+
+  <h2>The plate</h2>
+  <div class="panel"><div class="plate" id="plate"></div></div>
+
+  <h2>Closest pairs</h2>
+  <div class="panel">
+    <table id="pairs"></table>
+    <p class="note" id="verdict"></p>
+  </div>
+
+  <h2>Ink coverage</h2>
+  <div class="panel">
+    <table id="cover"></table>
+    <p class="note">How much of the cell each glyph fills. A wide spread means the set does
+    not read as one family: the heaviest pieces carry more visual weight than the lightest
+    at the same size.</p>
+  </div>
+</div>
+
+<script type="module">
+import { drawGlyph } from '../src/render.js';
+import { CELL } from '../src/glyphShapes.js';
+
+const load = async (p) => (await fetch(p)).json();
+// A silhouette is the shape alone, so the glyph's own shadow has to go — it would
+// blur the edge and inflate every overlap.
+const GLOSS = { ...(await load('../data/gloss.json')), glyphShadowA: 0 };
+const GEOMETRY = await load('../data/geometry.json');
+const PATHS = (await load('../data/glyphPaths.json')).paths;
+const GLYPHS = (await load('../data/glyphs.json')).glyphs;
+
+const N = 96;
+const SOLID = { ink: '#000', core: '#000', key: '#000' };
+
+await document.fonts.ready;
+
+const plate = document.getElementById('plate');
+const masks = GLYPHS.map((glyph) => {
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = N;
+  const ctx = cv.getContext('2d');
+  ctx.scale(N / CELL, N / CELL);
+  drawGlyph(ctx, glyph, SOLID, GLOSS, GEOMETRY, N, PATHS);
+
+  const box = document.createElement('div');
+  box.className = 'spec';
+  const id = document.createElement('span');
+  id.className = 'id';
+  id.textContent = glyph.id;
+  box.append(cv, id);
+  plate.append(box);
+
+  const data = ctx.getImageData(0, 0, N, N).data;
+  const mask = new Uint8Array(N * N);
+  let on = 0;
+  for (let i = 0; i < N * N; i++) {
+    mask[i] = data[i * 4 + 3] > 128 ? 1 : 0;
+    on += mask[i];
+  }
+  return { id: glyph.id, mark: glyph.mark, mask, on };
+});
+
+const overlap = (a, b) => {
+  let both = 0;
+  let either = 0;
+  for (let i = 0; i < a.mask.length; i++) {
+    both += a.mask[i] & b.mask[i];
+    either += a.mask[i] | b.mask[i];
+  }
+  return either ? both / either : 1;
+};
+
+const pairs = [];
+for (let i = 0; i < masks.length; i++) {
+  for (let j = i + 1; j < masks.length; j++) {
+    pairs.push({ a: masks[i], b: masks[j], iou: overlap(masks[i], masks[j]) });
+  }
+}
+pairs.sort((x, y) => y.iou - x.iou);
+
+const table = (el, head, rows) => {
+  el.innerHTML = `<thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead>`;
+  const body = document.createElement('tbody');
+  for (const cells of rows) {
+    const tr = document.createElement('tr');
+    for (const cell of cells) {
+      const td = document.createElement('td');
+      td.textContent = cell.text;
+      if (cell.cls) td.className = cell.cls;
+      tr.append(td);
+    }
+    body.append(tr);
+  }
+  el.append(body);
+};
+
+table(
+  document.getElementById('pairs'),
+  ['pair', 'overlap'],
+  pairs.slice(0, 10).map((p) => [
+    { text: `${p.a.id} (${p.a.mark})  ·  ${p.b.id} (${p.b.mark})` },
+    { text: p.iou.toFixed(3), cls: p.iou > 0.6 ? 'warn' : 'ok' },
+  ]),
+);
+
+// Pieces that are the same letterform at another angle are the set's obvious suspects,
+// so say where they actually landed rather than leaving it to be eyeballed.
+const byLetter = new Map();
+for (const glyph of GLYPHS) {
+  if (!glyph.letter) continue;
+  byLetter.set(glyph.letter, (byLetter.get(glyph.letter) ?? 0) + 1);
+}
+const families = [...byLetter].filter(([, n]) => n > 1).map(([letter]) => letter);
+const rank = (p) => pairs.indexOf(p) + 1;
+const sameLetter = pairs.filter((p) => {
+  const a = GLYPHS.find((g) => g.id === p.a.id);
+  const b = GLYPHS.find((g) => g.id === p.b.id);
+  return a.letter && a.letter === b.letter;
+});
+document.getElementById('verdict').textContent = sameLetter.length
+  ? `Shared letterforms (${families.join(', ')}) make ${sameLetter.length} pairs; the closest of them `
+    + `ranks ${rank(sameLetter[0])} of ${pairs.length} at ${sameLetter[0].iou.toFixed(3)} `
+    + `(${sameLetter[0].a.id} / ${sameLetter[0].b.id}). Anything above it is two different letters colliding.`
+  : 'No two pieces share a letterform.';
+
+table(
+  document.getElementById('cover'),
+  ['glyph', 'share of cell'],
+  [...masks].sort((x, y) => x.on - y.on).map((m) => [
+    { text: `${m.id} (${m.mark})` },
+    { text: `${((m.on / (N * N)) * 100).toFixed(2)}%` },
+  ]),
+);
+</script>
+</body>
+</html>
