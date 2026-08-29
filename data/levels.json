@@ -30,24 +30,10 @@
         },
         {
           "id": 3,
-          "teaches": "A advances the line it points at",
-          "budget": 1,
-          "target": 1,
-          "note": "One column. The line above the A advances and its front piece leaves the board.",
-          "board": [
-            "cA.",
-            "cB.",
-            "cA.",
-            "dB.",
-            "cD^"
-          ]
-        },
-        {
-          "id": 4,
-          "teaches": "A pushed piece can land on its own colour and go too",
+          "teaches": "A advances the line it points at, and what it pushes lands home",
           "budget": 1,
           "target": 3,
-          "note": "The column above the A is grounded so both pieces it moves land matched. The single visible match on the board clears one and loses the level.",
+          "note": "The column above the A is grounded so both pieces it moves land matched. The one visible match on the board clears one and loses the level.",
           "board": [
             "bA.",
             "aB.",
@@ -57,25 +43,11 @@
           ]
         },
         {
-          "id": 5,
+          "id": 4,
           "teaches": "Turned over, it points the other way",
           "budget": 1,
-          "target": 1,
-          "note": "The same column and the same swap; only the letter is turned over.",
-          "board": [
-            "cDv",
-            "dB.",
-            "cA.",
-            "cB.",
-            "cA."
-          ]
-        },
-        {
-          "id": 6,
-          "teaches": "The same reward, pointing down",
-          "budget": 1,
           "target": 3,
-          "note": "The mirror of the level before it, so the reading is the only thing being asked for.",
+          "note": "The same column and the same swap; only the letter is turned.",
           "board": [
             "cDv",
             "dB.",
@@ -85,38 +57,18 @@
           ]
         },
         {
-          "id": 7,
+          "id": 5,
           "teaches": "On its side it works across",
           "budget": 1,
-          "target": 1,
-          "note": "One row. Turned on its side the A works across instead of up.",
-          "board": [
-            "cD> dB. cA. cB. cA."
-          ]
-        },
-        {
-          "id": 8,
-          "teaches": "Aim across, and both pieces pay",
-          "budget": 1,
           "target": 3,
-          "note": "Turned on its side the same board pays the same way.",
+          "note": "Turned again, and the board with it.",
           "board": [
             "cD> dB. cA. aB. bA."
           ]
         },
         {
-          "id": 9,
+          "id": 6,
           "teaches": "And the other way across",
-          "budget": 1,
-          "target": 1,
-          "note": "The mirror of the level before it.",
-          "board": [
-            "cA. cB. cA. dB. cD<"
-          ]
-        },
-        {
-          "id": 10,
-          "teaches": "And the other way",
           "budget": 1,
           "target": 3,
           "note": "The last of the four. By here the rotation should be read without counting.",
@@ -125,44 +77,22 @@
           ]
         },
         {
-          "id": 11,
+          "id": 7,
           "teaches": "O advances all four lines at once",
           "budget": 1,
-          "target": 1,
-          "note": "Every arm is one cell long, so all four neighbours go at once. The corners survive untouched, which is how the board says it does not reach them.",
-          "board": [
-            "cA. cB. cA.",
-            "cB. dB. cA.",
-            "cA. cDO cB."
-          ]
-        },
-        {
-          "id": 12,
-          "teaches": "One O, four lines, four more cleared",
-          "budget": 1,
           "target": 5,
-          "note": "Each arm is grounded to land its inner piece matched, so the O pays four times over. Six other swaps score one and fall short.",
+          "note": "Each arm is grounded to land its inner piece matched, so the O pays four times over. Other swaps score one and fall short.",
           "board": [
-            "c-- c-- aB. c-- c--",
-            "c-- c-- cA. c-- c--",
+            "... ... aB. ... ...",
+            "... ... cA. ... ...",
             "bA. cB. dA. cA. aB.",
-            "c-- c-- cB. c-- c--",
-            "c-- c-- bDO c-- c--"
+            "... ... cB. ... ...",
+            "... ... bDO ... ..."
           ]
         },
         {
-          "id": 13,
-          "teaches": "A line stops at H, and nothing past it moves",
-          "budget": 1,
-          "target": 1,
-          "note": "The line meets an H two cells along and stops. The H and everything past it do not move.",
-          "board": [
-            "cD> dB. cA. cB. cAH cB."
-          ]
-        },
-        {
-          "id": 14,
-          "teaches": "What the H stops behind it lands on its own colour",
+          "id": 8,
+          "teaches": "A line stops at H, and what it stops behind lands home",
           "budget": 1,
           "target": 3,
           "note": "The line is three long and ends at the anchor, so two pieces slide and both land matched.",
@@ -171,127 +101,65 @@
           ]
         },
         {
-          "id": 15,
+          "id": 9,
           "teaches": "+ trades above with below, and left with right",
-          "budget": 1,
-          "target": 1,
-          "note": "A diamond of four colours and nothing else, so the trade is the only thing on the board.",
-          "board": [
-            "cD+ cA^ c--",
-            "cA< d-- cA>",
-            "c-- cAv c--"
-          ]
-        },
-        {
-          "id": 16,
-          "teaches": "Both pairs land on their own colours",
           "budget": 1,
           "target": 5,
           "note": "Every cell in the diamond is grounded for the piece the + sends to it.",
           "board": [
-            "cD+ bA^ c--",
+            "cD+ bA^ ...",
             "aB< d-- bA>",
-            "c-- aBv c--"
+            "... aBv ..."
           ]
         },
         {
-          "id": 17,
+          "id": 10,
           "teaches": "X trades the corners instead",
           "budget": 1,
-          "target": 1,
-          "note": "The mirror of the + board: the corners hold the pieces and the diamond is empty.",
-          "board": [
-            "cA^ cDX cA>",
-            "c-- d-- c--",
-            "cA< c-- cAv"
-          ]
-        },
-        {
-          "id": 18,
-          "teaches": "All four corners land on theirs",
-          "budget": 1,
           "target": 5,
-          "note": "The mirror of the + proof, on the corners.",
+          "note": "The mirror of the + board, on the corners.",
           "board": [
             "bA^ cDX bA>",
-            "c-- d-- c--",
-            "aB< c-- aBv"
+            "... d-- ...",
+            "aB< ... aBv"
           ]
         },
         {
-          "id": 19,
+          "id": 11,
           "teaches": "R turns the four around it one step clockwise",
           "budget": 1,
-          "target": 1,
-          "note": "The + board again. Same four pieces, a different letter, a different result.",
-          "board": [
-            "cD@ cA^ c--",
-            "cA< d-- cA>",
-            "c-- cAv c--"
-          ]
-        },
-        {
-          "id": 20,
-          "teaches": "The whole ring lands home in one turn",
-          "budget": 1,
           "target": 5,
-          "note": "Four cells, each grounded for the piece the turn brings it.",
+          "note": "Four cells, each grounded for the piece the turn brings it. The letters say which way it went.",
           "board": [
-            "cD@ bA^ c--",
+            "cD@ bA^ ...",
             "aB< d-- aB>",
-            "c-- bAv c--"
+            "... bAv ..."
           ]
         },
         {
-          "id": 21,
+          "id": 12,
           "teaches": "Its mirror turns them back",
           "budget": 1,
-          "target": 1,
-          "note": "And again, the other way. The pair reads as a pair.",
-          "board": [
-            "cD% cA^ c--",
-            "cA< d-- cA>",
-            "c-- cAv c--"
-          ]
-        },
-        {
-          "id": 22,
-          "teaches": "The other way round, and the same reward",
-          "budget": 1,
           "target": 5,
-          "note": "The same board turned the other way, so only the letter decides whether it pays.",
+          "note": "The same board the other way, so only the letter decides where each piece lands.",
           "board": [
-            "cD% bA^ c--",
+            "cD% bA^ ...",
             "aB< d-- aB>",
-            "c-- bAv c--"
+            "... bAv ..."
           ]
         },
         {
-          "id": 23,
+          "id": 13,
           "teaches": "S opens a hole and everything falls inward",
           "budget": 1,
-          "target": 1,
-          "note": "Four arms, four colours, each one step closer to the hole — against the O level, where everything went out.",
-          "board": [
-            "c-- c-- cA. c-- c--",
-            "c-- c-- cB. c-- c--",
-            "cA. cB. dB. cA. cB.",
-            "c-- c-- cA. c-- c--",
-            "c-- c-- cDS c-- c--"
-          ]
-        },
-        {
-          "id": 24,
-          "teaches": "Everything it pulls in lands on its own colour",
-          "budget": 1,
           "target": 5,
-          "note": "Each arm is grounded for the piece the pull brings inward. Eight other swaps score and fall short.",
+          "note": "Each arm is grounded for the piece the pull brings in.",
           "board": [
-            "c-- c-- cA. c-- c--",
-            "c-- c-- aB. c-- c--",
+            "... ... cA. ... ...",
+            "... ... aB. ... ...",
             "cB. bA. dB. aB. cA.",
-            "c-- c-- bA. c-- c--",
-            "c-- c-- cDS c-- c--"
+            "... ... bA. ... ...",
+            "... ... cDS ... ..."
           ]
         }
       ]
@@ -305,7 +173,7 @@
       },
       "levels": [
         {
-          "id": 25,
+          "id": 14,
           "width": 4,
           "height": 4,
           "colors": 4,
@@ -316,7 +184,7 @@
           "seed": 20458800
         },
         {
-          "id": 26,
+          "id": 15,
           "width": 4,
           "height": 4,
           "colors": 4,
@@ -327,7 +195,7 @@
           "seed": 20466719
         },
         {
-          "id": 27,
+          "id": 16,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -338,7 +206,7 @@
           "seed": 20474638
         },
         {
-          "id": 28,
+          "id": 17,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -363,7 +231,7 @@
       },
       "levels": [
         {
-          "id": 29,
+          "id": 18,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -374,7 +242,7 @@
           "seed": 20490476
         },
         {
-          "id": 30,
+          "id": 19,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -385,7 +253,7 @@
           "seed": 20498395
         },
         {
-          "id": 31,
+          "id": 20,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -396,7 +264,7 @@
           "seed": 20506314
         },
         {
-          "id": 32,
+          "id": 21,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -407,7 +275,7 @@
           "seed": 20514233
         },
         {
-          "id": 33,
+          "id": 22,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -434,7 +302,7 @@
       },
       "levels": [
         {
-          "id": 34,
+          "id": 23,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -445,7 +313,7 @@
           "seed": 20530071
         },
         {
-          "id": 35,
+          "id": 24,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -456,7 +324,7 @@
           "seed": 20537990
         },
         {
-          "id": 36,
+          "id": 25,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -467,7 +335,7 @@
           "seed": 20545909
         },
         {
-          "id": 37,
+          "id": 26,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -478,7 +346,7 @@
           "seed": 20553828
         },
         {
-          "id": 38,
+          "id": 27,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -506,7 +374,7 @@
       },
       "levels": [
         {
-          "id": 39,
+          "id": 28,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -517,7 +385,7 @@
           "seed": 20569666
         },
         {
-          "id": 40,
+          "id": 29,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -528,7 +396,7 @@
           "seed": 20577585
         },
         {
-          "id": 41,
+          "id": 30,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -539,7 +407,7 @@
           "seed": 20585504
         },
         {
-          "id": 42,
+          "id": 31,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -565,7 +433,7 @@
       },
       "levels": [
         {
-          "id": 43,
+          "id": 32,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -576,7 +444,7 @@
           "seed": 20601342
         },
         {
-          "id": 44,
+          "id": 33,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -587,7 +455,7 @@
           "seed": 20609261
         },
         {
-          "id": 45,
+          "id": 34,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -598,7 +466,7 @@
           "seed": 20617180
         },
         {
-          "id": 46,
+          "id": 35,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -625,7 +493,7 @@
       },
       "levels": [
         {
-          "id": 47,
+          "id": 36,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -636,7 +504,7 @@
           "seed": 20633018
         },
         {
-          "id": 48,
+          "id": 37,
           "width": 5,
           "height": 8,
           "colors": 4,
@@ -647,7 +515,7 @@
           "seed": 20640940
         },
         {
-          "id": 49,
+          "id": 38,
           "width": 5,
           "height": 8,
           "colors": 4,

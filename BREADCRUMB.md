@@ -7,8 +7,13 @@ serves `main` at the repo root; the README leads with a launch link).
 
 The engine runs **twelve glyphs with twelve distinct behaviours**, none of them random,
 drawn as Roman letters turned or mirrored and baked into SVG paths the game ships. The run
-is **49 levels in 7 acts**: 24 authored tutorial levels that teach one character each, then
+is **38 levels in 7 acts**: 13 authored tutorial levels that teach one character each, then
 the 25 dealt levels of the original six acts.
+
+**Every tutorial level past the second is a trap** — a visible match that falls short beside
+one right answer, on a single swap. That is deliberate, and it is a real difficulty
+decision: the gentler levels that only demonstrated a glyph were cut for not paying the
+player anything, which left only the ones that ask whether the glyph was understood.
 
 **The whole game is four colours.** Every level, tutorial and dealt, indexes red, yellow,
 green and blue; `data/palette.json`'s `lively` defines six and its `use` names those four.
@@ -34,6 +39,8 @@ rather than from taste — and worth knowing the sample is one.
 
 - **Palette is `lively` and settled — do not reopen.** The owner called further palette work
   bikeshedding. Rotation between several palettes is **deferred**, not cancelled.
+- **A blank is a dead cell, not a green one.** Cells the lesson does not use are `...`
+  rather than `c--`, which takes green back for grounds and glyphs.
 - **Four colours is done.** The 24 tutorial boards were rewritten and the 25 dealt levels
   rebuilt: act means re-measured at four, targets recomputed from them, seeds re-searched.
   The factor column was not touched — it is the ramp, and it was never about the palette.
