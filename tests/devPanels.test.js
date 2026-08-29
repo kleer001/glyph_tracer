@@ -36,10 +36,12 @@ const CHANNELS_OK = ({ r, g, b }) => [r, g, b].every((v) => v >= 0 && v <= 255);
 
 test('the copied palette is valid JSON that parses back to the same colours', () => {
   const palette = structuredClone(resolvePalette(PACK));
-  palette.colors[2].hex = '#123456'; // pretend the picker moved one
-  // A block is what sits inside `palettes`, so it parses once wrapped back up.
+  palette.defined[2].hex = '#123456'; // pretend the picker moved one
+  // A block is what sits inside `palettes`, so it parses once wrapped back up. What it
+  // carries is everything the palette DEFINES, not the subset `use` makes live.
   const parsed = JSON.parse(`{${paletteFileText(palette)}}`)[palette.id];
-  assert.deepEqual(parsed.colors, palette.colors);
+  assert.deepEqual(parsed.colors, palette.defined);
+  assert.deepEqual(parsed.use, palette.use);
   assert.equal(parsed.name, palette.name);
   assert.equal(parsed.note, palette.note);
 });

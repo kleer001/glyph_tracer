@@ -37,9 +37,9 @@
           "board": [
             "cA.",
             "cB.",
-            "cD.",
-            "fE.",
-            "cF^"
+            "cA.",
+            "dB.",
+            "cD^"
           ]
         },
         {
@@ -50,10 +50,10 @@
           "note": "The column above the A is grounded so both pieces it moves land matched. The single visible match on the board clears one and loses the level.",
           "board": [
             "bA.",
+            "aB.",
+            "cA.",
             "dB.",
-            "cD.",
-            "fE.",
-            "cF^"
+            "cD^"
           ]
         },
         {
@@ -63,9 +63,9 @@
           "target": 1,
           "note": "The same column and the same swap; only the letter is turned over.",
           "board": [
-            "cFv",
-            "fE.",
-            "cD.",
+            "cDv",
+            "dB.",
+            "cA.",
             "cB.",
             "cA."
           ]
@@ -77,10 +77,10 @@
           "target": 3,
           "note": "The mirror of the level before it, so the reading is the only thing being asked for.",
           "board": [
-            "cFv",
-            "fE.",
-            "cD.",
+            "cDv",
             "dB.",
+            "cA.",
+            "aB.",
             "bA."
           ]
         },
@@ -91,7 +91,7 @@
           "target": 1,
           "note": "One row. Turned on its side the A works across instead of up.",
           "board": [
-            "cF> fE. cD. cB. cA."
+            "cD> dB. cA. cB. cA."
           ]
         },
         {
@@ -101,7 +101,7 @@
           "target": 3,
           "note": "Turned on its side the same board pays the same way.",
           "board": [
-            "cF> fE. cD. dB. bA."
+            "cD> dB. cA. aB. bA."
           ]
         },
         {
@@ -111,17 +111,17 @@
           "target": 1,
           "note": "The mirror of the level before it.",
           "board": [
-            "cA. cB. cD. fE. cF<"
+            "cA. cB. cA. dB. cD<"
           ]
         },
         {
           "id": 10,
-          "teaches": "And the other way across",
+          "teaches": "And the other way",
           "budget": 1,
           "target": 3,
           "note": "The last of the four. By here the rotation should be read without counting.",
           "board": [
-            "bA. dB. cD. fE. cF<"
+            "bA. aB. cA. dB. cD<"
           ]
         },
         {
@@ -131,9 +131,9 @@
           "target": 1,
           "note": "Every arm is one cell long, so all four neighbours go at once. The corners survive untouched, which is how the board says it does not reach them.",
           "board": [
-            "cA. cB. cD.",
-            "cD. fE. cA.",
-            "cB. cFO cE."
+            "cA. cB. cA.",
+            "cB. dB. cA.",
+            "cA. cDO cB."
           ]
         },
         {
@@ -143,11 +143,11 @@
           "target": 5,
           "note": "Each arm is grounded to land its inner piece matched, so the O pays four times over. Six other swaps score one and fall short.",
           "board": [
-            "c-- c-- bE. c-- c--",
+            "c-- c-- aB. c-- c--",
+            "c-- c-- cA. c-- c--",
+            "bA. cB. dA. cA. aB.",
             "c-- c-- cB. c-- c--",
-            "aD. cA. f-- cE. eB.",
-            "c-- c-- cD. cFO c--",
-            "c-- c-- dA. c-- c--"
+            "c-- c-- bDO c-- c--"
           ]
         },
         {
@@ -157,7 +157,7 @@
           "target": 1,
           "note": "The line meets an H two cells along and stops. The H and everything past it do not move.",
           "board": [
-            "cF> fE. cD. cB. cAH cE."
+            "cD> dB. cA. cB. cAH cB."
           ]
         },
         {
@@ -167,7 +167,7 @@
           "target": 3,
           "note": "The line is three long and ends at the anchor, so two pieces slide and both land matched.",
           "board": [
-            "cF> fE. cD. dB. bA. cAH cE."
+            "cD> dB. cA. aB. bA. cAH cB."
           ]
         },
         {
@@ -177,9 +177,9 @@
           "target": 1,
           "note": "A diamond of four colours and nothing else, so the trade is the only thing on the board.",
           "board": [
-            "cF+ cB. c--",
-            "cD. f-- cA.",
-            "c-- cE. c--"
+            "cD+ cA^ c--",
+            "cA< d-- cA>",
+            "c-- cAv c--"
           ]
         },
         {
@@ -189,9 +189,9 @@
           "target": 5,
           "note": "Every cell in the diamond is grounded for the piece the + sends to it.",
           "board": [
-            "cF+ eB. c--",
-            "aD. f-- dA.",
-            "c-- bE. c--"
+            "cD+ bA^ c--",
+            "aB< d-- bA>",
+            "c-- aBv c--"
           ]
         },
         {
@@ -201,9 +201,9 @@
           "target": 1,
           "note": "The mirror of the + board: the corners hold the pieces and the diamond is empty.",
           "board": [
-            "cA. cFX cD.",
-            "c-- f-- c--",
-            "cB. c-- cE."
+            "cA^ cDX cA>",
+            "c-- d-- c--",
+            "cA< c-- cAv"
           ]
         },
         {
@@ -213,9 +213,9 @@
           "target": 5,
           "note": "The mirror of the + proof, on the corners.",
           "board": [
-            "eA. cFX bD.",
-            "c-- f-- c--",
-            "dB. c-- aE."
+            "bA^ cDX bA>",
+            "c-- d-- c--",
+            "aB< c-- aBv"
           ]
         },
         {
@@ -225,9 +225,9 @@
           "target": 1,
           "note": "The + board again. Same four pieces, a different letter, a different result.",
           "board": [
-            "cF@ cB. c--",
-            "cD. f-- cA.",
-            "c-- cE. c--"
+            "cD@ cA^ c--",
+            "cA< d-- cA>",
+            "c-- cAv c--"
           ]
         },
         {
@@ -237,9 +237,9 @@
           "target": 5,
           "note": "Four cells, each grounded for the piece the turn brings it.",
           "board": [
-            "cF@ dB. c--",
-            "eD. f-- bA.",
-            "c-- aE. c--"
+            "cD@ bA^ c--",
+            "aB< d-- aB>",
+            "c-- bAv c--"
           ]
         },
         {
@@ -249,9 +249,9 @@
           "target": 1,
           "note": "And again, the other way. The pair reads as a pair.",
           "board": [
-            "cF% cB. c--",
-            "cD. f-- cA.",
-            "c-- cE. c--"
+            "cD% cA^ c--",
+            "cA< d-- cA>",
+            "c-- cAv c--"
           ]
         },
         {
@@ -261,9 +261,9 @@
           "target": 5,
           "note": "The same board turned the other way, so only the letter decides whether it pays.",
           "board": [
-            "cF% aB. c--",
-            "bD. f-- eA.",
-            "c-- dE. c--"
+            "cD% bA^ c--",
+            "aB< d-- aB>",
+            "c-- bAv c--"
           ]
         },
         {
@@ -274,10 +274,10 @@
           "note": "Four arms, four colours, each one step closer to the hole — against the O level, where everything went out.",
           "board": [
             "c-- c-- cA. c-- c--",
-            "c-- c-- cE. c-- c--",
-            "cB. cA. fE. cB. cD.",
-            "c-- c-- cD. c-- c--",
-            "c-- c-- cFS c-- c--"
+            "c-- c-- cB. c-- c--",
+            "cA. cB. dB. cA. cB.",
+            "c-- c-- cA. c-- c--",
+            "c-- c-- cDS c-- c--"
           ]
         },
         {
@@ -288,10 +288,10 @@
           "note": "Each arm is grounded for the piece the pull brings inward. Eight other swaps score and fall short.",
           "board": [
             "c-- c-- cA. c-- c--",
-            "c-- c-- aE. c-- c--",
-            "cB. bA. fE. dB. cD.",
-            "c-- c-- eD. c-- c--",
-            "c-- c-- cFS c-- c--"
+            "c-- c-- aB. c-- c--",
+            "cB. bA. dB. aB. cA.",
+            "c-- c-- bA. c-- c--",
+            "c-- c-- cDS c-- c--"
           ]
         }
       ]
@@ -308,47 +308,51 @@
           "id": 25,
           "width": 4,
           "height": 4,
-          "colors": 2,
+          "colors": 4,
           "teaches": "A glyph on its own colour activates",
           "factor": 0.33,
-          "target": 4,
+          "target": 3,
           "note": "At two colours every glyph is the opposite of its cell, so every swap that lands at all is a double hit. The player cannot fail to see the rule.",
-          "seed": 20268744
+          "seed": 20458800
         },
         {
           "id": 26,
           "width": 4,
           "height": 4,
-          "colors": 2,
+          "colors": 4,
           "teaches": "You move glyphs, not cells",
           "factor": 0.42,
-          "target": 5,
+          "target": 4,
           "note": "Same trivial palette, so attention is on what moved. The ground stays put and the shape travels.",
-          "seed": 20276663
+          "seed": 20466719
         },
         {
           "id": 27,
           "width": 5,
           "height": 8,
-          "colors": 2,
+          "colors": 4,
           "teaches": "Any two cells swap — the whole board is in reach",
           "factor": 0.5,
           "target": 6,
           "note": "Put the only two useful pieces in opposite corners. A rule taught by letting the move work is cheaper than one taught by refusing it.",
-          "seed": 20284582
+          "seed": 20474638
         },
         {
           "id": 28,
           "width": 5,
           "height": 8,
-          "colors": 3,
+          "colors": 4,
           "teaches": "A swap can miss, and the board drains",
           "factor": 0.55,
           "target": 7,
           "note": "The third colour is where choosing begins — two openings in three now pay once instead of twice, and a wasted swap costs the target.",
-          "seed": 20292501
+          "seed": 20482557
         }
-      ]
+      ],
+      "means": {
+        "4x4@4": 10.3,
+        "5x8@4": 12
+      }
     },
     {
       "id": "shove",
@@ -362,34 +366,34 @@
           "id": 29,
           "width": 5,
           "height": 8,
-          "colors": 3,
+          "colors": 4,
           "teaches": "Activating advances every line around it",
           "factor": 0.55,
-          "target": 9,
+          "target": 8,
           "note": "One O in an otherwise inert board. The player should see exactly four things move, and nothing else.",
-          "seed": 20300420
+          "seed": 20490476
         },
         {
           "id": 30,
           "width": 5,
           "height": 8,
-          "colors": 3,
+          "colors": 4,
           "teaches": "A shoved glyph can land on its own colour — the chain",
           "factor": 0.6,
-          "target": 10,
+          "target": 9,
           "note": "Author the board so the first pulse hands the player a second match it did not have to look for.",
-          "seed": 20308339
+          "seed": 20498395
         },
         {
           "id": 31,
           "width": 5,
           "height": 8,
-          "colors": 3,
+          "colors": 4,
           "teaches": "A line runs until it meets a sink",
           "factor": 0.66,
-          "target": 11,
+          "target": 10,
           "note": "The front piece falls off the board edge. Show the whole line move and one piece leave.",
-          "seed": 20316258
+          "seed": 20506314
         },
         {
           "id": 32,
@@ -400,7 +404,7 @@
           "factor": 0.7,
           "target": 11,
           "note": "Fifth colour. A pulse that hits nothing is now the expensive mistake.",
-          "seed": 20324177
+          "seed": 20514233
         },
         {
           "id": 33,
@@ -411,9 +415,12 @@
           "factor": 0.76,
           "target": 11,
           "note": "The first level whose target is out of reach without arranging one pulse to feed another.",
-          "seed": 20332096
+          "seed": 20522152
         }
-      ]
+      ],
+      "means": {
+        "5x8@4": 15.1
+      }
     },
     {
       "id": "aim",
@@ -435,7 +442,7 @@
           "factor": 0.62,
           "target": 8,
           "note": "Four A's, one of each facing, in an otherwise inert board. The drawing is the only thing saying which way it goes.",
-          "seed": 20340015
+          "seed": 20530071
         },
         {
           "id": 35,
@@ -446,42 +453,45 @@
           "factor": 0.68,
           "target": 9,
           "note": "Two pointed glyphs whose lines cross. Only one order clears the target.",
-          "seed": 20347934
+          "seed": 20537990
         },
         {
           "id": 36,
           "width": 5,
           "height": 8,
-          "colors": 5,
+          "colors": 4,
           "teaches": "Aim into a hole an earlier shove opened",
           "factor": 0.72,
           "target": 9,
           "note": "The board cannot offer this until pieces have left it. Author a line that only works second.",
-          "seed": 20355853
+          "seed": 20545909
         },
         {
           "id": 37,
           "width": 5,
           "height": 8,
-          "colors": 5,
+          "colors": 4,
           "teaches": "Two aims that meet",
           "factor": 0.78,
           "target": 10,
           "note": "Opposed pushes on the same line — the pieces between them have nowhere to go.",
-          "seed": 20363772
+          "seed": 20553828
         },
         {
           "id": 38,
           "width": 5,
           "height": 8,
-          "colors": 6,
+          "colors": 4,
           "teaches": "Direction beats force",
           "factor": 0.82,
-          "target": 10,
+          "target": 11,
           "note": "Full palette. A pulse would waste three of its four lines here; the pointed glyph spends nothing.",
-          "seed": 20371691
+          "seed": 20561747
         }
-      ]
+      ],
+      "means": {
+        "5x8@4": 13.2
+      }
     },
     {
       "id": "wall",
@@ -504,42 +514,45 @@
           "factor": 0.66,
           "target": 8,
           "note": "One anchor at the end of a long line. The player should watch a piece arrive and simply stop existing.",
-          "seed": 20379610
+          "seed": 20569666
         },
         {
           "id": 40,
           "width": 5,
           "height": 8,
-          "colors": 5,
+          "colors": 4,
           "teaches": "An anchor is a sink you can aim into",
           "factor": 0.72,
           "target": 9,
           "note": "The brake used on purpose: the only line that clears the target is the one pointed at the wall.",
-          "seed": 20387529
+          "seed": 20577585
         },
         {
           "id": 41,
           "width": 5,
           "height": 8,
-          "colors": 5,
+          "colors": 4,
           "teaches": "A line boxed between two anchors",
           "factor": 0.78,
           "target": 10,
           "note": "Nothing leaves. Everything shuffles. The player has to spend the space rather than the pieces.",
-          "seed": 20395448
+          "seed": 20585504
         },
         {
           "id": 42,
           "width": 5,
           "height": 8,
-          "colors": 6,
+          "colors": 4,
           "teaches": "The board you cannot drain",
           "factor": 0.84,
-          "target": 10,
+          "target": 11,
           "note": "Full palette and enough anchors that the rim stops helping. The target is met by choosing, not by clearing.",
-          "seed": 20403367
+          "seed": 20593423
         }
-      ]
+      ],
+      "means": {
+        "5x8@4": 12.7
+      }
     },
     {
       "id": "trade",
@@ -560,42 +573,45 @@
           "factor": 0.7,
           "target": 11,
           "note": "One + in an inert board. Four pieces move, nothing leaves, and the count does not go up — yet.",
-          "seed": 20411286
+          "seed": 20601342
         },
         {
           "id": 44,
           "width": 5,
           "height": 8,
-          "colors": 5,
+          "colors": 4,
           "teaches": "A trade can make a match that was not there",
           "factor": 0.76,
-          "target": 11,
+          "target": 12,
           "note": "Author the two cells either side of a + so that exchanging them lands both on their own colour.",
-          "seed": 20419205
+          "seed": 20609261
         },
         {
           "id": 45,
           "width": 5,
           "height": 8,
-          "colors": 5,
+          "colors": 4,
           "teaches": "The cross trades edges, the ex trades corners",
           "factor": 0.82,
-          "target": 12,
+          "target": 13,
           "note": "Both on one board, each the wrong tool for the other's job.",
-          "seed": 20427124
+          "seed": 20617180
         },
         {
           "id": 46,
           "width": 5,
           "height": 8,
-          "colors": 6,
+          "colors": 4,
           "teaches": "Trade first, fire second",
           "factor": 0.88,
-          "target": 12,
+          "target": 14,
           "note": "Full palette. The target needs a + to set up a pulse, in that order and no other.",
-          "seed": 20435043
+          "seed": 20625099
         }
-      ]
+      ],
+      "means": {
+        "5x8@4": 15.6
+      }
     },
     {
       "id": "turn",
@@ -612,36 +628,39 @@
           "id": 47,
           "width": 5,
           "height": 8,
-          "colors": 5,
+          "colors": 4,
           "teaches": "The ring turns one step",
           "factor": 0.8,
           "target": 13,
           "note": "One R. North's piece ends up east, east's south, and so on round. Nothing leaves the board.",
-          "seed": 20442962
+          "seed": 20633018
         },
         {
           "id": 48,
           "width": 5,
           "height": 8,
-          "colors": 6,
+          "colors": 4,
           "teaches": "Turn it back",
           "factor": 1,
-          "target": 15,
+          "target": 17,
           "note": "R and its mirror on one board. The same four cells, the other way round — the player has to read which is which.",
-          "seed": 20450882
+          "seed": 20640940
         },
         {
           "id": 49,
           "width": 5,
           "height": 8,
-          "colors": 6,
+          "colors": 4,
           "teaches": "The sink pulls inward and takes its own cell",
           "factor": 1.1,
-          "target": 16,
+          "target": 18,
           "note": "The last level. S draws all four lines in and dies first, so the hole it leaves is the sink they run into.",
-          "seed": 20458801
+          "seed": 20648856
         }
-      ]
+      ],
+      "means": {
+        "5x8@4": 16.7
+      }
     }
   ]
 }

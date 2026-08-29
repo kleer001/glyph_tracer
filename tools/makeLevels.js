@@ -87,7 +87,12 @@ export function seedFor({ width, height, colors, target }, mix, budget, start) {
 function main() {
   const args = parseArgs(process.argv.slice(2), { write: { type: 'flag', default: false } });
   const pack = JSON.parse(readFileSync(PACK, 'utf8'));
-  const budget = loadRun(pack, GLYPHS).budget;
+  // Not loadRun yet: a dealt level has no seed until this tool picks one, and loadRun
+  // rightly refuses a pack without them. Validation is what happens after, not before.
+  const { budget } = pack;
+  if (!Number.isInteger(budget) || budget < 1) {
+    throw new Error('a level pack needs a swap budget'); // boundary
+  }
 
   console.log('level  act         board  source    target  greedy  score  answer  seed');
   console.log('-'.repeat(81));
@@ -139,6 +144,9 @@ function main() {
       }
     }
   }
+
+  // Now that every level has one, the pack has to pass the same check the game makes.
+  loadRun(pack, GLYPHS);
 
   const total = pack.acts.reduce((n, a) => n + a.levels.length, 0);
   console.log(`\n${total} levels across ${pack.acts.length} acts, every one winnable.`);

@@ -62,7 +62,8 @@
         { "name": "cyan", "hex": "#57B8C2" },
         { "name": "blue", "hex": "#536CF9" },
         { "name": "magenta", "hex": "#C201B8" }
-      ]
+      ],
+      "use": [0, 1, 2, 4]
     }
   }
 }
