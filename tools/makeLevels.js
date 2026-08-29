@@ -34,7 +34,9 @@ function greedyClears(spec, budget) {
   const dealt = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
   const { board } = dealt;
   const candidates = swapPairs({ ...RULES, width: board.width, height: board.height });
-  return greedyPlay(board, budget, dealt.rand, candidates).cleared;
+  // `dealt.budget`, not the pack's: a level that states its own gets that many swaps, and
+  // playing a one-swap level six times over reports a number nobody can reach.
+  return greedyPlay(board, dealt.budget, dealt.rand, candidates).cleared;
 }
 
 /**

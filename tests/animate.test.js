@@ -1,15 +1,21 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dealArt } from '../src/level.js';
 import { mulberry32 } from '../src/rng.js';
 import {
   ANCHOR,
-  PULSE,
-  PUSH_LEFT,
-  SINK,
   applySwap,
   blankBoard,
+  copyBoard,
   createRecorder,
+  gain,
+  PULSE,
+  PUSH_LEFT,
+  randomBoard,
   settle,
+  SINK,
+  swapPairs,
 } from '../src/board.js';
 import {
   buildTimeline, collapseStep, sampleTimeline, staticFrame, swapDurationFor,
@@ -431,4 +437,47 @@ test('the swap phase lasts exactly as long as its swap', () => {
 
 test('a swap with no speed set fails loudly rather than guessing one', () => {
   assert.throws(() => swapDurationFor([0, 0], [1, 1], { stepMs: 200 }), /swapMsPerCell/);
+});
+
+// The rules resolve a whole cascade before any of it is drawn, so a counter reading the
+// board directly shows the final total — and "won" — while the pieces that won it are
+// still in the air. Every phase carries how much has actually landed by the end of it.
+test('a timeline says how much has cleared by each phase, not by the end', () => {
+  const rules = { width: 5, height: 8, colors: 4, adjacentOnly: false };
+  const glyphs = JSON.parse(
+    readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8'),
+  ).glyphs;
+  const timing = JSON.parse(
+    readFileSync(new URL('../data/animation.json', import.meta.url), 'utf8'),
+  );
+
+  // find a swap that actually chains, so there is something to lag behind
+  const rand = mulberry32(708);
+  const board = randomBoard(rules, { pulse: 0.25, anchor: 0.125 }, rand);
+  dealArt(board, glyphs, rand);
+  const pairs = swapPairs(rules);
+  let found = null;
+  for (const [a, z] of pairs) {
+    if (!gain(board, a, z)) continue;
+    const probe = copyBoard(board);
+    const rec = createRecorder();
+    const { activated, steps } = applySwap(probe, a, z, mulberry32(9), rec);
+    if (steps >= 3) { found = { a, z, activated, rec }; break; }
+  }
+  assert.ok(found, 'no chaining swap on the test board');
+
+  const timeline = buildTimeline({
+    before: board, swap: [found.a, found.z], recorder: found.rec, timing,
+  });
+  const counts = timeline.phases.map((p) => p.cleared);
+  assert.equal(counts[0], 0, 'the swap itself has cleared nothing');
+  assert.equal(counts.at(-1), found.activated, 'and the last phase has cleared it all');
+  for (let i = 1; i < counts.length; i++) {
+    assert.ok(counts[i] >= counts[i - 1], `the count went backwards at phase ${i}`);
+  }
+  assert.ok(counts.some((c) => c > 0 && c < found.activated),
+    'the count should pass through the middle rather than jump');
+
+  // and the sampler hands it on, so the HUD can read it
+  assert.equal(sampleTimeline(timeline, 0, timing.shake).cleared, 0);
 });

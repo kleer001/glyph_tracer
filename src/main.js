@@ -127,6 +127,10 @@ export async function start(canvas, panels) {
     deal(level.spec);
   };
 
+  /** The level as the counter should read it: mid-flight, only what has landed. */
+  const asShown = (drawList) =>
+    (playing ? { ...level, cleared: playing.clearedBefore + (drawList.cleared ?? 0) } : level);
+
   const paint = (drawList) => {
     // The canvas backing store is sized in device pixels; everything below works
     // in CSS pixels, so the transform is set once per frame rather than threaded
@@ -136,6 +140,7 @@ export async function start(canvas, panels) {
     canvas.width = Math.round(box.width * dpr);
     canvas.height = Math.round(box.height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const shown = asShown(drawList);
     scene.render(ctx, {
       width: box.width,
       height: box.height,
@@ -147,8 +152,11 @@ export async function start(canvas, panels) {
       glyphPaths: data.glyphPaths.paths,
       glyphsById,
       selected: playing ? null : selected,
-      level,
-      status: statusFor(level, !nextAfter(run, level.spec.id)),
+      level: shown,
+      // Mid-cascade the swap is already spent and the clearing has not landed, so the
+      // level reads as lost until it is not. Nothing is decided until the board settles,
+      // and saying so is also where the player learns they can cut it short.
+      status: playing ? 'tap to skip' : statusFor(shown, !nextAfter(run, level.spec.id)),
     });
   };
 
@@ -170,6 +178,7 @@ export async function start(canvas, panels) {
     const before = copyBoard(level.board);
     const shown = gain(level.board, a, z);
     const recorder = createRecorder();
+    const clearedBefore = level.cleared;
     const { activated } = applySwap(level.board, a, z, rand, recorder);
     level.swapsUsed += 1;
     level.cleared += activated;
@@ -189,6 +198,10 @@ export async function start(canvas, panels) {
     playing = {
       timeline: buildTimeline({ before, swap: [a, z], recorder, timing: data.animation }),
       startedAt: performance.now(),
+      // The rules resolved the whole cascade before any of it was drawn. The counter
+      // follows what the player can see instead, or it reads the level won while the
+      // pieces that won it are still in the air.
+      clearedBefore,
     };
     requestAnimationFrame(tick);
   };

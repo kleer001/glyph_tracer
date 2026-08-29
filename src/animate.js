@@ -191,8 +191,10 @@ export function buildTimeline({ before, swap, recorder, timing }) {
   const { stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs } = timing;
   const [a, z] = swap;
   const swapMs = swapDurationFor(a, z, timing);
+  let cleared = 0;
   const phases = [
     phaseOf({
+      cleared,
       holdMs,
       // The swap is the player's own beat, so it lasts as long as it is given
       // whether or not the two pieces differ.
@@ -223,7 +225,9 @@ export function buildTimeline({ before, swap, recorder, timing }) {
     });
 
     if (!splitBeats) {
+      cleared += activated.length;
       phases.push(phaseOf({
+        cleared,
         holdMs,
         tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
         sprites: fates.map(sprite),
@@ -235,11 +239,14 @@ export function buildTimeline({ before, swap, recorder, timing }) {
     // destroyed goes, from where it ended up. Two beats say the shove caused the
     // clearing; one beat only says they happened together.
     phases.push(phaseOf({
+      cleared, // nothing has died yet on this beat
       holdMs,
       tiles: tilesOf(snapshot, [], activated, staggerMs, shrinkMs),
       sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, shake: false })),
     }));
+    cleared += activated.length;
     phases.push(phaseOf({
+      cleared,
       holdMs,
       tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
       sprites: fates.map(sprite).map((s) => ({ ...s, from: s.to, delay: 0, moveMs: 1 })),
@@ -279,6 +286,8 @@ function sampleFrame(phase, elapsed, shake) {
   const at = (delay, duration) => clamp01((elapsed - delay) / Math.max(1, duration));
   const wobbleAt = (t) => (shake ? shake.amplitude * Math.sin(t * shake.cycles * 2 * Math.PI) : 0);
   return {
+    // how much of this swap's clearing has actually happened on screen
+    cleared: phase.cleared ?? 0,
     tiles: phase.tiles.map((tile) => {
       const t = at(tile.delay, tile.shrinkMs);
       return {
