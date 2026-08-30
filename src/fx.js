@@ -67,7 +67,16 @@ export function beamSpan(t, reach, chase = 0) {
 }
 
 /**
- * One beam: a stroke from root to tip, round-capped.
+ * One beam: a stroke from root to tip, round-capped, over a black keyline.
+ *
+ * The keyline is the same trick the glyphs use, and for the same reason: the palette
+ * puts every colour on every other colour, so a red beam crossing a green tile has
+ * almost no contrast to lean on. It is stroked first and wider, so it reads as an
+ * outline down both sides and around the cap.
+ *
+ * It is also drawn before the composite mode changes. Black adds nothing under
+ * `lighter`, so an outline drawn with the body would vanish exactly when the beam is
+ * brightest and hardest to place.
  *
  * The caller owns the envelope. It passes the width and the opacity it wants this
  * frame, because the same curve drives both and working it out twice in here is the
@@ -82,19 +91,28 @@ export function beamSpan(t, reach, chase = 0) {
  * @param {number} beam.width - stroke width this frame.
  * @param {number} beam.alpha
  * @param {string} beam.hex
- * @param {boolean} [beam.glow] - composite additively, so crossing beams brighten.
+ * @param {number} [beam.keyline] - how far the outline stands out past each side.
+ * @param {string} [beam.key] - the outline's colour.
+ * @param {boolean} [beam.glow] - composite the body additively, so crossing beams brighten.
  */
-export function drawBeam(ctx, { x, y, tipX, tipY, width, alpha, hex, glow = false }) {
+export function drawBeam(ctx, {
+  x, y, tipX, tipY, width, alpha, hex, keyline = 0, key = '#000000', glow = false,
+}) {
   if (!(alpha > 0) || !(width > 0)) return;
   ctx.save();
-  if (glow) ctx.globalCompositeOperation = 'lighter';
   ctx.globalAlpha = Math.min(1, alpha);
-  ctx.strokeStyle = hex;
-  ctx.lineWidth = width;
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(x, y);
   ctx.lineTo(tipX, tipY);
+  if (keyline > 0) {
+    ctx.strokeStyle = key;
+    ctx.lineWidth = width + keyline * 2;
+    ctx.stroke();
+  }
+  if (glow) ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = hex;
+  ctx.lineWidth = width;
   ctx.stroke();
   ctx.restore();
 }

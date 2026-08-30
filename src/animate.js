@@ -248,14 +248,22 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       cleared, // nothing has died yet on this beat
       holdMs,
       tiles: tilesOf(snapshot, [], activated, staggerMs, shrinkMs),
-      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, spin: false, fades: false })),
+      // The cell holds its ground for this beat, but a doomed piece is already going:
+      // it leaves while the ability it fired is still travelling, so the two read as
+      // one event. A fade longer than this beat is cut off by the next one, which is
+      // why it is meant to be the quickest clock in the file.
+      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, spin: false })),
     }));
     cleared += activated.length;
     phases.push(phaseOf({
       cleared,
       holdMs,
       tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
-      sprites: fates.map(sprite).map((s) => ({ ...s, from: s.to, delay: 0, moveMs: 1 })),
+      // By now the piece has gone and only the ground is still collapsing, so the fade
+      // is spent rather than run again from full.
+      sprites: fates.map(sprite).map((s) => ({
+        ...s, from: s.to, delay: 0, moveMs: 1, glyphFadeMs: s.fades ? 1 : s.glyphFadeMs,
+      })),
     }));
   }
   return { phases, totalMs: phases.reduce((sum, p) => sum + p.tweenMs + p.holdMs, 0) };

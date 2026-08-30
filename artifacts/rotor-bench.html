@@ -77,6 +77,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       <h2>The beams</h2>
       <div class="row"><label for="dur">travel</label><input type="range" id="dur" min="80" max="1400" step="20"><output id="dur-o"></output></div>
       <div class="row"><label for="width">width</label><input type="range" id="width" min="2" max="70" step="1"><output id="width-o"></output></div>
+      <div class="row"><label for="outline">outline</label><input type="range" id="outline" min="0" max="14" step="1"><output id="outline-o"></output></div>
       <div class="row"><label for="swell">swell</label><input type="range" id="swell" min="5" max="40" step="1"><output id="swell-o"></output></div>
       <div class="row"><label for="grip">grip</label><input type="range" id="grip" min="30" max="120" step="5"><output id="grip-o"></output></div>
       <div class="row"><label for="alpha">alpha</label><input type="range" id="alpha" min="10" max="100" step="5"><output id="alpha-o"></output></div>
@@ -87,7 +88,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     <div class="grp">
       <h2>The cell going</h2>
       <div class="row"><label for="shrink">shrink</label><input type="range" id="shrink" min="80" max="900" step="20"><output id="shrink-o"></output></div>
-      <div class="row"><label for="fadems">symbol</label><input type="range" id="fadems" min="20" max="600" step="10"><output id="fadems-o"></output></div>
+      <div class="row"><label for="fadems">symbol</label><input type="range" id="fadems" min="20" max="200" step="10"><output id="fadems-o"></output></div>
       <div class="row"><label for="turns">turns</label><input type="range" id="turns" min="0" max="30" step="1"><output id="turns-o"></output></div>
       <div class="row"><label for="rate">rate</label><input type="range" id="rate" min="10" max="200" step="5"><output id="rate-o"></output></div>
     </div>
@@ -1141,14 +1142,22 @@ function buildTimeline({ before, swap, recorder, timing }) {
       cleared, // nothing has died yet on this beat
       holdMs,
       tiles: tilesOf(snapshot, [], activated, staggerMs, shrinkMs),
-      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, spin: false, fades: false })),
+      // The cell holds its ground for this beat, but a doomed piece is already going:
+      // it leaves while the ability it fired is still travelling, so the two read as
+      // one event. A fade longer than this beat is cut off by the next one, which is
+      // why it is meant to be the quickest clock in the file.
+      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, spin: false })),
     }));
     cleared += activated.length;
     phases.push(phaseOf({
       cleared,
       holdMs,
       tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
-      sprites: fates.map(sprite).map((s) => ({ ...s, from: s.to, delay: 0, moveMs: 1 })),
+      // By now the piece has gone and only the ground is still collapsing, so the fade
+      // is spent rather than run again from full.
+      sprites: fates.map(sprite).map((s) => ({
+        ...s, from: s.to, delay: 0, moveMs: 1, glyphFadeMs: s.fades ? 1 : s.glyphFadeMs,
+      })),
     }));
   }
   return { phases, totalMs: phases.reduce((sum, p) => sum + p.tweenMs + p.holdMs, 0) };
@@ -1850,7 +1859,16 @@ function beamSpan(t, reach, chase = 0) {
 }
 
 /**
- * One beam: a stroke from root to tip, round-capped.
+ * One beam: a stroke from root to tip, round-capped, over a black keyline.
+ *
+ * The keyline is the same trick the glyphs use, and for the same reason: the palette
+ * puts every colour on every other colour, so a red beam crossing a green tile has
+ * almost no contrast to lean on. It is stroked first and wider, so it reads as an
+ * outline down both sides and around the cap.
+ *
+ * It is also drawn before the composite mode changes. Black adds nothing under
+ * `lighter`, so an outline drawn with the body would vanish exactly when the beam is
+ * brightest and hardest to place.
  *
  * The caller owns the envelope. It passes the width and the opacity it wants this
  * frame, because the same curve drives both and working it out twice in here is the
@@ -1865,19 +1883,28 @@ function beamSpan(t, reach, chase = 0) {
  * @param {number} beam.width - stroke width this frame.
  * @param {number} beam.alpha
  * @param {string} beam.hex
- * @param {boolean} [beam.glow] - composite additively, so crossing beams brighten.
+ * @param {number} [beam.keyline] - how far the outline stands out past each side.
+ * @param {string} [beam.key] - the outline's colour.
+ * @param {boolean} [beam.glow] - composite the body additively, so crossing beams brighten.
  */
-function drawBeam(ctx, { x, y, tipX, tipY, width, alpha, hex, glow = false }) {
+function drawBeam(ctx, {
+  x, y, tipX, tipY, width, alpha, hex, keyline = 0, key = '#000000', glow = false,
+}) {
   if (!(alpha > 0) || !(width > 0)) return;
   ctx.save();
-  if (glow) ctx.globalCompositeOperation = 'lighter';
   ctx.globalAlpha = Math.min(1, alpha);
-  ctx.strokeStyle = hex;
-  ctx.lineWidth = width;
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(x, y);
   ctx.lineTo(tipX, tipY);
+  if (keyline > 0) {
+    ctx.strokeStyle = key;
+    ctx.lineWidth = width + keyline * 2;
+    ctx.stroke();
+  }
+  if (glow) ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = hex;
+  ctx.lineWidth = width;
   ctx.stroke();
   ctx.restore();
 }
@@ -1970,6 +1997,11 @@ function drawBeam(ctx, { x, y, tipX, tipY, width, alpha, hex, glow = false }) {
       const bt = clamp01(t);
       if (t <= 0 || t >= 1) return;
       const layout = frame.layout;
+      // A beam that outran the board would paint over whatever sits beside it, the
+      // way a shoved piece would without the glyph layer's clip. Same bound, same reason.
+      c2.beginPath();
+      c2.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
+      c2.clip();
       const at = centreOf(layout, p.origin[0], p.origin[1]);
       const env = swellAt(bt, state.swell / 10);
       const seconds = frame.elapsed / 1000;
@@ -1993,6 +2025,8 @@ function drawBeam(ctx, { x, y, tipX, tipY, width, alpha, hex, glow = false }) {
           width: (state.width / 100) * layout.cell * env + 1,
           alpha: (state.alpha / 100) * env,
           hex: state.useink ? p.ink : p.ground,
+          keyline: state.outline,
+          key: PALETTE.key,
           glow: state.glow,
         });
       }
@@ -2045,25 +2079,25 @@ function drawBeam(ctx, { x, y, tipX, tipY, width, alpha, hex, glow = false }) {
   }
 
   const KEYS = ['dur', 'width', 'swell', 'grip', 'alpha', 'delay',
-    'shrink', 'fadems', 'turns', 'rate'];
+    'outline', 'shrink', 'fadems', 'turns', 'rate'];
   const FLAGS = ['glow', 'useink'];
   const PRESETS = {
-    grip:   { dur: 420, width: 16, swell: 10, grip: 100, alpha: 90,  delay: 0,  shrink: 220, fadems: 90,  turns: 25, rate: 100, glow: false, useink: true },
-    drag:   { dur: 520, width: 22, swell: 8,  grip: 100, alpha: 95,  delay: 0,  shrink: 260, fadems: 110, turns: 25, rate: 100, glow: true,  useink: true },
-    lash:   { dur: 300, width: 10, swell: 16, grip: 95,  alpha: 100, delay: 0,  shrink: 200, fadems: 60,  turns: 25, rate: 100, glow: true,  useink: true },
-    quiet:  { dur: 620, width: 8,  swell: 8,  grip: 80,  alpha: 45,  delay: 0,  shrink: 400, fadems: 150, turns: 25, rate: 100, glow: false, useink: false },
-    clamp:  { dur: 360, width: 34, swell: 12, grip: 100, alpha: 95,  delay: 0,  shrink: 200, fadems: 70,  turns: 25, rate: 100, glow: false, useink: true },
-    tether: { dur: 800, width: 6,  swell: 6,  grip: 110, alpha: 60,  delay: 0,  shrink: 320, fadems: 120, turns: 25, rate: 100, glow: false, useink: true },
-    reel:   { dur: 460, width: 18, swell: 11, grip: 60,  alpha: 90,  delay: 0,  shrink: 240, fadems: 90,  turns: 25, rate: 100, glow: false, useink: true },
-    halo:   { dur: 540, width: 28, swell: 7,  grip: 70,  alpha: 55,  delay: 0,  shrink: 280, fadems: 100, turns: 25, rate: 100, glow: true,  useink: false },
-    snare:  { dur: 240, width: 14, swell: 18, grip: 100, alpha: 100, delay: 0,  shrink: 180, fadems: 50,  turns: 25, rate: 100, glow: true,  useink: true },
-    anchor: { dur: 700, width: 40, swell: 9,  grip: 90,  alpha: 100, delay: 0,  shrink: 340, fadems: 130, turns: 25, rate: 100, glow: false, useink: true },
+    grip:   { dur: 420, width: 16, outline: 4, swell: 10, grip: 100, alpha: 90,  delay: 0,  shrink: 220, fadems: 90,  turns: 25, rate: 100, glow: false, useink: true },
+    drag:   { dur: 520, width: 22, outline: 4, swell: 8,  grip: 100, alpha: 95,  delay: 0,  shrink: 260, fadems: 110, turns: 25, rate: 100, glow: true,  useink: true },
+    lash:   { dur: 300, width: 10, outline: 3, swell: 16, grip: 95,  alpha: 100, delay: 0,  shrink: 200, fadems: 60,  turns: 25, rate: 100, glow: true,  useink: true },
+    quiet:  { dur: 620, width: 8,  outline: 3,  swell: 8,  grip: 80,  alpha: 45,  delay: 0,  shrink: 400, fadems: 150, turns: 25, rate: 100, glow: false, useink: false },
+    clamp:  { dur: 360, width: 34, outline: 4, swell: 12, grip: 100, alpha: 95,  delay: 0,  shrink: 200, fadems: 70,  turns: 25, rate: 100, glow: false, useink: true },
+    tether: { dur: 800, width: 6,  outline: 3,  swell: 6,  grip: 110, alpha: 60,  delay: 0,  shrink: 320, fadems: 120, turns: 25, rate: 100, glow: false, useink: true },
+    reel:   { dur: 460, width: 18, outline: 4, swell: 11, grip: 60,  alpha: 90,  delay: 0,  shrink: 240, fadems: 90,  turns: 25, rate: 100, glow: false, useink: true },
+    halo:   { dur: 540, width: 28, outline: 4, swell: 7,  grip: 70,  alpha: 55,  delay: 0,  shrink: 280, fadems: 100, turns: 25, rate: 100, glow: true,  useink: false },
+    snare:  { dur: 240, width: 14, outline: 4, swell: 18, grip: 100, alpha: 100, delay: 0,  shrink: 180, fadems: 50,  turns: 25, rate: 100, glow: true,  useink: true },
+    anchor: { dur: 700, width: 40, outline: 4, swell: 9,  grip: 90,  alpha: 100, delay: 0,  shrink: 340, fadems: 130, turns: 25, rate: 100, glow: false, useink: true },
   };
-  const state = { ...PRESETS.grip };
+  const state = { ...PRESETS.halo };
   const SHOWN = {
     dur: (v) => `${v}ms`, delay: (v) => `${v}ms`, shrink: (v) => `${v}ms`,
     fadems: (v) => `${v}ms`,
-    width: (v) => `${v}%`, grip: (v) => `${v}%`,
+    width: (v) => `${v}%`, outline: (v) => `${v}px`, grip: (v) => `${v}%`,
     alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
     swell: (v) => (v / 10).toFixed(1),
     turns: (v) => `${Math.round((v / 100) * 360)}deg`,
@@ -2081,6 +2115,7 @@ function drawBeam(ctx, { x, y, tipX, tipY, width, alpha, hex, glow = false }) {
         travelMs: state.dur,
         delayMs: state.delay,
         width: state.width / 100,
+        outlinePx: state.outline,
         swell: state.swell / 10,
         grip: state.grip / 100,
         alpha: state.alpha / 100,

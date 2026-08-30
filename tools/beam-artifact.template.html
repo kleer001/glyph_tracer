@@ -78,6 +78,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       <div class="row"><label for="reach">reach</label><input type="range" id="reach" min="5" max="60" step="1"><output id="reach-o"></output></div>
       <div class="row"><label for="dur">travel</label><input type="range" id="dur" min="80" max="1400" step="20"><output id="dur-o"></output></div>
       <div class="row"><label for="width">width</label><input type="range" id="width" min="2" max="70" step="1"><output id="width-o"></output></div>
+      <div class="row"><label for="outline">outline</label><input type="range" id="outline" min="0" max="14" step="1"><output id="outline-o"></output></div>
       <div class="row"><label for="swell">swell</label><input type="range" id="swell" min="5" max="40" step="1"><output id="swell-o"></output></div>
       <div class="row"><label for="chase">chase</label><input type="range" id="chase" min="0" max="100" step="5"><output id="chase-o"></output></div>
       <div class="row"><label for="alpha">alpha</label><input type="range" id="alpha" min="10" max="100" step="5"><output id="alpha-o"></output></div>
@@ -88,7 +89,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     <div class="grp">
       <h2>The cell going</h2>
       <div class="row"><label for="shrink">shrink</label><input type="range" id="shrink" min="80" max="900" step="20"><output id="shrink-o"></output></div>
-      <div class="row"><label for="fadems">symbol</label><input type="range" id="fadems" min="20" max="600" step="10"><output id="fadems-o"></output></div>
+      <div class="row"><label for="fadems">symbol</label><input type="range" id="fadems" min="20" max="200" step="10"><output id="fadems-o"></output></div>
       <div class="row"><label for="turns">turns</label><input type="range" id="turns" min="0" max="30" step="1"><output id="turns-o"></output></div>
       <div class="row"><label for="rate">rate</label><input type="range" id="rate" min="10" max="200" step="5"><output id="rate-o"></output></div>
     </div>
@@ -232,6 +233,11 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       const bt = clamp01((frame.elapsed - p.firedAt - state.delay) / state.dur);
       if (bt <= 0 || bt >= 1) return;
       const layout = frame.layout;
+      // A beam that outran the board would paint over whatever sits beside it, the
+      // way a shoved piece would without the glyph layer's clip. Same bound, same reason.
+      c2.beginPath();
+      c2.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
+      c2.clip();
       const at = centreOf(layout, p.origin[0], p.origin[1]);
       const step = layout.cell + VIEW_HERE.gap;
       const env = swellAt(bt, state.swell / 10);
@@ -247,6 +253,8 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
         width: (state.width / 100) * layout.cell * env + 1,
         alpha: (state.alpha / 100) * env,
         hex: state.useink ? p.ink : p.ground,
+        keyline: state.outline,
+        key: PALETTE.key,
         glow: state.glow,
       });
     },
@@ -299,26 +307,26 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   }
 
   const KEYS = ['reach', 'dur', 'width', 'swell', 'chase', 'alpha', 'delay',
-    'shrink', 'fadems', 'turns', 'rate'];
+    'outline', 'shrink', 'fadems', 'turns', 'rate'];
   const FLAGS = ['glow', 'useink'];
   const PRESETS = {
-    lance:   { reach: 30, dur: 420, width: 22, swell: 10, chase: 0,  alpha: 90,  delay: 0,  shrink: 200, fadems: 90,  turns: 10, rate: 100, glow: false, useink: true },
-    bolt:    { reach: 34, dur: 300, width: 26, swell: 14, chase: 70, alpha: 95,  delay: 30, shrink: 200, fadems: 80,  turns: 10, rate: 100, glow: true,  useink: true },
-    tracer:  { reach: 45, dur: 260, width: 8,  swell: 16, chase: 85, alpha: 100, delay: 0,  shrink: 180, fadems: 60,  turns: 10, rate: 100, glow: true,  useink: true },
-    shove:   { reach: 14, dur: 260, width: 46, swell: 8,  chase: 0,  alpha: 85,  delay: 0,  shrink: 220, fadems: 70,  turns: 10, rate: 100, glow: false, useink: true },
-    ghost:   { reach: 40, dur: 900, width: 14, swell: 6,  chase: 25, alpha: 40,  delay: 60, shrink: 320, fadems: 160, turns: 5,  rate: 100, glow: true,  useink: false },
-    snap:    { reach: 22, dur: 180, width: 34, swell: 20, chase: 0,  alpha: 100, delay: 0,  shrink: 160, fadems: 50,  turns: 15, rate: 100, glow: false, useink: true },
-    sabre:   { reach: 32, dur: 520, width: 30, swell: 9,  chase: 40, alpha: 90,  delay: 20, shrink: 260, fadems: 100, turns: 10, rate: 100, glow: true,  useink: true },
-    whisper: { reach: 26, dur: 700, width: 6,  swell: 7,  chase: 0,  alpha: 35,  delay: 40, shrink: 300, fadems: 140, turns: 5,  rate: 100, glow: false, useink: false },
-    ram:     { reach: 10, dur: 320, width: 60, swell: 12, chase: 0,  alpha: 100, delay: 0,  shrink: 200, fadems: 60,  turns: 20, rate: 100, glow: false, useink: true },
-    comet:   { reach: 50, dur: 620, width: 18, swell: 11, chase: 95, alpha: 95,  delay: 0,  shrink: 240, fadems: 90,  turns: 10, rate: 100, glow: true,  useink: true },
+    lance:   { reach: 30, dur: 420, width: 22, outline: 4, swell: 10, chase: 0,  alpha: 90,  delay: 0,  shrink: 200, fadems: 90,  turns: 10, rate: 100, glow: false, useink: true },
+    bolt:    { reach: 34, dur: 300, width: 26, outline: 4, swell: 14, chase: 70, alpha: 95,  delay: 30, shrink: 200, fadems: 80,  turns: 10, rate: 100, glow: true,  useink: true },
+    tracer:  { reach: 45, dur: 260, width: 8,  outline: 3,  swell: 16, chase: 85, alpha: 100, delay: 0,  shrink: 180, fadems: 60,  turns: 10, rate: 100, glow: true,  useink: true },
+    shove:   { reach: 14, dur: 260, width: 46, outline: 4, swell: 8,  chase: 0,  alpha: 85,  delay: 0,  shrink: 220, fadems: 70,  turns: 10, rate: 100, glow: false, useink: true },
+    ghost:   { reach: 40, dur: 900, width: 14, outline: 4, swell: 6,  chase: 25, alpha: 40,  delay: 60, shrink: 320, fadems: 160, turns: 5,  rate: 100, glow: true,  useink: false },
+    snap:    { reach: 22, dur: 180, width: 34, outline: 4, swell: 20, chase: 0,  alpha: 100, delay: 0,  shrink: 160, fadems: 50,  turns: 15, rate: 100, glow: false, useink: true },
+    sabre:   { reach: 32, dur: 520, width: 30, outline: 4, swell: 9,  chase: 40, alpha: 90,  delay: 20, shrink: 260, fadems: 100, turns: 10, rate: 100, glow: true,  useink: true },
+    whisper: { reach: 26, dur: 700, width: 6,  outline: 3,  swell: 7,  chase: 0,  alpha: 35,  delay: 40, shrink: 300, fadems: 140, turns: 5,  rate: 100, glow: false, useink: false },
+    ram:     { reach: 10, dur: 320, width: 60, outline: 4, swell: 12, chase: 0,  alpha: 100, delay: 0,  shrink: 200, fadems: 60,  turns: 20, rate: 100, glow: false, useink: true },
+    comet:   { reach: 50, dur: 620, width: 18, outline: 4, swell: 11, chase: 95, alpha: 95,  delay: 0,  shrink: 240, fadems: 90,  turns: 10, rate: 100, glow: true,  useink: true },
   };
-  const state = { ...PRESETS.lance };
+  const state = { ...PRESETS.tracer };
   const SHOWN = {
     reach: (v) => `${(v / 10).toFixed(1)}c`,
     dur: (v) => `${v}ms`, delay: (v) => `${v}ms`, shrink: (v) => `${v}ms`,
     fadems: (v) => `${v}ms`,
-    width: (v) => `${v}%`, fade: (v) => `${v}%`,
+    width: (v) => `${v}%`, outline: (v) => `${v}px`, fade: (v) => `${v}%`,
     chase: (v) => `${v}%`, alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
     swell: (v) => (v / 10).toFixed(1),
     turns: (v) => (v / 10).toFixed(1),
@@ -336,6 +344,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
         travelMs: state.dur,
         delayMs: state.delay,
         width: state.width / 100,
+        outlinePx: state.outline,
         swell: state.swell / 10,
         chase: state.chase / 100,
         alpha: state.alpha / 100,

@@ -565,3 +565,47 @@ test('a phase lasts long enough for a fade slower than the shrink', () => {
   });
   assert.ok(slow.totalMs > quick.totalMs, 'the longer fade holds the phase open');
 });
+
+// The piece leaves with the ability it fired, not a beat behind it: the fade runs on
+// the movement beat, while a beam thrown from that cell is still travelling.
+test('with split beats a doomed piece is already going while the shove plays', () => {
+  const b = bareBoard();
+  b.bg[3][2] = 1;
+  place(b, 3, 2, { glyph: 1 });
+  const recorder = createRecorder();
+  settle(b, rand, recorder);
+  const timing = { ...TIMING, splitBeats: true, shrinkMs: 400, glyphFadeMs: 100 };
+  const timeline = buildTimeline({ before: b, swap: [[3, 2], [3, 2]], recorder, timing });
+
+  const move = timeline.phases[1];
+  const doomed = move.sprites.find((s) => s.fades);
+  assert.ok(doomed, 'the piece is marked as going on the movement beat');
+
+  // and by the destroying beat the fade is spent rather than restarting from full
+  const destroy = timeline.phases[2];
+  const spent = destroy.sprites.find((s) => s.fades);
+  assert.ok(spent, 'the same piece is still listed');
+  assert.equal(spent.glyphFadeMs, 1, 'but with nothing left to fade');
+});
+
+test('a piece that survives the step keeps its opacity through both beats', () => {
+  const b = bareBoard();
+  b.bg[0][3] = 1;
+  place(b, 0, 3, { glyph: 1, kind: PUSH_LEFT });
+  place(b, 0, 2, { glyph: 2 });
+  place(b, 0, 1, { glyph: 3 });
+  const recorder = createRecorder();
+  settle(b, rand, recorder);
+  const timing = { ...TIMING, splitBeats: true, glyphFadeMs: 100 };
+  const timeline = buildTimeline({ before: b, swap: [[0, 3], [0, 3]], recorder, timing });
+  for (const phase of timeline.phases) {
+    for (const sprite of phase.sprites) {
+      if (sprite.fades) continue;
+      const frame = sampleTimeline(timeline, 1, SPIN);
+      assert.ok(frame.sprites.every((s) => s.alpha === 1 || s.alpha < 1),
+        'every piece has a defined opacity');
+    }
+  }
+  const shoved = timeline.phases[1].sprites.filter((s) => !s.fades);
+  assert.ok(shoved.length, 'the shoved run is not fading');
+});
