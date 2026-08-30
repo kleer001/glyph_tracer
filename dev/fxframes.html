@@ -174,26 +174,48 @@ const fxLayer = {
       }
     }
 
-    // --- ghosts --------------------------------------------------------------
-    // An anchor holds its place when it swallows, so its pulse is small; when it
-    // matches and goes it swells the whole way. Simultaneous swallows are one event.
+  },
+};
+
+/**
+ * The ghost sits ABOVE the pieces, unlike a beam. A beam is holding something, so it
+ * belongs behind it; a ghost is coming off the piece itself, and behind the glyph a
+ * ten-percent outline is entirely hidden by the glyph that cast it.
+ */
+const ghostLayer = {
+  name: 'ghost',
+  draw(c2, frame) {
+    const { layout, elapsed } = frame;
+    const [r, c] = scene.at;
+    const glyph = byId.get(scene.before.art[r][c]);
+    const ink = PALETTE.colors[scene.before.glyph[r][c]].hex;
+    const since = elapsed - scene.firedAt;
     const ghosts = [];
-    if (glyph.exit === 'ghost') {
-      const swallowed = new Set();
-      for (const step of scene.recorder.steps) {
-        for (const e of step.events) {
-          if (e.type === 'eat' && e.reason === 'eater') swallowed.add(String(e.into));
-        }
-      }
-      for (const into of swallowed) {
-        const cell = into.split(',').map(Number);
-        ghosts.push({ cell, grow: ANIM.ghost.swallowGrow, glyph: byId.get(scene.before.art[cell[0]][cell[1]]),
-          ink: PALETTE.colors[scene.before.glyph[cell[0]][cell[1]]].hex });
-      }
-      if (scene.name === 'anchorClear') {
-        ghosts.push({ cell: scene.at, grow: ANIM.ghost.clearGrow, glyph, ink });
+    // A swallow is not the firing glyph's event: whoever fired, the piece is eaten at
+    // the eater's doorstep, and it is the EATER that pulses. Gating this on the glyph
+    // that fired would mean an anchor only ever reacted to itself.
+    const swallowed = new Set();
+    for (const step of scene.recorder.steps) {
+      for (const e of step.events) {
+        if (e.type === 'eat' && e.reason === 'eater') swallowed.add(String(e.into));
       }
     }
+    for (const into of swallowed) {
+      const cell = into.split(',').map(Number);
+      const eater = byId.get(scene.before.art[cell[0]][cell[1]]);
+      if (!eater || eater.exit !== 'ghost') continue;
+      ghosts.push({
+        cell,
+        grow: ANIM.ghost.swallowGrow,
+        glyph: eater,
+        ink: PALETTE.colors[scene.before.glyph[cell[0]][cell[1]]].hex,
+      });
+    }
+    // Its own clearing is the firing glyph's event, and the big one.
+    if (glyph.exit === 'ghost') {
+      ghosts.push({ cell: scene.at, grow: ANIM.ghost.clearGrow, glyph, ink });
+    }
+
     for (const g of ghosts) {
       const { scale, alpha } = ghostAt(since / ANIM.ghost.ms, g.grow);
       if (alpha <= 0) continue;
@@ -214,7 +236,8 @@ const fxLayer = {
 const scene3 = createCompositor()
   .add(createGroundLayer(VIEW_HERE))
   .add(fxLayer)
-  .add(createGlyphLayer(VIEW_HERE));
+  .add(createGlyphLayer(VIEW_HERE))
+  .add(ghostLayer);
 
 window.renderAt = (ms) => {
   const drawList = sampleTimeline(scene.timeline, ms, ANIM.spin) ?? staticFrame(scene.before);

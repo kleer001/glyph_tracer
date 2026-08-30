@@ -207,12 +207,19 @@ export function drawGlyph(ctx, glyph, colors, gloss, geom, cellPx, paths) {
   // every fill below cast its own would stack them into mud. The piece carries no
   // highlight of its own — the sheen belongs to the cell, and a highlight drawn here
   // would travel with the sprite across the board while a swap plays.
-  withShadow(
-    ctx,
-    { alpha: gloss.glyphShadowA, offsetY: gloss.glyphShadowY, blur: gloss.glyphShadowBlur },
-    1,
-    () => paintGlyph(ctx, d, geom, colors.key, colors.key, key),
-  );
+  //
+  // Skipped outright when there is no shadow to cast. That copy is opaque, so with the
+  // shadow off it is a solid black glyph painted under the real one — invisible while
+  // the ink covers it exactly, and a solid black blob the moment the ink is anything
+  // less than opaque.
+  if (gloss.glyphShadowA > 0) {
+    withShadow(
+      ctx,
+      { alpha: gloss.glyphShadowA, offsetY: gloss.glyphShadowY, blur: gloss.glyphShadowBlur },
+      1,
+      () => paintGlyph(ctx, d, geom, colors.key, colors.key, key),
+    );
+  }
   paintGlyph(ctx, d, geom, colors.ink, colors.key, key);
 
   ctx.restore();
