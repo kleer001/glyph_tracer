@@ -67,17 +67,16 @@ export function beamSpan(t, reach, chase = 0) {
 }
 
 /**
- * One beam: a stroke from root to tip, round-capped, over a black keyline.
+ * One beam: a stroke from root to tip over a black keyline. Both ends are cut square.
  *
  * The keyline is the same trick the glyphs use, and for the same reason: the palette
  * puts every colour on every other colour, so a red beam crossing a green tile has
  * almost no contrast to lean on.
  *
- * It edges the long sides only. The outline is stroked first, wider, and butt-capped,
- * so it stops dead at both endpoints while the body's round caps carry on past it: the
- * beam gets rails down its length and open ends. Capping the outline round instead
- * would ring the whole beam and turn it into a drawn object rather than a shaft of
- * light leaving a cell.
+ * It edges the long sides only. Both strokes are butt-capped and end on the same two
+ * points, so the outline reads as rails down the length and neither end is closed off.
+ * A round cap on either would leave a disc sitting at the tip, which reads as a drawn
+ * object with ends rather than a line.
  *
  * It is also drawn before the composite mode changes. Black adds nothing under
  * `lighter`, so an outline drawn with the body would vanish exactly when the beam is
@@ -106,17 +105,16 @@ export function drawBeam(ctx, {
   if (!(alpha > 0) || !(width > 0)) return;
   ctx.save();
   ctx.globalAlpha = Math.min(1, alpha);
+  ctx.lineCap = 'butt'; // a line, not a lozenge: nothing rounds off either end
   ctx.beginPath();
   ctx.moveTo(x, y);
   ctx.lineTo(tipX, tipY);
   if (keyline > 0) {
-    ctx.lineCap = 'butt'; // stop at the ends: the sides are edged, the ends stay open
     ctx.strokeStyle = key;
     ctx.lineWidth = width + keyline * 2;
     ctx.stroke();
   }
   if (glow) ctx.globalCompositeOperation = 'lighter';
-  ctx.lineCap = 'round';
   ctx.strokeStyle = hex;
   ctx.lineWidth = width;
   ctx.stroke();
