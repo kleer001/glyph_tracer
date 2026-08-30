@@ -1,0 +1,118 @@
+<title>Glyph Tracer Effects Plate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --paper:   #EDEEF0;
+  --surface: #F7F8F9;
+  --ink:     #16171A;
+  --dim:     #6B6F76;
+  --hair:    #D3D6DA;
+  --accent:  #3B51D6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141518; --surface: #1C1E22; --ink: #E6E7EA;
+    --dim: #969BA3; --hair: #2E3138; --accent: #93A2FF;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141518; --surface: #1C1E22; --ink: #E6E7EA;
+  --dim: #969BA3; --hair: #2E3138; --accent: #93A2FF;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Newsreader, Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.65;
+  margin: 0;
+  padding: 0 20px 90px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+
+header { padding: 68px 0 36px; display: flex; flex-direction: column; gap: 14px; }
+.eyebrow {
+  font-family: "Martian Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--dim); margin: 0;
+}
+h1 {
+  font-size: clamp(38px, 7vw, 58px); font-weight: 300; line-height: 1.02;
+  letter-spacing: -.022em; margin: 0; text-wrap: balance;
+}
+h1 em { font-style: italic; font-weight: 400; }
+.standfirst { font-size: 21px; line-height: 1.5; color: var(--dim); margin: 0; max-width: 40em; }
+
+.rule { border: 0; border-top: 1px solid var(--hair); margin: 0 0 34px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.card {
+  margin: 0; background: var(--surface); border: 1px solid var(--hair); border-radius: 5px;
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.card img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--hair); }
+figcaption { padding: 15px 16px 18px; display: flex; flex-direction: column; gap: 7px; }
+.mark {
+  font-family: Newsreader, Georgia, serif; font-size: 30px; font-weight: 600;
+  line-height: 1; margin: 0; color: var(--ink);
+}
+.card h3 {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--dim); margin: 0;
+}
+.does { margin: 0; font-size: 16.5px; line-height: 1.5; }
+.effect { margin: 0; font-size: 16.5px; line-height: 1.5; color: var(--dim); }
+
+.notes { margin-top: 52px; padding-top: 26px; border-top: 1px solid var(--hair); }
+.notes h2 { font-size: 26px; font-weight: 400; letter-spacing: -.015em; margin: 0 0 14px; }
+.notes p { max-width: 66ch; margin: 0 0 14px; }
+.notes ul { max-width: 66ch; margin: 0; padding-left: 1.25em; display: flex; flex-direction: column; gap: 9px; }
+code {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em;
+  background: var(--paper); border: 1px solid var(--hair); border-radius: 3px; padding: .1em .35em;
+}
+strong { font-weight: 600; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Glyph Tracer &middot; every ability, once</p>
+  <h1>What each symbol <em>does when it goes</em></h1>
+  <p class="standfirst">Nine recordings, one per ability. Every one is the real engine
+  resolving the real rules &mdash; the shove, the trade, the turn and the swallow are all
+  the board's answer, and the effect is drawn over the top of whatever it decided.</p>
+</header>
+
+<hr class="rule" />
+
+<div class="grid"><!--__CARDS__-->
+</div>
+
+<div class="notes">
+  <h2>The two rules underneath</h2>
+  <p><strong>A beam only goes where there is a piece.</strong> An ability reaching into an
+  empty cell, a hole, or off the board does nothing there, and a beam drawn into that space
+  would be claiming otherwise. So the same glyph throws four beams mid-board and one in a
+  drained corner. That is information, not an inconsistency.</p>
+  <p><strong>A thrown beam and a held beam are different things.</strong> A shove sends a
+  piece away, so its beam leaves, runs its reach and dissipates; it never depended on hitting
+  anything. A swap, a turn and a sink all take hold of a piece and move it, so their tips land
+  on it and stay with it. Backwards, a thrown beam would read as pulling the piece it is
+  meant to be shoving.</p>
+  <p>Two things follow from those. A beam draws <em>behind</em> the pieces, so a held piece
+  reads as held rather than painted over; a ghost draws <em>in front</em>, because it is
+  coming off the piece itself and a tenth-bigger outline behind the glyph is hidden by the
+  glyph that cast it. And no piece gets both: a beam already says what happened, and a
+  ghost saying it again reads as two separate events.</p>
+  <p>The piece itself leaves before its cell does. It fades while the ability is still
+  travelling, and the ground it sat on keeps turning and shrinking without it.</p>
+</div>
+
+</div>

@@ -104,6 +104,9 @@ export const SCENES = {
     return resolveAt(b, MID, 0);
   },
   anchorClear: () => { const b = bed(); put(b, MID, MID, byKind.get(ANCHOR)); return resolveAt(b, MID, MID); },
+  // The two already tuned, so the plate covers every glyph in the pack.
+  push: () => { const b = bed(); put(b, MID, MID, byKind.get(PUSH_RIGHT)); return resolveAt(b, MID, MID); },
+  rotate: () => { const b = bed(); put(b, MID, MID, byKind.get('rotate')); return resolveAt(b, MID, MID); },
 };
 window.SCENES = Object.keys(SCENES);
 

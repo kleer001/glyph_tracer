@@ -22,14 +22,25 @@ why they sit here instead.
 | `burst-bench.html` | Glyph Tracer Burst Sandbox — tune a cleared cell's throw on a live board. | **generated** |
 | `beam-bench.html` | Glyph Tracer Beam Sandbox — the directional beam a push throws. | **generated** |
 | `rotor-bench.html` | Glyph Tracer Rotor Sandbox — the rotate's four arms and its quarter turn out. | **generated** |
+| `fx-plate.html` | Glyph Tracer Effects Plate — every ability's effect, recorded. | **generated** |
 
 The generated pages are built, never edited. Each is the whole engine and every data
 file inlined into one page, because an Artifact has no origin to fetch from and cannot
 import `src/` or read `data/`. Rebuild after changing either:
 
 ```sh
-python3 tools/buildArtifacts.py            # all of them
+python3 tools/buildArtifacts.py            # the sandboxes: all of them
 python3 tools/buildArtifacts.py beam       # just one
+```
+
+The effects plate is built from recordings rather than from the engine, because a
+still page cannot run one. `dev/fxframes.html` draws a named effect at an elapsed time
+it is handed and runs no clock of its own, so a capture is the same frame every time;
+drive it a frame at a time from a browser, then:
+
+```sh
+tools/framesToGif.sh tmp/frames/<effect> tmp/gifs/<effect>.gif 20
+python3 tools/buildFxPlate.py               # inlines every gif as a data URI
 ```
 
 Edit the matching `tools/*-artifact.template.html` for the page itself, never the built
