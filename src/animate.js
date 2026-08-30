@@ -136,6 +136,7 @@ function restingSprites(board, timing) {
         scaleFrom: 1,
         scaleTo: 1,
         spin: false,
+        fades: false,
         delay: 0,
         ...timing,
       });
@@ -165,7 +166,7 @@ function tilesOf(board, dead = [], activated = [], staggerMs = 0, shrinkMs = 1) 
 
 /** What a board looks like when nothing is happening. */
 export function staticFrame(board) {
-  const at_rest = { moveMs: 1, shrinkMs: 1 };
+  const at_rest = { moveMs: 1, shrinkMs: 1, glyphFadeMs: 1 };
   const phase = {
     tweenMs: 1,
     holdMs: 0,
@@ -188,7 +189,8 @@ export function staticFrame(board) {
  * @returns {{phases: Array, totalMs: number}}
  */
 export function buildTimeline({ before, swap, recorder, timing }) {
-  const { stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs } = timing;
+  const { stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs,
+    glyphFadeMs = shrinkMs } = timing;
   const [a, z] = swap;
   const swapMs = swapDurationFor(a, z, timing);
   let cleared = 0;
@@ -200,7 +202,7 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       // whether or not the two pieces differ.
       floorMs: swapMs,
       tiles: tilesOf(before),
-      sprites: restingSprites(before, { moveMs: swapMs, shrinkMs }).map((sprite) => {
+      sprites: restingSprites(before, { moveMs: swapMs, shrinkMs, glyphFadeMs }).map((sprite) => {
         if (key(sprite.from) === key(a)) return { ...sprite, to: z };
         if (key(sprite.from) === key(z)) return { ...sprite, to: a };
         return sprite;
@@ -219,9 +221,13 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       scaleFrom: 1,
       scaleTo: kind === 'eaten' || kind === 'destroyed' ? 0 : 1,
       spin: kind === 'destroyed',
+      // The piece leaves before the cell does. The ground keeps turning and shrinking
+      // on its own clock; the glyph is only there long enough to say which one went.
+      fades: kind === 'eaten' || kind === 'destroyed',
       delay: delayFor(origin, activated, staggerMs),
       moveMs: stepMs,
       shrinkMs,
+      glyphFadeMs,
     });
 
     if (!splitBeats) {
@@ -242,7 +248,7 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       cleared, // nothing has died yet on this beat
       holdMs,
       tiles: tilesOf(snapshot, [], activated, staggerMs, shrinkMs),
-      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, spin: false })),
+      sprites: fates.map(sprite).map((s) => ({ ...s, scaleTo: 1, spin: false, fades: false })),
     }));
     cleared += activated.length;
     phases.push(phaseOf({
@@ -269,7 +275,11 @@ function phaseOf(phase) {
   const spriteEnd = (s) => {
     const travels = s.from[0] !== s.to[0] || s.from[1] !== s.to[1];
     const shrinks = s.scaleTo !== s.scaleFrom;
-    return s.delay + Math.max(travels ? s.moveMs : 0, shrinks ? s.shrinkMs : 0);
+    return s.delay + Math.max(
+      travels ? s.moveMs : 0,
+      shrinks ? s.shrinkMs : 0,
+      s.fades ? s.glyphFadeMs : 0,
+    );
   };
   const ends = [
     ...phase.sprites.map(spriteEnd),
@@ -316,6 +326,7 @@ function sampleFrame(phase, elapsed, spin) {
       // vanish at another, which is the difference between a shove and a pop.
       const moved = at(sprite.delay, sprite.moveMs);
       const shrunk = at(sprite.delay, sprite.shrinkMs);
+      const faded = sprite.fades ? at(sprite.delay, sprite.glyphFadeMs) : 0;
       return {
         art: sprite.art,
         ink: sprite.ink,
@@ -323,6 +334,12 @@ function sampleFrame(phase, elapsed, spin) {
         y: lerp(sprite.from[0], sprite.to[0], moved),
         spin: sprite.spin ? spinAt(shrunk) : 0,
         scale: lerp(sprite.scaleFrom, sprite.scaleTo, shrunk),
+        alpha: 1 - faded,
+        // Where the piece is going, not just where it is. An effect layer that wants to
+        // point at a moving piece — a beam that holds one while it travels — needs the
+        // journey, and deriving it from a position alone is guesswork.
+        from: sprite.from,
+        to: sprite.to,
       };
     }),
   };

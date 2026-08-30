@@ -330,6 +330,9 @@ export function createGlyphLayer(view = VIEW) {
         if (box.size <= 0) continue;
         spun(ctx, box, sprite.spin, () => {
           ctx.save();
+          // The piece fades on its own clock while the ground it sat on goes on turning
+          // and shrinking, so the two read as separate things coming apart.
+          ctx.globalAlpha = sprite.alpha ?? 1;
           ctx.translate(box.x, box.y);
           ctx.scale(box.size / CELL, box.size / CELL);
           drawGlyph(

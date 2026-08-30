@@ -75,34 +75,29 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   <div class="panel">
     <div class="grp">
       <h2>The beam</h2>
-      <div class="row"><label for="reach">reach</label><input type="range" id="reach" min="5" max="60" step="1"><output id="reach-o"></output></div>
       <div class="row"><label for="dur">travel</label><input type="range" id="dur" min="80" max="1400" step="20"><output id="dur-o"></output></div>
       <div class="row"><label for="width">width</label><input type="range" id="width" min="2" max="70" step="1"><output id="width-o"></output></div>
       <div class="row"><label for="swell">swell</label><input type="range" id="swell" min="5" max="40" step="1"><output id="swell-o"></output></div>
       <div class="row"><label for="taper">taper</label><input type="range" id="taper" min="0" max="100" step="5"><output id="taper-o"></output></div>
       <div class="row"><label for="fade">tip fade</label><input type="range" id="fade" min="0" max="100" step="5"><output id="fade-o"></output></div>
-      <div class="row"><label for="chase">chase</label><input type="range" id="chase" min="0" max="100" step="5"><output id="chase-o"></output></div>
       <div class="row"><label for="alpha">alpha</label><input type="range" id="alpha" min="10" max="100" step="5"><output id="alpha-o"></output></div>
       <div class="row"><label for="delay">delay</label><input type="range" id="delay" min="0" max="500" step="10"><output id="delay-o"></output></div>
       <label class="check"><input type="checkbox" id="glow"> add light where beams cross</label>
       <label class="check"><input type="checkbox" id="useink"> beam takes the glyph's ink</label>
     </div>
     <div class="grp">
-      <h2>The arms</h2>
-      <div class="row"><label for="arms">arms</label><input type="range" id="arms" min="1" max="8" step="1"><output id="arms-o"></output></div>
-      <div class="row"><label for="aim">aim</label><input type="range" id="aim" min="0" max="90" step="5"><output id="aim-o"></output></div>
-      <div class="row"><label for="stagger">stagger</label><input type="range" id="stagger" min="0" max="200" step="5"><output id="stagger-o"></output></div>
-      <div class="row"><label for="sweep">sweep</label><input type="range" id="sweep" min="-90" max="90" step="5"><output id="sweep-o"></output></div>
-    </div>
-    <div class="grp">
-      <h2>The turn out</h2>
-      <div class="row"><label for="spin">angle</label><input type="range" id="spin" min="-360" max="360" step="15"><output id="spin-o"></output></div>
-      <div class="row"><label for="spinms">over</label><input type="range" id="spinms" min="60" max="1200" step="20"><output id="spinms-o"></output></div>
-      <div class="row"><label for="spinwait">wait</label><input type="range" id="spinwait" min="0" max="600" step="20"><output id="spinwait-o"></output></div>
+      <h2>The grip</h2>
+      <div class="row"><label for="grip">grip</label><input type="range" id="grip" min="30" max="120" step="5"><output id="grip-o"></output></div>
+      <div class="row"><label for="wave">wave</label><select id="wave"><option value="none">none</option><option value="snake">snake</option><option value="whip">whip</option><option value="curl">curl</option></select><output></output></div>
+      <div class="row"><label for="waveamp">wave amp</label><input type="range" id="waveamp" min="0" max="40" step="2"><output id="waveamp-o"></output></div>
+      <div class="row"><label for="glowblur">glow</label><input type="range" id="glowblur" min="0" max="40" step="2"><output id="glowblur-o"></output></div>
+      <div class="row"><label for="dim">body</label><input type="range" id="dim" min="50" max="100" step="5"><output id="dim-o"></output></div>
+      <label class="check"><input type="checkbox" id="band"> a charge band rides out to the piece</label>
     </div>
     <div class="grp">
       <h2>The cell going</h2>
       <div class="row"><label for="shrink">shrink</label><input type="range" id="shrink" min="80" max="900" step="20"><output id="shrink-o"></output></div>
+      <div class="row"><label for="fadems">symbol</label><input type="range" id="fadems" min="20" max="600" step="10"><output id="fadems-o"></output></div>
       <div class="row"><label for="turns">turns</label><input type="range" id="turns" min="0" max="30" step="1"><output id="turns-o"></output></div>
       <div class="row"><label for="rate">rate</label><input type="range" id="rate" min="10" max="200" step="5"><output id="rate-o"></output></div>
     </div>
@@ -112,7 +107,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     <canvas id="screen" width="920" height="920" role="button" tabindex="0"
             aria-label="A board of rotates. Click one to fire it."></canvas>
     <div class="bar">
-      <button type="button" id="fireall">fire every rotate</button>
+      <button type="button" id="fireall">fire the middle</button>
       <button type="button" id="refill">refill</button>
       <button type="button" id="loop">loop one</button>
     </div>
@@ -128,8 +123,8 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
         <button type="button" data-preset="star">star &mdash; eight thin arms</button>
         <button type="button" data-preset="quiet">quiet &mdash; short arms, long turn</button>
       </div>
-      <p class="hint">Click any cell to fire it. Half the board holds <strong>r</strong> and half its
-      mirror, which turn opposite ways.</p>
+      <p class="hint">Click a rotate to land it on its own colour. The four neighbours it takes
+      round are the engine's answer, and each beam holds one of them.</p>
     </div>
     <div class="panel">
       <h2>Settings</h2>
@@ -166,142 +161,150 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   const RULES = DATA_RULES;
   const byId = new Map(GLYPHS.map((g) => [g.id, g]));
   const ROTORS = ['rotate', 'rotate-rev'];
+  // The four the rules actually turn, in the order turn() steps them.
+  const RING = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
   const canvas = document.getElementById('screen');
   const ctx = canvas.getContext('2d');
   const VIEW_HERE = { ...VIEW, hudHeight: 0, pad: 38, gap: 8 };
-  const TAU = Math.PI * 2;
   const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
   let board = null;
-  const shots = [];
+  let playing = null;
 
   function deal() {
     const rand = mulberry32(708);
     board = randomBoard({ ...RULES, width: 5, height: 5, colors: PALETTE.colors.length }, RULES.mix, rand);
     dealArt(board, GLYPHS, rand);
-    // Every cell carries a rotate, alternating with its mirror so both turns are on show.
+    // Rotates on the diagonal, plain pieces between them, so every turn has four
+    // ordinary neighbours to take round.
     for (let r = 0; r < board.height; r++) {
       for (let c = 0; c < board.width; c++) {
-        const art = ROTORS[(r + c) % 2];
+        const rotor = (r + c) % 2 === 0;
+        const art = rotor ? ROTORS[(r * board.width + c) % 2] : 'inert';
         board.art[r][c] = art;
         board.kind[r][c] = byId.get(art).kind;
       }
     }
-    shots.length = 0;
+    playing = null;
+  }
+
+  const centreOf = (layout, row, col) => {
+    const { x, y } = cellOrigin(layout, row, col, VIEW_HERE);
+    return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
+  };
+
+  function resolveAt(r, c) {
+    if (!board.alive[r][c] || board.glyph[r][c] === null) return null;
+    board.glyph[r][c] = board.bg[r][c];
+    const before = copyBoard(board);
+    const recorder = createRecorder();
+    settle(board, mulberry32(9), recorder);
+    const timeline = buildTimeline({
+      before, swap: [[r, c], [r, c]], recorder, timing: { ...DATA_ANIMATION, shrinkMs: state.shrink, glyphFadeMs: state.fadems },
+    });
+    const opening = timeline.phases[0];
+    return {
+      timeline,
+      startedAt: performance.now(),
+      firedAt: opening.tweenMs + opening.holdMs,
+      origin: [r, c],
+      ground: PALETTE.colors[before.bg[r][c]].hex,
+      ink: PALETTE.colors[before.glyph[r][c]].hex,
+      steps: recorder.steps.length,
+    };
   }
 
   function fire(r, c) {
-    const layout = boardLayout(board, canvas.width, canvas.height, VIEW_HERE);
-    const { x, y } = cellOrigin(layout, r, c, VIEW_HERE);
-    const glyph = byId.get(board.art[r][c]);
-    shots.push({
-      r, c,
-      x: x + layout.cell / 2,
-      y: y + layout.cell / 2,
-      cell: layout.cell,
-      step: layout.cell + VIEW_HERE.gap,
-      // A mirrored r turns the other way, so the piece turns the way its ability does.
-      turn: glyph.flip ? -1 : 1,
-      glyph,
-      ground: PALETTE.colors[board.bg[r][c]].hex,
-      ink: PALETTE.colors[board.glyph[r][c]].hex,
-      born: performance.now(),
-    });
-    board.alive[r][c] = false;
-    board.glyph[r][c] = null;
-    board.art[r][c] = null;
-    board.kind[r][c] = '';
-  }
-
-  /** The turn a dying cell makes, held under what the shrink has made room for. */
-  function spinAt(t, turns) {
-    if (!turns) return 0;
-    return turns * t ** (2 + Math.log2(turns) / 2) * TAU;
+    const next = resolveAt(r, c);
+    if (next) playing = next;
   }
 
   /**
-   * Layer three: the death of a cell and the heading it threw. The board layers have
-   * already forgotten these cells, so this draws the tile and the glyph as well as
-   * the beam.
+   * Layer between the ground and the pieces: four beams, each holding one of the
+   * neighbours the rules are taking round.
+   *
+   * The tip is the piece's own live position, so a beam's direction and speed are the
+   * piece's -- it grips rather than points. Drawn UNDER the glyph layer for the same
+   * reason the sister game draws its tentacle under the thing it grabs: a beam over
+   * the top reads as painted on, a beam behind reads as holding.
    */
   const fxLayer = {
     name: 'fx',
     draw(c2, frame) {
-      const now = performance.now();
-      for (const s of frame.shots) {
-        const age = (now - s.born) * (state.rate / 100);
+      const p = frame.playing;
+      if (!p) return;
+      const t = (frame.elapsed - p.firedAt - state.delay) / state.dur;
+      const bt = clamp01(t);
+      if (t <= 0 || t >= 1) return;
+      const layout = frame.layout;
+      const at = centreOf(layout, p.origin[0], p.origin[1]);
+      const env = swellAt(bt, state.swell / 10);
+      const seconds = frame.elapsed / 1000;
 
-        // the cell going
-        const dt = clamp01(age / state.shrink);
-        if (dt < 1) {
-          const turns = state.turns / 10;
-          const size = s.cell * (1 - dt);
-          const spin = spinAt(dt, turns);
-          if (size > 0) {
-            c2.save();
-            c2.translate(s.x, s.y);
-            c2.rotate(spin);
-            c2.translate(-size / 2, -size / 2);
-            drawTile(c2, { x: 0, y: 0, size }, s.ground, GLOSS);
-            // The glyph turns its quarter about the cell's middle and fades as it goes,
-            // on top of whatever turn the cell itself is making.
-            const q = clamp01((age - state.spinwait) / state.spinms);
-            c2.translate(size / 2, size / 2);
-            c2.rotate(s.turn * ((state.spin * Math.PI) / 180) * q);
-            c2.translate(-size / 2, -size / 2);
-            c2.globalAlpha = 1 - q;
-            c2.scale(size / CELL, size / CELL);
-            drawGlyph(c2, s.glyph, { ink: s.ink, core: PALETTE.core, key: PALETTE.key },
-                      GLOSS, GEOMETRY, size, GLYPH_PATHS);
-            c2.restore();
-          }
-        }
-
-        // the arms it threw, evenly round the circle from `aim`
-        const reachPx = (state.reach / 10) * s.step;
-        for (let i = 0; i < state.arms; i++) {
-          const bt = clamp01((age - state.delay - i * state.stagger) / state.dur);
-          if (bt <= 0 || bt >= 1) continue;
-          const env = swellAt(bt, state.swell / 10);
-          const span = beamSpan(bt, reachPx, state.chase / 100);
-          const len = span.to - span.from;
-          if (len <= 0) continue;
-          // An arm may turn as it travels, which is what reads as a pinwheel rather
-          // than a cross; it sweeps the way the piece itself turns.
-          const angle = (i / state.arms) * TAU + (state.aim * Math.PI) / 180
-            + s.turn * ((state.sweep * Math.PI) / 180) * bt;
-          drawBeam(c2, {
-            x: s.x + Math.cos(angle) * span.from,
-            y: s.y + Math.sin(angle) * span.from,
-            angle,
-            length: len,
-            width: (state.width / 100) * s.cell * env,
-            alpha: (state.alpha / 100) * env,
-            taper: state.taper / 100,
-            fade: state.fade / 100,
-            hex: state.useink ? s.ink : s.ground,
-            glow: state.glow,
-          });
-        }
+      // Each ring cell is receiving a piece; the sprite arriving there is the one this
+      // beam has hold of. A ring cell nothing arrives at gets no beam -- the rules did
+      // not turn anything there, so there is nothing to hold.
+      for (let i = 0; i < RING.length; i++) {
+        const cell = [p.origin[0] + RING[i][0], p.origin[1] + RING[i][1]];
+        const held = frame.sprites.find((s) => s.to
+          && s.to[0] === cell[0] && s.to[1] === cell[1]
+          && (s.from[0] !== s.to[0] || s.from[1] !== s.to[1]));
+        if (!held) continue;
+        const to = centreOf(layout, held.y, held.x);
+        const grip = state.grip / 100;
+        const tipX = at.x + (to.x - at.x) * grip;
+        const tipY = at.y + (to.y - at.y) * grip;
+        const pts = beamPoints({
+          x: at.x, y: at.y, tipX, tipY,
+          baseR: (state.width / 100) * layout.cell * 0.5 * env,
+          tipR: (state.width / 100) * layout.cell * 0.5 * env * (state.taper / 100),
+          samples: 14,
+          wave: state.wave,
+          waveAmp: (state.waveamp / 100) * layout.cell,
+          time: seconds,
+          seed: i * 1.7,
+          spread: bt,
+          band: state.band ? bt : null,
+        });
+        drawShaft(c2, pts, {
+          hex: state.useink ? p.ink : p.ground,
+          alpha: (state.alpha / 100) * env,
+          glowBlur: (state.glowblur / 100) * layout.cell,
+          glowBoost: (state.glowblur / 100) * layout.cell,
+          bodyDim: state.dim / 100,
+          lighten: 0.6,
+          glow: state.glow,
+        });
+        drawTip(c2, pts, {
+          hex: state.useink ? p.ink : p.ground,
+          alpha: (state.alpha / 100) * env,
+          halo: layout.cell * 0.03,
+          bodyDim: state.dim / 100,
+          lighten: 0.6,
+        });
       }
     },
   };
   const scene = createCompositor()
     .add(createGroundLayer(VIEW_HERE))
-    .add(createGlyphLayer(VIEW_HERE))
-    .add(fxLayer);
+    .add(fxLayer)
+    .add(createGlyphLayer(VIEW_HERE));
 
   let looping = false;
   let loopAt = 0;
 
   function frame(now) {
-    const longest = Math.max(state.shrink, state.spinwait + state.spinms,
-      state.delay + (state.arms - 1) * state.stagger + state.dur) / (state.rate / 100);
-    for (let i = shots.length - 1; i >= 0; i--) {
-      if (now - shots[i].born > longest + 40) shots.splice(i, 1);
+    const layout = boardLayout(board, canvas.width, canvas.height, VIEW_HERE);
+    let drawList = null;
+    let elapsed = 0;
+    if (playing) {
+      elapsed = (now - playing.startedAt) * (state.rate / 100);
+      drawList = sampleTimeline(playing.timeline, elapsed, { turns: state.turns / 100 });
+      if (!drawList) playing = null;
     }
-    if (looping && !shots.length && now - loopAt > 320) {
+    if (!drawList) drawList = staticFrame(board);
+    if (looping && !playing && now - loopAt > 500) {
       deal();
       fire(2, 2);
       loopAt = now;
@@ -309,9 +312,10 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     scene.render(ctx, {
       width: canvas.width,
       height: canvas.height,
-      ...staticFrame(board),
-      shots,
-      layout: boardLayout(board, canvas.width, canvas.height, VIEW_HERE),
+      ...drawList,
+      playing,
+      elapsed,
+      layout,
       palette: PALETTE,
       gloss: GLOSS,
       geometry: GEOMETRY,
@@ -320,34 +324,32 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     });
     const alive = board.alive.flat().filter(Boolean).length;
     document.getElementById('readout').textContent =
-      `${shots.length} rotor${shots.length === 1 ? '' : 's'} live \u00b7 ${alive} cell${alive === 1 ? '' : 's'} left\n`
-      + `${state.arms} arms \u00b7 last arm done at `
-      + `${Math.round(state.delay + (state.arms - 1) * state.stagger + state.dur)}ms \u00b7 `
-      + `turn done at ${Math.round(state.spinwait + state.spinms)}ms`;
+      (playing ? `turning \u00b7 ${playing.steps} step${playing.steps === 1 ? '' : 's'} in the chain`
+        : 'click a rotate to fire it')
+      + ` \u00b7 ${alive} cell${alive === 1 ? '' : 's'} left\n`
+      + `4 beams, one per neighbour \u00b7 the cell turns `
+      + `${Math.round((state.turns / 100) * 360)} degrees as it goes`;
     requestAnimationFrame(frame);
   }
 
-  // --- controls -------------------------------------------------------------
-  const KEYS = ['reach', 'dur', 'width', 'swell', 'taper', 'fade', 'chase', 'alpha', 'delay',
-    'arms', 'aim', 'stagger', 'sweep', 'spin', 'spinms', 'spinwait', 'shrink', 'turns', 'rate'];
-  const FLAGS = ['glow', 'useink'];
+  const KEYS = ['dur', 'width', 'swell', 'taper', 'grip', 'waveamp', 'glowblur', 'dim',
+    'alpha', 'delay', 'shrink', 'fadems', 'turns', 'rate'];
+  const FLAGS = ['glow', 'useink', 'band'];
   const PRESETS = {
-    cross:    { reach: 22, dur: 380, width: 20, swell: 10, taper: 0,  fade: 20, chase: 0,  alpha: 90, delay: 0,  arms: 4, aim: 0,  stagger: 0,  sweep: 0,  spin: 90,  spinms: 320, spinwait: 180, shrink: 220, turns: 10, rate: 100, glow: false, useink: true },
-    pinwheel: { reach: 26, dur: 460, width: 18, swell: 12, taper: 30, fade: 40, chase: 35, alpha: 95, delay: 0,  arms: 4, aim: 45, stagger: 45, sweep: 35, spin: 90,  spinms: 300, spinwait: 200, shrink: 240, turns: 10, rate: 100, glow: true,  useink: true },
-    star:     { reach: 30, dur: 420, width: 10, swell: 14, taper: 0,  fade: 60, chase: 0,  alpha: 80, delay: 0,  arms: 8, aim: 0,  stagger: 20, sweep: 0,  spin: 45,  spinms: 380, spinwait: 160, shrink: 220, turns: 10, rate: 100, glow: true,  useink: true },
-    quiet:    { reach: 14, dur: 300, width: 26, swell: 8,  taper: 0,  fade: 0,  chase: 0,  alpha: 60, delay: 0,  arms: 4, aim: 0,  stagger: 0,  sweep: 0,  spin: 90,  spinms: 700, spinwait: 120, shrink: 420, turns: 5,  rate: 100, glow: false, useink: false },
+    grip:  { dur: 420, width: 16, swell: 10, taper: 60, grip: 100, waveamp: 0,  glowblur: 8,  dim: 90,  alpha: 90, delay: 0, shrink: 220, fadems: 90, turns: 25, rate: 100, glow: false, useink: true,  band: false, wave: 'none' },
+    drag:  { dur: 520, width: 20, swell: 8,  taper: 40, grip: 100, waveamp: 16, glowblur: 14, dim: 85,  alpha: 95, delay: 0, shrink: 260, fadems: 90, turns: 25, rate: 100, glow: true,  useink: true,  band: true,  wave: 'curl' },
+    lash:  { dur: 340, width: 12, swell: 14, taper: 20, grip: 90,  waveamp: 22, glowblur: 6,  dim: 100, alpha: 95, delay: 0, shrink: 200, fadems: 90, turns: 25, rate: 100, glow: true,  useink: true,  band: true,  wave: 'whip' },
+    quiet: { dur: 600, width: 10, swell: 8,  taper: 80, grip: 75,  waveamp: 6,  glowblur: 0,  dim: 100, alpha: 55, delay: 0, shrink: 400, fadems: 90, turns: 25, rate: 100, glow: false, useink: false, band: false, wave: 'snake' },
   };
-  const state = { ...PRESETS.cross };
+  const state = { ...PRESETS.grip };
   const SHOWN = {
-    reach: (v) => `${(v / 10).toFixed(1)}c`,
     dur: (v) => `${v}ms`, delay: (v) => `${v}ms`, shrink: (v) => `${v}ms`,
-    width: (v) => `${v}%`, taper: (v) => `${v}%`, fade: (v) => `${v}%`,
-    chase: (v) => `${v}%`, alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
+    fadems: (v) => `${v}ms`,
+    width: (v) => `${v}%`, taper: (v) => `${v}%`, grip: (v) => `${v}%`,
+    waveamp: (v) => `${v}%`, glowblur: (v) => `${v}%`, dim: (v) => `${v}%`,
+    alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
     swell: (v) => (v / 10).toFixed(1),
-    turns: (v) => (v / 10).toFixed(1),
-    aim: (v) => `${v}\u00b0`, sweep: (v) => `${v}\u00b0`, spin: (v) => `${v}\u00b0`,
-    stagger: (v) => `${v}ms`, spinms: (v) => `${v}ms`, spinwait: (v) => `${v}ms`,
-    arms: String,
+    turns: (v) => `${Math.round((v / 100) * 360)}deg`,
   };
 
   function writeControls() {
@@ -356,25 +358,25 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       document.getElementById(`${k}-o`).textContent = (SHOWN[k] ?? String)(state[k]);
     }
     for (const f of FLAGS) document.getElementById(f).checked = !!state[f];
+    document.getElementById('wave').value = state.wave;
     document.getElementById('dump').textContent = JSON.stringify({
       rotorBeam: {
-        arms: state.arms,
-        aimDeg: state.aim,
-        sweepDeg: state.sweep,
-        staggerMs: state.stagger,
-        reachCells: state.reach / 10,
+        beams: 4,
         travelMs: state.dur,
         delayMs: state.delay,
         width: state.width / 100,
         swell: state.swell / 10,
         taper: state.taper / 100,
-        tipFade: state.fade / 100,
-        chase: state.chase / 100,
+        grip: state.grip / 100,
+        wave: state.wave,
+        waveAmp: state.waveamp / 100,
+        glowBlur: state.glowblur / 100,
+        bodyDim: state.dim / 100,
         alpha: state.alpha / 100,
+        chargeBand: state.band,
         glow: state.glow,
         useInk: state.useink,
-        turnOut: { angleDeg: state.spin, overMs: state.spinms, waitMs: state.spinwait },
-        cell: { shrinkMs: state.shrink, turns: state.turns / 10 },
+        cell: { shrinkMs: state.shrink, glyphFadeMs: state.fadems, turns: state.turns / 100 },
       },
     }, null, 2);
   }
@@ -390,6 +392,10 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       writeControls();
     });
   }
+  document.getElementById('wave').addEventListener('change', (e) => {
+    state.wave = e.target.value;
+    writeControls();
+  });
   for (const b of document.querySelectorAll('[data-preset]')) {
     b.addEventListener('click', () => {
       Object.assign(state, PRESETS[b.dataset.preset]);
@@ -398,9 +404,8 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   }
   document.getElementById('refill').addEventListener('click', deal);
   document.getElementById('fireall').addEventListener('click', () => {
-    for (let r = 0; r < board.height; r++) {
-      for (let c = 0; c < board.width; c++) if (board.alive[r][c]) fire(r, c);
-    }
+    deal();
+    fire(2, 2);
   });
   document.getElementById('loop').addEventListener('click', (e) => {
     looping = !looping;
@@ -416,14 +421,13 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   }
   canvas.addEventListener('click', (e) => {
     const at = hit(e.clientX, e.clientY);
-    if (at && board.alive[at[0]][at[1]]) fire(at[0], at[1]);
+    if (at) fire(at[0], at[1]);
   });
   canvas.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault();
-    for (let r = 0; r < board.height; r++) {
-      for (let c = 0; c < board.width; c++) if (board.alive[r][c]) { fire(r, c); return; }
-    }
+    deal();
+    fire(2, 2);
   });
 
   deal();

@@ -80,16 +80,21 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       <div class="row"><label for="width">width</label><input type="range" id="width" min="2" max="70" step="1"><output id="width-o"></output></div>
       <div class="row"><label for="swell">swell</label><input type="range" id="swell" min="5" max="40" step="1"><output id="swell-o"></output></div>
       <div class="row"><label for="taper">taper</label><input type="range" id="taper" min="0" max="100" step="5"><output id="taper-o"></output></div>
-      <div class="row"><label for="fade">tip fade</label><input type="range" id="fade" min="0" max="100" step="5"><output id="fade-o"></output></div>
+      <div class="row"><label for="wave">wave</label><select id="wave"><option value="none">none</option><option value="snake">snake</option><option value="whip">whip</option><option value="curl">curl</option></select><output></output></div>
+      <div class="row"><label for="waveamp">wave amp</label><input type="range" id="waveamp" min="0" max="40" step="2"><output id="waveamp-o"></output></div>
+      <div class="row"><label for="glowblur">glow</label><input type="range" id="glowblur" min="0" max="40" step="2"><output id="glowblur-o"></output></div>
+      <div class="row"><label for="dim">body</label><input type="range" id="dim" min="50" max="100" step="5"><output id="dim-o"></output></div>
       <div class="row"><label for="chase">chase</label><input type="range" id="chase" min="0" max="100" step="5"><output id="chase-o"></output></div>
       <div class="row"><label for="alpha">alpha</label><input type="range" id="alpha" min="10" max="100" step="5"><output id="alpha-o"></output></div>
       <div class="row"><label for="delay">delay</label><input type="range" id="delay" min="0" max="500" step="10"><output id="delay-o"></output></div>
+      <label class="check"><input type="checkbox" id="band"> a charge band rides out to the tip</label>
       <label class="check"><input type="checkbox" id="glow"> add light where beams cross</label>
       <label class="check"><input type="checkbox" id="useink"> beam takes the glyph's ink</label>
     </div>
     <div class="grp">
       <h2>The cell going</h2>
       <div class="row"><label for="shrink">shrink</label><input type="range" id="shrink" min="80" max="900" step="20"><output id="shrink-o"></output></div>
+      <div class="row"><label for="fadems">symbol</label><input type="range" id="fadems" min="20" max="600" step="10"><output id="fadems-o"></output></div>
       <div class="row"><label for="turns">turns</label><input type="range" id="turns" min="0" max="30" step="1"><output id="turns-o"></output></div>
       <div class="row"><label for="rate">rate</label><input type="range" id="rate" min="10" max="200" step="5"><output id="rate-o"></output></div>
     </div>
@@ -99,7 +104,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     <canvas id="screen" width="920" height="920" role="button" tabindex="0"
             aria-label="A board of directional pushes. Click one to fire it."></canvas>
     <div class="bar">
-      <button type="button" id="fireall">fire every push</button>
+      <button type="button" id="fireall">fire the middle</button>
       <button type="button" id="refill">refill</button>
       <button type="button" id="loop">loop one</button>
     </div>
@@ -115,8 +120,9 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
         <button type="button" data-preset="wedge">wedge &mdash; wide root, sharp point</button>
         <button type="button" data-preset="ghost">ghost &mdash; faint and slow</button>
       </div>
-      <p class="hint">Click any cell to fire its push. Every cell holds an <strong>A</strong> at one
-      of its four turns, so each fires a different way.</p>
+      <p class="hint">Click a cell to land it on its own colour. The rules resolve from there:
+      the shove, the run it moves and whatever that sets off are the engine's answer, not
+      the sandbox's.</p>
     </div>
     <div class="panel">
       <h2>Settings</h2>
@@ -156,123 +162,133 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   const canvas = document.getElementById('screen');
   const ctx = canvas.getContext('2d');
   const VIEW_HERE = { ...VIEW, hudHeight: 0, pad: 38, gap: 8 };
-  const TAU = Math.PI * 2;
   const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
   let board = null;
-  const shots = [];
+  let playing = null;
 
   function deal() {
     const rand = mulberry32(708);
     board = randomBoard({ ...RULES, width: 5, height: 5, colors: PALETTE.colors.length }, RULES.mix, rand);
     dealArt(board, GLYPHS, rand);
-    // Every cell carries a push, so every cell has a heading to show.
+    // Pushes on the diagonal, plain pieces everywhere else, so every shove has a run
+    // of ordinary pieces in front of it to move.
     for (let r = 0; r < board.height; r++) {
       for (let c = 0; c < board.width; c++) {
-        const art = PUSHES[(r * board.width + c) % 4];
+        const push = (r + c) % 2 === 0;
+        const art = push ? PUSHES[(r * board.width + c) % 4] : 'inert';
         board.art[r][c] = art;
         board.kind[r][c] = byId.get(art).kind;
       }
     }
-    shots.length = 0;
+    playing = null;
   }
 
-  function fire(r, c) {
-    const layout = boardLayout(board, canvas.width, canvas.height, VIEW_HERE);
-    const { x, y } = cellOrigin(layout, r, c, VIEW_HERE);
-    const glyph = byId.get(board.art[r][c]);
-    shots.push({
-      r, c,
-      x: x + layout.cell / 2,
-      y: y + layout.cell / 2,
-      cell: layout.cell,
-      step: layout.cell + VIEW_HERE.gap,
-      angle: headingFor(glyph.kind) ?? 0,
-      glyph,
-      ground: PALETTE.colors[board.bg[r][c]].hex,
-      ink: PALETTE.colors[board.glyph[r][c]].hex,
-      born: performance.now(),
-    });
-    board.alive[r][c] = false;
-    board.glyph[r][c] = null;
-    board.art[r][c] = null;
-    board.kind[r][c] = '';
-  }
-
-  /** The turn a dying cell makes, held under what the shrink has made room for. */
-  function spinAt(t, turns) {
-    if (!turns) return 0;
-    return turns * t ** (2 + Math.log2(turns) / 2) * TAU;
-  }
+  const timingNow = () => ({ ...DATA_ANIMATION, shrinkMs: state.shrink });
 
   /**
-   * Layer three: the death of a cell and the heading it threw. The board layers have
-   * already forgotten these cells, so this draws the tile and the glyph as well as
-   * the beam.
+   * Land the piece on its own colour and let the rules resolve it, then fold the
+   * recording into a timeline. Nothing here decides what happens -- the shove, the run
+   * it moves and the cells it clears are all the engine's answer, which is the point:
+   * the beam has to sit on top of the real motion or it is decoration.
    */
+  function fire(r, c) {
+    if (!board.alive[r][c] || board.glyph[r][c] === null) return;
+    board.glyph[r][c] = board.bg[r][c];
+    const before = copyBoard(board);
+    const recorder = createRecorder();
+    settle(board, mulberry32(9), recorder);
+    const timing = timingNow();
+    const timeline = buildTimeline({ before, swap: [[r, c], [r, c]], recorder, timing });
+    // The ability fires on the first step, so the beam's clock starts when the opening
+    // beat -- the swap the player would have made -- is over.
+    const opening = timeline.phases[0];
+    playing = {
+      timeline,
+      startedAt: performance.now(),
+      firedAt: opening.tweenMs + opening.holdMs,
+      origin: [r, c],
+      angle: headingFor(byId.get(before.art[r][c]).kind) ?? 0,
+      ground: PALETTE.colors[before.bg[r][c]].hex,
+      ink: PALETTE.colors[before.glyph[r][c]].hex,
+      steps: recorder.steps.length,
+    };
+  }
+
+  const centreOf = (layout, row, col) => {
+    const { x, y } = cellOrigin(layout, row, col, VIEW_HERE);
+    return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
+  };
+
+  /** Layer three: the heading the push threw, over the top of the motion it caused. */
   const fxLayer = {
     name: 'fx',
     draw(c2, frame) {
-      const now = performance.now();
-      for (const s of frame.shots) {
-        const age = (now - s.born) * (state.rate / 100);
-
-        // the cell going
-        const dt = clamp01(age / state.shrink);
-        if (dt < 1) {
-          const turns = state.turns / 10;
-          const size = s.cell * (1 - dt);
-          const spin = spinAt(dt, turns);
-          if (size > 0) {
-            c2.save();
-            c2.translate(s.x, s.y);
-            c2.rotate(spin);
-            c2.translate(-size / 2, -size / 2);
-            drawTile(c2, { x: 0, y: 0, size }, s.ground, GLOSS);
-            c2.scale(size / CELL, size / CELL);
-            drawGlyph(c2, s.glyph, { ink: s.ink, core: PALETTE.core, key: PALETTE.key },
-                      GLOSS, GEOMETRY, size, GLYPH_PATHS);
-            c2.restore();
-          }
-        }
-
-        // the heading it threw
-        const bt = clamp01((age - state.delay) / state.dur);
-        if (bt <= 0 || bt >= 1) continue;
-        const env = swellAt(bt, state.swell / 10);
-        const reachPx = (state.reach / 10) * s.step;
-        const span = beamSpan(bt, reachPx, state.chase / 100);
-        const len = span.to - span.from;
-        if (len <= 0) continue;
-        drawBeam(c2, {
-          x: s.x + Math.cos(s.angle) * span.from,
-          y: s.y + Math.sin(s.angle) * span.from,
-          angle: s.angle,
-          length: len,
-          width: (state.width / 100) * s.cell * env,
-          alpha: (state.alpha / 100) * env,
-          taper: state.taper / 100,
-          fade: state.fade / 100,
-          hex: state.useink ? s.ink : s.ground,
-          glow: state.glow,
-        });
-      }
+      const p = frame.playing;
+      if (!p) return;
+      const bt = clamp01((frame.elapsed - p.firedAt - state.delay) / state.dur);
+      if (bt <= 0 || bt >= 1) return;
+      const layout = frame.layout;
+      const at = centreOf(layout, p.origin[0], p.origin[1]);
+      const step = layout.cell + VIEW_HERE.gap;
+      const env = swellAt(bt, state.swell / 10);
+      const span = beamSpan(bt, (state.reach / 10) * step, state.chase / 100);
+      const len = span.to - span.from;
+      if (len <= 0) return;
+      const rootR = (state.width / 100) * layout.cell * 0.5 * env;
+      const hex = state.useink ? p.ink : p.ground;
+      const pts = beamPoints({
+        x: at.x + Math.cos(p.angle) * span.from,
+        y: at.y + Math.sin(p.angle) * span.from,
+        tipX: at.x + Math.cos(p.angle) * span.to,
+        tipY: at.y + Math.sin(p.angle) * span.to,
+        baseR: rootR,
+        tipR: rootR * (state.taper / 100),
+        samples: 14,
+        wave: state.wave,
+        waveAmp: (state.waveamp / 100) * layout.cell,
+        time: frame.elapsed / 1000,
+        seed: 0.7,
+        spread: bt,
+        band: state.band ? bt : null,
+      });
+      drawShaft(c2, pts, {
+        hex,
+        alpha: (state.alpha / 100) * env,
+        glowBlur: (state.glowblur / 100) * layout.cell,
+        glowBoost: (state.glowblur / 100) * layout.cell,
+        bodyDim: state.dim / 100,
+        lighten: 0.6,
+        glow: state.glow,
+      });
+      drawTip(c2, pts, {
+        hex,
+        alpha: (state.alpha / 100) * env,
+        halo: layout.cell * 0.03,
+        bodyDim: state.dim / 100,
+        lighten: 0.6,
+      });
     },
   };
   const scene = createCompositor()
     .add(createGroundLayer(VIEW_HERE))
-    .add(createGlyphLayer(VIEW_HERE))
-    .add(fxLayer);
+    .add(fxLayer)
+    .add(createGlyphLayer(VIEW_HERE));
 
   let looping = false;
   let loopAt = 0;
 
   function frame(now) {
-    const longest = Math.max(state.shrink, state.delay + state.dur) / (state.rate / 100);
-    for (let i = shots.length - 1; i >= 0; i--) {
-      if (now - shots[i].born > longest + 40) shots.splice(i, 1);
+    const layout = boardLayout(board, canvas.width, canvas.height, VIEW_HERE);
+    let drawList = null;
+    let elapsed = 0;
+    if (playing) {
+      elapsed = (now - playing.startedAt) * (state.rate / 100);
+      drawList = sampleTimeline(playing.timeline, elapsed, { turns: state.turns / 10 });
+      if (!drawList) playing = null;
     }
-    if (looping && !shots.length && now - loopAt > 320) {
+    if (!drawList) drawList = staticFrame(board);
+    if (looping && !playing && now - loopAt > 500) {
       deal();
       fire(2, 2);
       loopAt = now;
@@ -280,9 +296,10 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     scene.render(ctx, {
       width: canvas.width,
       height: canvas.height,
-      ...staticFrame(board),
-      shots,
-      layout: boardLayout(board, canvas.width, canvas.height, VIEW_HERE),
+      ...drawList,
+      playing,
+      elapsed,
+      layout,
       palette: PALETTE,
       gloss: GLOSS,
       geometry: GEOMETRY,
@@ -291,27 +308,32 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     });
     const alive = board.alive.flat().filter(Boolean).length;
     document.getElementById('readout').textContent =
-      `${shots.length} beam${shots.length === 1 ? '' : 's'} live \u00b7 ${alive} cell${alive === 1 ? '' : 's'} left\n`
-      + `reach ${(state.reach / 10).toFixed(1)} cells \u00b7 beam done at ${Math.round(state.delay + state.dur)}ms`;
+      (playing
+        ? `firing \u00b7 ${playing.steps} step${playing.steps === 1 ? '' : 's'} in the chain`
+        : 'click a push to fire it')
+      + ` \u00b7 ${alive} cell${alive === 1 ? '' : 's'} left\n`
+      + `reach ${(state.reach / 10).toFixed(1)} cells \u00b7 beam done `
+      + `${Math.round(state.delay + state.dur)}ms after the push`;
     requestAnimationFrame(frame);
   }
 
-  // --- controls -------------------------------------------------------------
-  const KEYS = ['reach', 'dur', 'width', 'swell', 'taper', 'fade', 'chase', 'alpha', 'delay',
-    'shrink', 'turns', 'rate'];
-  const FLAGS = ['glow', 'useink'];
+  const KEYS = ['reach', 'dur', 'width', 'swell', 'taper', 'waveamp', 'glowblur', 'dim',
+    'chase', 'alpha', 'delay', 'shrink', 'fadems', 'turns', 'rate'];
+  const FLAGS = ['glow', 'useink', 'band'];
   const PRESETS = {
-    lance: { reach: 30, dur: 420, width: 22, swell: 10, taper: 0,  fade: 0,  chase: 0,  alpha: 90, delay: 0,  shrink: 200, turns: 10, rate: 100, glow: false, useink: true },
-    bolt:  { reach: 34, dur: 340, width: 30, swell: 14, taper: 20, fade: 40, chase: 70, alpha: 95, delay: 40, shrink: 200, turns: 10, rate: 100, glow: true,  useink: true },
-    wedge: { reach: 26, dur: 520, width: 52, swell: 8,  taper: 0,  fade: 20, chase: 0,  alpha: 80, delay: 0,  shrink: 260, turns: 10, rate: 100, glow: false, useink: true },
-    ghost: { reach: 40, dur: 900, width: 16, swell: 6,  taper: 60, fade: 80, chase: 25, alpha: 45, delay: 60, shrink: 320, turns: 5,  rate: 60,  glow: true,  useink: false },
+    lance: { reach: 30, dur: 420, width: 22, swell: 10, taper: 0,  waveamp: 0,  glowblur: 6,  dim: 95,  chase: 0,  alpha: 90, delay: 0,  shrink: 200, fadems: 90, turns: 10, rate: 100, glow: false, useink: true,  band: false, wave: 'none' },
+    bolt:  { reach: 34, dur: 340, width: 28, swell: 14, taper: 20, waveamp: 0,  glowblur: 14, dim: 85,  chase: 70, alpha: 95, delay: 40, shrink: 200, fadems: 90, turns: 10, rate: 100, glow: true,  useink: true,  band: true,  wave: 'none' },
+    wedge: { reach: 26, dur: 520, width: 46, swell: 8,  taper: 0,  waveamp: 0,  glowblur: 0,  dim: 100, chase: 0,  alpha: 80, delay: 0,  shrink: 260, fadems: 90, turns: 10, rate: 100, glow: false, useink: true,  band: false, wave: 'none' },
+    ghost: { reach: 40, dur: 900, width: 16, swell: 6,  taper: 60, waveamp: 12, glowblur: 18, dim: 80,  chase: 25, alpha: 45, delay: 60, shrink: 320, fadems: 90, turns: 5,  rate: 60,  glow: true,  useink: false, band: true,  wave: 'snake' },
   };
   const state = { ...PRESETS.lance };
   const SHOWN = {
     reach: (v) => `${(v / 10).toFixed(1)}c`,
     dur: (v) => `${v}ms`, delay: (v) => `${v}ms`, shrink: (v) => `${v}ms`,
+    fadems: (v) => `${v}ms`,
     width: (v) => `${v}%`, taper: (v) => `${v}%`, fade: (v) => `${v}%`,
     chase: (v) => `${v}%`, alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
+    waveamp: (v) => `${v}%`, glowblur: (v) => `${v}%`, dim: (v) => `${v}%`,
     swell: (v) => (v / 10).toFixed(1),
     turns: (v) => (v / 10).toFixed(1),
   };
@@ -322,6 +344,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       document.getElementById(`${k}-o`).textContent = (SHOWN[k] ?? String)(state[k]);
     }
     for (const f of FLAGS) document.getElementById(f).checked = !!state[f];
+    document.getElementById('wave').value = state.wave;
     document.getElementById('dump').textContent = JSON.stringify({
       pushBeam: {
         reachCells: state.reach / 10,
@@ -330,12 +353,16 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
         width: state.width / 100,
         swell: state.swell / 10,
         taper: state.taper / 100,
-        tipFade: state.fade / 100,
+        wave: state.wave,
+        waveAmp: state.waveamp / 100,
+        glowBlur: state.glowblur / 100,
+        bodyDim: state.dim / 100,
+        chargeBand: state.band,
         chase: state.chase / 100,
         alpha: state.alpha / 100,
         glow: state.glow,
         useInk: state.useink,
-        cell: { shrinkMs: state.shrink, turns: state.turns / 10 },
+        cell: { shrinkMs: state.shrink, glyphFadeMs: state.fadems, turns: state.turns / 10 },
       },
     }, null, 2);
   }
@@ -351,6 +378,10 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       writeControls();
     });
   }
+  document.getElementById('wave').addEventListener('change', (e) => {
+    state.wave = e.target.value;
+    writeControls();
+  });
   for (const b of document.querySelectorAll('[data-preset]')) {
     b.addEventListener('click', () => {
       Object.assign(state, PRESETS[b.dataset.preset]);
@@ -359,9 +390,8 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   }
   document.getElementById('refill').addEventListener('click', deal);
   document.getElementById('fireall').addEventListener('click', () => {
-    for (let r = 0; r < board.height; r++) {
-      for (let c = 0; c < board.width; c++) if (board.alive[r][c]) fire(r, c);
-    }
+    deal();
+    fire(2, 2);
   });
   document.getElementById('loop').addEventListener('click', (e) => {
     looping = !looping;
@@ -377,14 +407,13 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   }
   canvas.addEventListener('click', (e) => {
     const at = hit(e.clientX, e.clientY);
-    if (at && board.alive[at[0]][at[1]]) fire(at[0], at[1]);
+    if (at) fire(at[0], at[1]);
   });
   canvas.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault();
-    for (let r = 0; r < board.height; r++) {
-      for (let c = 0; c < board.width; c++) if (board.alive[r][c]) { fire(r, c); return; }
-    }
+    deal();
+    fire(2, 2);
   });
 
   deal();

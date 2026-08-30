@@ -1,9 +1,10 @@
 {
-  "note": "Linear tweens, in milliseconds. A swap is a SPEED \u2014 `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `spin` is how many full turns a cell being destroyed makes as it shrinks away. Tune in dev/timing.html.",
+  "note": "Linear tweens, in milliseconds. A swap is a SPEED \u2014 `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `glyphFadeMs` is how long the piece takes to go, which is shorter than the cell it sat on: the glyph leaves as the ability fires and the ground keeps turning without it. `spin` is how many full turns a cell being destroyed makes as it shrinks away. Tune in dev/timing.html.",
   "swapMsPerCell": 100,
   "swapMinMs": 150,
   "stepMs": 200,
   "shrinkMs": 200,
+  "glyphFadeMs": 90,
   "holdMs": 100,
   "staggerMs": 50,
   "splitBeats": true,

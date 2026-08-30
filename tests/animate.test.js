@@ -512,3 +512,56 @@ test('a timeline says how much has cleared by each phase, not by the end', () =>
   // and the sampler hands it on, so the HUD can read it
   assert.equal(sampleTimeline(timeline, 0, timing.spin).cleared, 0);
 });
+
+// The piece and the ground it sat on come apart when a cell dies: the glyph goes
+// quickly, as the ability fires, and the tile keeps turning and shrinking without it.
+test('a dying glyph fades on its own clock, faster than the cell it sat on', () => {
+  const b = bareBoard();
+  b.bg[3][2] = 1;
+  place(b, 3, 2, { glyph: 1 });
+  const recorder = createRecorder();
+  settle(b, rand, recorder);
+  const timing = { ...TIMING, shrinkMs: 400, glyphFadeMs: 100 };
+  const timeline = buildTimeline({ before: b, swap: [[3, 2], [3, 2]], recorder, timing });
+  const floor = swapDurationFor([3, 2], [3, 2], timing);
+  const at = (t) => sampleTimeline(timeline, floor + t, SPIN);
+
+  const early = at(50);
+  const dying = early.sprites.find((s) => s.alpha < 1);
+  assert.ok(dying, 'the piece has begun to go');
+  assert.ok(Math.abs(dying.alpha - 0.5) < 1e-9, 'half gone at half its fade');
+
+  // by the time the fade is spent the piece is invisible, and the tile is still there
+  const gone = at(100);
+  assert.ok(gone.sprites.every((s) => s.alpha === 0 || s.alpha === 1), 'the piece is spent');
+  const tile = gone.tiles.find((t) => t.scale < 1);
+  assert.ok(tile, 'while its ground is still shrinking');
+  assert.ok(tile.scale > 0.5, 'and has barely started');
+});
+
+test('a piece that is not dying is fully opaque', () => {
+  const b = bareBoard();
+  place(b, 0, 0, { glyph: 1 });
+  place(b, 0, 1, { glyph: 2 });
+  const timeline = buildTimeline({
+    before: b, swap: [[0, 0], [0, 1]], recorder: { steps: [] }, timing: TIMING,
+  });
+  const frame = sampleTimeline(timeline, 1, SPIN);
+  assert.ok(frame.sprites.length, 'there are pieces');
+  assert.ok(frame.sprites.every((s) => s.alpha === 1), 'and none of them is going anywhere');
+});
+
+test('a phase lasts long enough for a fade slower than the shrink', () => {
+  const b = bareBoard();
+  b.bg[3][2] = 1;
+  place(b, 3, 2, { glyph: 1 });
+  const recorder = createRecorder();
+  settle(b, rand, recorder);
+  const quick = buildTimeline({
+    before: b, swap: [[3, 2], [3, 2]], recorder, timing: { ...TIMING, shrinkMs: 200, glyphFadeMs: 60 },
+  });
+  const slow = buildTimeline({
+    before: b, swap: [[3, 2], [3, 2]], recorder, timing: { ...TIMING, shrinkMs: 200, glyphFadeMs: 600 },
+  });
+  assert.ok(slow.totalMs > quick.totalMs, 'the longer fade holds the phase open');
+});

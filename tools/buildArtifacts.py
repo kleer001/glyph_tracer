@@ -31,7 +31,7 @@ PAGES = {
     'beam': ('beam-artifact.template.html', 'beam-bench.html'),
     'rotor': ('rotor-artifact.template.html', 'rotor-bench.html'),
 }
-DATA = ['palette', 'gloss', 'geometry', 'glyphPaths', 'glyphs', 'rules']
+DATA = ['palette', 'gloss', 'geometry', 'glyphPaths', 'glyphs', 'rules', 'animation']
 
 IMPORT = re.compile(r"^import\s.*?;\s*$", re.MULTILINE)
 # The engine's comments carry typographic dashes. Nothing outside a comment is
