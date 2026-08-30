@@ -72,3 +72,22 @@ test('data/gloss.json carries every knob the renderer asks for', () => {
     assert.ok(gloss[key] <= 100, `${key} is a percentage and must not exceed 100`);
   }
 });
+
+test('every glyph says how it leaves, and none of them says it twice', () => {
+  const pack = JSON.parse(
+    readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8'),
+  ).glyphs;
+  const STYLES = new Set(['beam', 'ghost', 'grow']);
+  const beams = new Set(['pulse', 'pushUp', 'pushRight', 'pushDown', 'pushLeft',
+    'swapOrth', 'swapDiag', 'rotate', 'rotateRev', 'sink']);
+  for (const glyph of pack) {
+    assert.ok(STYLES.has(glyph.exit), `${glyph.id} leaves by "${glyph.exit}"`);
+    // A beam already says what the piece did; a ghost saying it again reads as two
+    // separate events, so the two are exclusive by construction.
+    if (beams.has(glyph.kind)) {
+      assert.equal(glyph.exit, 'beam', `${glyph.id} throws a beam, so it cannot ghost`);
+    } else {
+      assert.notEqual(glyph.exit, 'beam', `${glyph.id} throws nothing, so it needs its own voice`);
+    }
+  }
+});

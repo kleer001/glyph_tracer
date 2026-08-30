@@ -16,8 +16,25 @@
 // what it has to say is a direction, and anything else it did would be saying something
 // the rules did not.
 //
+// A glyph that throws a beam says what it did by where the beam went. One that throws
+// nothing has to say it another way, so it leaves a ghost of itself instead: the same
+// letterform in outline, swelling out of the cell as it goes. A piece never gets both --
+// two things claiming the same event read as two events.
+//
 // Nothing here touches the DOM or reads a clock. A caller passes the time it wants
 // drawn, which is what keeps the effect testable and lets a sandbox scrub it.
+
+/**
+ * How big a ghost is and how much is left of it, `t` through its life.
+ *
+ * It starts the size of the glyph and fully opaque, and arrives at `grow` bigger and
+ * gone. Both ends matter: a ghost that begins transparent never reads as the piece
+ * itself, and one that stops short of gone leaves a smear on the board.
+ */
+export function ghostAt(t, grow = 0.5) {
+  const at = t < 0 ? 0 : t > 1 ? 1 : t;
+  return { scale: 1 + grow * at, alpha: 1 - at };
+}
 
 /** Which way a push sends a piece, as [row, column] steps. */
 export const PUSH_STEPS = Object.freeze({
@@ -64,6 +81,28 @@ export function beamSpan(t, reach, chase = 0) {
   const head = Math.min(1, t / Math.max(1e-6, 1 - chase));
   const tail = chase <= 0 ? 0 : Math.max(0, (t - (1 - chase)) / chase);
   return { from: reach * tail, to: reach * head };
+}
+
+/**
+ * Where a beam's tip is when it reaches out to something and then holds on.
+ *
+ * It runs from the cell to `target` over `reachMs`, and after that it is wherever the
+ * target is -- which, once the rules have started moving that piece, means the beam
+ * follows it. Shooting out and then gripping is one function because they are one
+ * gesture: the pause between them is what a beam that missed would look like.
+ *
+ * @param {number} ms - since the beam fired.
+ * @param {number} reachMs - how long the reaching-out takes.
+ * @param {{x: number, y: number}} from - the cell that threw it.
+ * @param {{x: number, y: number}} target - where the far end is now.
+ */
+export function grabAt(ms, reachMs, from, target) {
+  const out = reachMs <= 0 ? 1 : Math.min(1, Math.max(0, ms / reachMs));
+  return {
+    x: from.x + (target.x - from.x) * out,
+    y: from.y + (target.y - from.y) * out,
+    holding: out >= 1,
+  };
 }
 
 /**

@@ -1,5 +1,5 @@
 {
-  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation \u2014 the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind.",
+  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation \u2014 the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind. `exit` is how a piece leaves: \"beam\" fades and lets its beam do the talking, \"ghost\" swells a black outline of itself out of the cell, \"grow\" swells the piece itself as it fades. A piece never both beams and ghosts.",
   "glyphs": [
     {
       "id": "inert",
@@ -9,7 +9,8 @@
       "flip": false,
       "name": "Inert",
       "kind": "",
-      "effect": "nothing \u2014 it matches, its cell goes, and no ability runs"
+      "effect": "nothing \u2014 it matches, its cell goes, and no ability runs",
+      "exit": "grow"
     },
     {
       "id": "pulse",
@@ -19,7 +20,8 @@
       "flip": false,
       "name": "Pulse",
       "kind": "pulse",
-      "effect": "advance the line in all four directions by one"
+      "effect": "advance the line in all four directions by one",
+      "exit": "beam"
     },
     {
       "id": "anchor",
@@ -29,7 +31,8 @@
       "flip": false,
       "name": "Anchor",
       "kind": "anchor",
-      "effect": "absorb whatever is shoved in, and stay put"
+      "effect": "absorb whatever is shoved in, and stay put",
+      "exit": "ghost"
     },
     {
       "id": "push-up",
@@ -39,7 +42,8 @@
       "flip": false,
       "name": "Push up",
       "kind": "pushUp",
-      "effect": "advance the line above by one"
+      "effect": "advance the line above by one",
+      "exit": "beam"
     },
     {
       "id": "push-right",
@@ -49,7 +53,8 @@
       "flip": false,
       "name": "Push right",
       "kind": "pushRight",
-      "effect": "advance the line to the right by one"
+      "effect": "advance the line to the right by one",
+      "exit": "beam"
     },
     {
       "id": "push-down",
@@ -59,7 +64,8 @@
       "flip": false,
       "name": "Push down",
       "kind": "pushDown",
-      "effect": "advance the line below by one"
+      "effect": "advance the line below by one",
+      "exit": "beam"
     },
     {
       "id": "push-left",
@@ -69,7 +75,8 @@
       "flip": false,
       "name": "Push left",
       "kind": "pushLeft",
-      "effect": "advance the line to the left by one"
+      "effect": "advance the line to the left by one",
+      "exit": "beam"
     },
     {
       "id": "swap-orth",
@@ -79,7 +86,8 @@
       "flip": false,
       "name": "Swap orthogonal",
       "kind": "swapOrth",
-      "effect": "exchange upper with lower, and left with right"
+      "effect": "exchange upper with lower, and left with right",
+      "exit": "beam"
     },
     {
       "id": "swap-diag",
@@ -89,7 +97,8 @@
       "flip": false,
       "name": "Swap diagonal",
       "kind": "swapDiag",
-      "effect": "exchange both corner pairs"
+      "effect": "exchange both corner pairs",
+      "exit": "beam"
     },
     {
       "id": "rotate",
@@ -99,7 +108,8 @@
       "flip": false,
       "name": "Rotate",
       "kind": "rotate",
-      "effect": "turn the four neighbours one step clockwise"
+      "effect": "turn the four neighbours one step clockwise",
+      "exit": "beam"
     },
     {
       "id": "rotate-rev",
@@ -109,7 +119,8 @@
       "flip": true,
       "name": "Rotate reversed",
       "kind": "rotateRev",
-      "effect": "turn the four neighbours one step anticlockwise"
+      "effect": "turn the four neighbours one step anticlockwise",
+      "exit": "beam"
     },
     {
       "id": "sink",
@@ -119,7 +130,8 @@
       "flip": false,
       "name": "Sink",
       "kind": "sink",
-      "effect": "draw all four lines inward; its own cell is the sink they fall into"
+      "effect": "draw all four lines inward; its own cell is the sink they fall into",
+      "exit": "beam"
     }
   ]
 }

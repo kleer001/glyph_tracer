@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { PUSH_STEPS, beamSpan, headingFor, rgba, swellAt } from '../src/fx.js';
+import {
+  PUSH_STEPS, beamSpan, ghostAt, grabAt, headingFor, rgba, swellAt,
+} from '../src/fx.js';
 
 test('a push heading points the way the rules send the piece', () => {
   // The canvas y axis runs down, so a heading of -PI/2 is up the screen and up the board.
@@ -74,4 +76,52 @@ test('rgba clamps rather than emitting a colour canvas would reject', () => {
   assert.equal(rgba('#F33122', 0.5), 'rgba(243,49,34,0.5)');
   assert.equal(rgba('#000000', -1), 'rgba(0,0,0,0)');
   assert.equal(rgba('#FFFFFF', 9), 'rgba(255,255,255,1)');
+});
+
+test('a ghost starts as the piece and ends bigger and gone', () => {
+  const start = ghostAt(0);
+  assert.equal(start.scale, 1, 'the same size as the glyph it came from');
+  assert.equal(start.alpha, 1, 'and fully there, so it reads as the piece');
+  const end = ghostAt(1, 0.5);
+  assert.ok(Math.abs(end.scale - 1.5) < 1e-9, 'half again as big');
+  assert.equal(end.alpha, 0, 'and completely gone, leaving no smear');
+});
+
+test('a ghost grows and fades together, and clamps outside its life', () => {
+  const mid = ghostAt(0.5, 0.5);
+  assert.ok(Math.abs(mid.scale - 1.25) < 1e-9);
+  assert.ok(Math.abs(mid.alpha - 0.5) < 1e-9);
+  assert.deepEqual(ghostAt(-1), ghostAt(0), 'before it starts');
+  assert.deepEqual(ghostAt(2), ghostAt(1), 'after it is spent');
+});
+
+test('a smaller grow makes a smaller ghost without changing the fade', () => {
+  const quarter = ghostAt(1, 0.25);
+  assert.ok(Math.abs(quarter.scale - 1.25) < 1e-9, 'a quarter bigger');
+  assert.equal(quarter.alpha, 0, 'gone all the same');
+});
+
+test('a grab reaches out first and holds on after', () => {
+  const from = { x: 0, y: 0 };
+  const target = { x: 100, y: 0 };
+  const early = grabAt(25, 100, from, target);
+  assert.ok(Math.abs(early.x - 25) < 1e-9, 'a quarter of the way out');
+  assert.equal(early.holding, false, 'and not yet attached');
+  const landed = grabAt(100, 100, from, target);
+  assert.ok(Math.abs(landed.x - 100) < 1e-9, 'arrived');
+  assert.equal(landed.holding, true);
+});
+
+test('once it has hold, the tip is wherever the piece has got to', () => {
+  const from = { x: 0, y: 0 };
+  // the piece it grabbed is being pulled inward by the rules
+  const pulled = grabAt(400, 100, from, { x: 30, y: 0 });
+  assert.ok(Math.abs(pulled.x - 30) < 1e-9, 'the beam came in with it');
+  assert.equal(pulled.holding, true);
+});
+
+test('a beam with no reach is already holding on the frame it fires', () => {
+  const now = grabAt(0, 0, { x: 0, y: 0 }, { x: 80, y: 0 });
+  assert.ok(Math.abs(now.x - 80) < 1e-9);
+  assert.equal(now.holding, true);
 });
