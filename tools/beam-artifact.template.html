@@ -79,15 +79,9 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       <div class="row"><label for="dur">travel</label><input type="range" id="dur" min="80" max="1400" step="20"><output id="dur-o"></output></div>
       <div class="row"><label for="width">width</label><input type="range" id="width" min="2" max="70" step="1"><output id="width-o"></output></div>
       <div class="row"><label for="swell">swell</label><input type="range" id="swell" min="5" max="40" step="1"><output id="swell-o"></output></div>
-      <div class="row"><label for="taper">taper</label><input type="range" id="taper" min="0" max="100" step="5"><output id="taper-o"></output></div>
-      <div class="row"><label for="wave">wave</label><select id="wave"><option value="none">none</option><option value="snake">snake</option><option value="whip">whip</option><option value="curl">curl</option></select><output></output></div>
-      <div class="row"><label for="waveamp">wave amp</label><input type="range" id="waveamp" min="0" max="40" step="2"><output id="waveamp-o"></output></div>
-      <div class="row"><label for="glowblur">glow</label><input type="range" id="glowblur" min="0" max="40" step="2"><output id="glowblur-o"></output></div>
-      <div class="row"><label for="dim">body</label><input type="range" id="dim" min="50" max="100" step="5"><output id="dim-o"></output></div>
       <div class="row"><label for="chase">chase</label><input type="range" id="chase" min="0" max="100" step="5"><output id="chase-o"></output></div>
       <div class="row"><label for="alpha">alpha</label><input type="range" id="alpha" min="10" max="100" step="5"><output id="alpha-o"></output></div>
       <div class="row"><label for="delay">delay</label><input type="range" id="delay" min="0" max="500" step="10"><output id="delay-o"></output></div>
-      <label class="check"><input type="checkbox" id="band"> a charge band rides out to the tip</label>
       <label class="check"><input type="checkbox" id="glow"> add light where beams cross</label>
       <label class="check"><input type="checkbox" id="useink"> beam takes the glyph's ink</label>
     </div>
@@ -115,10 +109,16 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     <div class="panel">
       <h2>Presets</h2>
       <div class="presets">
-        <button type="button" data-preset="lance">lance &mdash; long and thin</button>
+        <button type="button" data-preset="lance">lance &mdash; long, clean, quick</button>
         <button type="button" data-preset="bolt">bolt &mdash; travels and leaves</button>
-        <button type="button" data-preset="wedge">wedge &mdash; wide root, sharp point</button>
+        <button type="button" data-preset="tracer">tracer &mdash; hairline streak</button>
+        <button type="button" data-preset="shove">shove &mdash; short and fat</button>
         <button type="button" data-preset="ghost">ghost &mdash; faint and slow</button>
+        <button type="button" data-preset="snap">snap &mdash; there and gone</button>
+        <button type="button" data-preset="sabre">sabre &mdash; wide and lit</button>
+        <button type="button" data-preset="whisper">whisper &mdash; barely there</button>
+        <button type="button" data-preset="ram">ram &mdash; one cell, all of it</button>
+        <button type="button" data-preset="comet">comet &mdash; a long tail</button>
       </div>
       <p class="hint">Click a cell to land it on its own colour. The rules resolve from there:
       the shove, the run it moves and whatever that sets off are the engine's answer, not
@@ -134,11 +134,14 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
 </div>
 
 <footer>
-  <p>Reach is in cells, so a reach of 3 dissipates three cells out whatever size the board is drawn.
-  <code>chase</code> pulls the beam's root along behind its tip: at zero it is a spear growing out of
-  the cell, at full it is a bolt that travels and leaves nothing behind. <code>swell</code> sharpens
-  the envelope's peak, which shortens how long the beam is visible without changing how long it takes
-  to cross. This page runs the game's own renderer, and the beam maths is <code>src/fx.js</code>.</p>
+  <p>Reach is in cells, so a reach of 3 dissipates three cells out whatever size the board is
+  drawn. <code>chase</code> pulls the beam's root along behind its tip: at zero it is a spear
+  growing out of the cell, at full it is a bolt that travels and leaves nothing behind.
+  <code>swell</code> sharpens the envelope's peak, which shortens how long the beam is visible
+  without changing how long it takes to cross &mdash; and that one envelope sets the width and the
+  opacity together, which is what makes it read as a travelling thing rather than a line being
+  faded out. The beam is a straight round-capped stroke and nothing else. This page runs the
+  game's own renderer over the shove the rules actually resolve.</p>
 </footer>
 
 </div>
@@ -235,38 +238,16 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       const span = beamSpan(bt, (state.reach / 10) * step, state.chase / 100);
       const len = span.to - span.from;
       if (len <= 0) return;
-      const rootR = (state.width / 100) * layout.cell * 0.5 * env;
-      const hex = state.useink ? p.ink : p.ground;
-      const pts = beamPoints({
+      drawBeam(c2, {
         x: at.x + Math.cos(p.angle) * span.from,
         y: at.y + Math.sin(p.angle) * span.from,
         tipX: at.x + Math.cos(p.angle) * span.to,
         tipY: at.y + Math.sin(p.angle) * span.to,
-        baseR: rootR,
-        tipR: rootR * (state.taper / 100),
-        samples: 14,
-        wave: state.wave,
-        waveAmp: (state.waveamp / 100) * layout.cell,
-        time: frame.elapsed / 1000,
-        seed: 0.7,
-        spread: bt,
-        band: state.band ? bt : null,
-      });
-      drawShaft(c2, pts, {
-        hex,
+        // One envelope, two properties: the sister game's whole trick.
+        width: (state.width / 100) * layout.cell * env + 1,
         alpha: (state.alpha / 100) * env,
-        glowBlur: (state.glowblur / 100) * layout.cell,
-        glowBoost: (state.glowblur / 100) * layout.cell,
-        bodyDim: state.dim / 100,
-        lighten: 0.6,
+        hex: state.useink ? p.ink : p.ground,
         glow: state.glow,
-      });
-      drawTip(c2, pts, {
-        hex,
-        alpha: (state.alpha / 100) * env,
-        halo: layout.cell * 0.03,
-        bodyDim: state.dim / 100,
-        lighten: 0.6,
       });
     },
   };
@@ -317,23 +298,28 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     requestAnimationFrame(frame);
   }
 
-  const KEYS = ['reach', 'dur', 'width', 'swell', 'taper', 'waveamp', 'glowblur', 'dim',
-    'chase', 'alpha', 'delay', 'shrink', 'fadems', 'turns', 'rate'];
-  const FLAGS = ['glow', 'useink', 'band'];
+  const KEYS = ['reach', 'dur', 'width', 'swell', 'chase', 'alpha', 'delay',
+    'shrink', 'fadems', 'turns', 'rate'];
+  const FLAGS = ['glow', 'useink'];
   const PRESETS = {
-    lance: { reach: 30, dur: 420, width: 22, swell: 10, taper: 0,  waveamp: 0,  glowblur: 6,  dim: 95,  chase: 0,  alpha: 90, delay: 0,  shrink: 200, fadems: 90, turns: 10, rate: 100, glow: false, useink: true,  band: false, wave: 'none' },
-    bolt:  { reach: 34, dur: 340, width: 28, swell: 14, taper: 20, waveamp: 0,  glowblur: 14, dim: 85,  chase: 70, alpha: 95, delay: 40, shrink: 200, fadems: 90, turns: 10, rate: 100, glow: true,  useink: true,  band: true,  wave: 'none' },
-    wedge: { reach: 26, dur: 520, width: 46, swell: 8,  taper: 0,  waveamp: 0,  glowblur: 0,  dim: 100, chase: 0,  alpha: 80, delay: 0,  shrink: 260, fadems: 90, turns: 10, rate: 100, glow: false, useink: true,  band: false, wave: 'none' },
-    ghost: { reach: 40, dur: 900, width: 16, swell: 6,  taper: 60, waveamp: 12, glowblur: 18, dim: 80,  chase: 25, alpha: 45, delay: 60, shrink: 320, fadems: 90, turns: 5,  rate: 60,  glow: true,  useink: false, band: true,  wave: 'snake' },
+    lance:   { reach: 30, dur: 420, width: 22, swell: 10, chase: 0,  alpha: 90,  delay: 0,  shrink: 200, fadems: 90,  turns: 10, rate: 100, glow: false, useink: true },
+    bolt:    { reach: 34, dur: 300, width: 26, swell: 14, chase: 70, alpha: 95,  delay: 30, shrink: 200, fadems: 80,  turns: 10, rate: 100, glow: true,  useink: true },
+    tracer:  { reach: 45, dur: 260, width: 8,  swell: 16, chase: 85, alpha: 100, delay: 0,  shrink: 180, fadems: 60,  turns: 10, rate: 100, glow: true,  useink: true },
+    shove:   { reach: 14, dur: 260, width: 46, swell: 8,  chase: 0,  alpha: 85,  delay: 0,  shrink: 220, fadems: 70,  turns: 10, rate: 100, glow: false, useink: true },
+    ghost:   { reach: 40, dur: 900, width: 14, swell: 6,  chase: 25, alpha: 40,  delay: 60, shrink: 320, fadems: 160, turns: 5,  rate: 100, glow: true,  useink: false },
+    snap:    { reach: 22, dur: 180, width: 34, swell: 20, chase: 0,  alpha: 100, delay: 0,  shrink: 160, fadems: 50,  turns: 15, rate: 100, glow: false, useink: true },
+    sabre:   { reach: 32, dur: 520, width: 30, swell: 9,  chase: 40, alpha: 90,  delay: 20, shrink: 260, fadems: 100, turns: 10, rate: 100, glow: true,  useink: true },
+    whisper: { reach: 26, dur: 700, width: 6,  swell: 7,  chase: 0,  alpha: 35,  delay: 40, shrink: 300, fadems: 140, turns: 5,  rate: 100, glow: false, useink: false },
+    ram:     { reach: 10, dur: 320, width: 60, swell: 12, chase: 0,  alpha: 100, delay: 0,  shrink: 200, fadems: 60,  turns: 20, rate: 100, glow: false, useink: true },
+    comet:   { reach: 50, dur: 620, width: 18, swell: 11, chase: 95, alpha: 95,  delay: 0,  shrink: 240, fadems: 90,  turns: 10, rate: 100, glow: true,  useink: true },
   };
   const state = { ...PRESETS.lance };
   const SHOWN = {
     reach: (v) => `${(v / 10).toFixed(1)}c`,
     dur: (v) => `${v}ms`, delay: (v) => `${v}ms`, shrink: (v) => `${v}ms`,
     fadems: (v) => `${v}ms`,
-    width: (v) => `${v}%`, taper: (v) => `${v}%`, fade: (v) => `${v}%`,
+    width: (v) => `${v}%`, fade: (v) => `${v}%`,
     chase: (v) => `${v}%`, alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
-    waveamp: (v) => `${v}%`, glowblur: (v) => `${v}%`, dim: (v) => `${v}%`,
     swell: (v) => (v / 10).toFixed(1),
     turns: (v) => (v / 10).toFixed(1),
   };
@@ -344,7 +330,6 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       document.getElementById(`${k}-o`).textContent = (SHOWN[k] ?? String)(state[k]);
     }
     for (const f of FLAGS) document.getElementById(f).checked = !!state[f];
-    document.getElementById('wave').value = state.wave;
     document.getElementById('dump').textContent = JSON.stringify({
       pushBeam: {
         reachCells: state.reach / 10,
@@ -352,12 +337,6 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
         delayMs: state.delay,
         width: state.width / 100,
         swell: state.swell / 10,
-        taper: state.taper / 100,
-        wave: state.wave,
-        waveAmp: state.waveamp / 100,
-        glowBlur: state.glowblur / 100,
-        bodyDim: state.dim / 100,
-        chargeBand: state.band,
         chase: state.chase / 100,
         alpha: state.alpha / 100,
         glow: state.glow,
@@ -378,10 +357,6 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       writeControls();
     });
   }
-  document.getElementById('wave').addEventListener('change', (e) => {
-    state.wave = e.target.value;
-    writeControls();
-  });
   for (const b of document.querySelectorAll('[data-preset]')) {
     b.addEventListener('click', () => {
       Object.assign(state, PRESETS[b.dataset.preset]);

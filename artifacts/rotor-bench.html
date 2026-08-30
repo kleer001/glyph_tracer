@@ -74,25 +74,15 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
 
   <div class="panel">
     <div class="grp">
-      <h2>The beam</h2>
+      <h2>The beams</h2>
       <div class="row"><label for="dur">travel</label><input type="range" id="dur" min="80" max="1400" step="20"><output id="dur-o"></output></div>
       <div class="row"><label for="width">width</label><input type="range" id="width" min="2" max="70" step="1"><output id="width-o"></output></div>
       <div class="row"><label for="swell">swell</label><input type="range" id="swell" min="5" max="40" step="1"><output id="swell-o"></output></div>
-      <div class="row"><label for="taper">taper</label><input type="range" id="taper" min="0" max="100" step="5"><output id="taper-o"></output></div>
-      <div class="row"><label for="fade">tip fade</label><input type="range" id="fade" min="0" max="100" step="5"><output id="fade-o"></output></div>
+      <div class="row"><label for="grip">grip</label><input type="range" id="grip" min="30" max="120" step="5"><output id="grip-o"></output></div>
       <div class="row"><label for="alpha">alpha</label><input type="range" id="alpha" min="10" max="100" step="5"><output id="alpha-o"></output></div>
       <div class="row"><label for="delay">delay</label><input type="range" id="delay" min="0" max="500" step="10"><output id="delay-o"></output></div>
       <label class="check"><input type="checkbox" id="glow"> add light where beams cross</label>
-      <label class="check"><input type="checkbox" id="useink"> beam takes the glyph's ink</label>
-    </div>
-    <div class="grp">
-      <h2>The grip</h2>
-      <div class="row"><label for="grip">grip</label><input type="range" id="grip" min="30" max="120" step="5"><output id="grip-o"></output></div>
-      <div class="row"><label for="wave">wave</label><select id="wave"><option value="none">none</option><option value="snake">snake</option><option value="whip">whip</option><option value="curl">curl</option></select><output></output></div>
-      <div class="row"><label for="waveamp">wave amp</label><input type="range" id="waveamp" min="0" max="40" step="2"><output id="waveamp-o"></output></div>
-      <div class="row"><label for="glowblur">glow</label><input type="range" id="glowblur" min="0" max="40" step="2"><output id="glowblur-o"></output></div>
-      <div class="row"><label for="dim">body</label><input type="range" id="dim" min="50" max="100" step="5"><output id="dim-o"></output></div>
-      <label class="check"><input type="checkbox" id="band"> a charge band rides out to the piece</label>
+      <label class="check"><input type="checkbox" id="useink"> beams take the glyph's ink</label>
     </div>
     <div class="grp">
       <h2>The cell going</h2>
@@ -118,10 +108,16 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     <div class="panel">
       <h2>Presets</h2>
       <div class="presets">
-        <button type="button" data-preset="cross">cross &mdash; four square arms</button>
-        <button type="button" data-preset="pinwheel">pinwheel &mdash; swept, staggered</button>
-        <button type="button" data-preset="star">star &mdash; eight thin arms</button>
-        <button type="button" data-preset="quiet">quiet &mdash; short arms, long turn</button>
+        <button type="button" data-preset="grip">grip &mdash; a clean hold</button>
+        <button type="button" data-preset="drag">drag &mdash; heavier, lit</button>
+        <button type="button" data-preset="lash">lash &mdash; thin and fast</button>
+        <button type="button" data-preset="quiet">quiet &mdash; faint and short</button>
+        <button type="button" data-preset="clamp">clamp &mdash; thick and brief</button>
+        <button type="button" data-preset="tether">tether &mdash; thin, held long</button>
+        <button type="button" data-preset="reel">reel &mdash; stops short of the piece</button>
+        <button type="button" data-preset="halo">halo &mdash; wide and soft</button>
+        <button type="button" data-preset="snare">snare &mdash; a bright catch</button>
+        <button type="button" data-preset="anchor">anchor &mdash; heavy and slow</button>
       </div>
       <p class="hint">Click a rotate to land it on its own colour. The four neighbours it takes
       round are the engine's answer, and each beam holds one of them.</p>
@@ -136,12 +132,12 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
 </div>
 
 <footer>
-  <p><code>aim</code> turns the whole set of arms, so four arms at an aim of 45 point at the corners
-  instead of the edges. <code>sweep</code> turns each arm as it travels, which is what makes the set
-  read as a pinwheel rather than a cross. <code>stagger</code> delays each arm behind the one before,
-  so they leave in sequence. The turn out is the glyph's own quarter: a mirrored <strong>r</strong>
-  takes it the other way, because the piece turns the way its ability does. This page runs the game's
-  own renderer, and the beam maths is <code>src/fx.js</code>.</p>
+  <p>Four beams, always four &mdash; that is how many neighbours the rules take round. Each one
+  ends on the live position of the piece it has hold of, so its direction and its speed are the
+  piece's rather than a circle drawn around the cell. <code>grip</code> is how far along it
+  reaches: at 100 the tip sits on the piece, below that it stops short, above that it overshoots.
+  The beams draw under the pieces, so a piece reads as held rather than painted over. This page
+  runs the game's own renderer over the turn the rules actually resolve.</p>
 </footer>
 
 </div>
@@ -1789,25 +1785,19 @@ function createHudLayer(view = VIEW) {
 //
 // Separate from `animate.js` on purpose. That module folds a resolved settle into
 // phases the board can be drawn from; this one draws what an ability *means* -- the
-// direction a shove went, the grip a turn had -- over the top of it. The board would
+// direction a shove went, the hold a turn had -- over the top of it. The board would
 // still be readable with every effect here switched off, which is the test each one
 // has to pass: a flourish that carries information the rules do not is a lie, and one
 // the player cannot ignore is noise.
 //
-// The beam is lifted from a sister game's void tentacle, and the shape of it is worth
-// stating because it is not the obvious build. A beam is NOT a stroked line. It is a
-// chain of discs sampled along a shaft, because:
+// The beam is a sister game's, and it is deliberately a plain one: a stroke from where
+// it started to where it has got to, under a single sine envelope driving the width and
+// the opacity together. One envelope and not two is the whole trick -- it reads as a
+// travelling thing rather than a line being faded -- and it is about six lines of canvas.
 //
-//   * a stroke cannot taper along its run and cannot curve, and a beam that does
-//     neither reads as a drawn line rather than a thing with a grip;
-//   * a wave pushed along the shaft's own normal makes it alive, and pinning the root
-//     while the rest moves is what keeps it attached to the cell that threw it;
-//   * a band of brightness riding root-to-tip says the beam is charging rather than
-//     merely present, and it costs one exponential per sample.
-//
-// The wave is also where the meaning goes: a beam that curls and a beam that whips are
-// two different verbs, so an ability can be told apart by how its beam moves and not
-// only by where it points.
+// A beam does not taper and does not bend. It is a straight line with a round cap:
+// what it has to say is a direction, and anything else it did would be saying something
+// the rules did not.
 //
 // Nothing here touches the DOM or reads a clock. A caller passes the time it wants
 // drawn, which is what keeps the effect testable and lets a sandbox scrub it.
@@ -1830,26 +1820,6 @@ function headingFor(kind) {
 }
 
 /**
- * Perpendicular displacement along a shaft, as a fraction of the wave amplitude.
- *
- * Each is a different verb. `snake` travels a whole wave down the shaft and suits a
- * beam that is holding station; `whip` grows toward the tip and suits one that struck;
- * `curl` leans the far half over and suits one that is dragging something round.
- * `none` is the straight beam, which is the right answer for a heading -- a shove goes
- * in a straight line and a beam that wandered would be lying about it.
- *
- * @param {number} f - how far along the shaft, 0 at the root and 1 at the tip.
- * @param {number} t - seconds, so the wave animates.
- * @param {number} seed - keeps two beams from moving in lockstep.
- */
-const WAVES = Object.freeze({
-  none: () => 0,
-  snake: (f, t, seed) => Math.sin(f * Math.PI * 2 - t * 6 + seed),
-  whip: (f, t, seed) => f * Math.sin(f * 4 - t * 9 + seed) * 1.4,
-  curl: (f, t, seed) => f * f * Math.sin(t * 3 + seed) * 1.6,
-});
-
-/**
  * The envelope over a beam's life: nothing at either end, most in the middle.
  *
  * `power` above 1 sharpens the peak, which shortens the part of the life the beam is
@@ -1860,29 +1830,10 @@ function swellAt(t, power = 1) {
   return Math.sin(Math.PI * t) ** power;
 }
 
-/**
- * A band of brightness centred at `at` along the shaft, or nothing when there is no
- * band. `falloff` above 2 gives a hard-edged band, below 2 a soft one.
- */
-function pulseAt(f, at, width = 0.25, falloff = 2) {
-  if (at == null) return 0;
-  return Math.exp(-(Math.abs((f - at) / width) ** falloff));
-}
-
 /** A hex colour at an alpha, as the string canvas wants. */
 function rgba(hex, alpha) {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${Math.max(0, Math.min(1, alpha))})`;
-}
-
-/** Dim a colour toward black, then lift it toward white. The band uses both. */
-function shadeHex(hex, dim = 1, lighten = 0) {
-  const n = parseInt(hex.slice(1), 16);
-  const mix = (channel) => {
-    const v = channel * dim;
-    return Math.round(v + (255 - v) * Math.max(0, Math.min(1, lighten)));
-  };
-  return `rgb(${mix((n >> 16) & 255)},${mix((n >> 8) & 255)},${mix(n & 255)})`;
 }
 
 /**
@@ -1899,108 +1850,35 @@ function beamSpan(t, reach, chase = 0) {
 }
 
 /**
- * Sample a beam into the discs that will be drawn, root first.
+ * One beam: a stroke from root to tip, round-capped.
  *
- * The root is pinned: the wave is scaled by `min(1, f * 4)` so the first quarter barely
- * moves and the beam stays welded to whatever threw it. `spread` fades the wave in as
- * the shaft extends, so a beam does not thrash while it is still a stub.
+ * The caller owns the envelope. It passes the width and the opacity it wants this
+ * frame, because the same curve drives both and working it out twice in here is the
+ * one place they could drift apart.
  *
- * Pure, and the reason the shape is testable without a canvas.
- *
- * @returns {Array<{x: number, y: number, r: number, f: number, pulse: number}>}
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} beam
+ * @param {number} beam.x - the root, in canvas pixels.
+ * @param {number} beam.y
+ * @param {number} beam.tipX - the tip, wherever it has reached.
+ * @param {number} beam.tipY
+ * @param {number} beam.width - stroke width this frame.
+ * @param {number} beam.alpha
+ * @param {string} beam.hex
+ * @param {boolean} [beam.glow] - composite additively, so crossing beams brighten.
  */
-function beamPoints({
-  x, y, tipX, tipY, baseR, tipR, samples = null,
-  wave = 'none', waveAmp = 0, time = 0, seed = 0, spread = 1, band = null,
-  bandWidth = 0.25, bandFalloff = 2, scale = 1,
-}) {
-  const shape = WAVES[wave] ?? WAVES.none;
-  const dx = tipX - x;
-  const dy = tipY - y;
-  const len = Math.hypot(dx, dy) || 1e-6;
-  // Discs have to overlap or the shaft reads as a dotted line. The count therefore
-  // follows from the geometry rather than being a constant: step along by about half
-  // the narrowest radius, which is where a gap would open first.
-  const narrowest = Math.max(0.5, Math.min(baseR, tipR));
-  const n = samples ?? Math.max(8, Math.min(160, Math.ceil(len / (narrowest * 0.6))));
-  // A sharp taper can still outrun the cap on a long shaft, so no disc is allowed to be
-  // narrower than the step between them. The tip goes slightly blunt, which is a price
-  // worth paying: drawTip puts a bulb there anyway, and a beaded shaft reads as broken.
-  const minR = (len / n) * 0.6;
-  const nx = -dy / len;
-  const ny = dx / len;
-  const pts = [];
-  for (let i = 0; i <= n; i++) {
-    const f = i / n;
-    const off = waveAmp * shape(f, time, seed) * Math.min(1, f * 4) * spread;
-    pts.push({
-      f,
-      x: x + dx * f + nx * off,
-      y: y + dy * f + ny * off,
-      r: Math.max(minR, baseR * (1 - f) + tipR * f) * scale,
-      pulse: pulseAt(f, band, bandWidth, bandFalloff),
-    });
-  }
-  return pts;
-}
-
-/**
- * Paint a sampled beam: a glow halo under a dimmed body, the way a neon shaft is built
- * in canvas 2D when there is no shader to do it.
- *
- * Two passes and not one. The halo is `shadowBlur` on every disc, which is expensive
- * enough to be worth knowing about and is the only way to get light to bleed past an
- * edge here; the body then covers the halo's middle so the shaft has a solid core.
- * Drawing one pass with a blur and no cover gives a smear, and the cover alone gives a
- * flat noodle.
- */
-function drawShaft(ctx, pts, {
-  hex, alpha = 1, glowBlur = 0, glowBoost = 0, bodyDim = 1, lighten = 0, glow = false,
-}) {
-  if (!(alpha > 0) || !pts.length) return;
+function drawBeam(ctx, { x, y, tipX, tipY, width, alpha, hex, glow = false }) {
+  if (!(alpha > 0) || !(width > 0)) return;
   ctx.save();
   if (glow) ctx.globalCompositeOperation = 'lighter';
-  ctx.globalAlpha = alpha;
-
-  if (glowBlur > 0) {
-    ctx.save();
-    ctx.shadowColor = hex;
-    ctx.fillStyle = hex;
-    for (const p of pts) {
-      if (p.r <= 0) continue;
-      ctx.shadowBlur = glowBlur + p.pulse * glowBoost;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  for (const p of pts) {
-    if (p.r <= 0) continue;
-    ctx.fillStyle = shadeHex(hex, bodyDim, p.pulse * lighten);
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-/** The bulb at a beam's tip: a soft halo and a solid core, both on the last disc. */
-function drawTip(ctx, pts, { hex, alpha = 1, halo = 3, bodyDim = 1, lighten = 0 }) {
-  const tip = pts[pts.length - 1];
-  if (!tip || !(alpha > 0) || tip.r <= 0) return;
-  ctx.save();
-  ctx.globalAlpha = alpha * 0.6;
-  ctx.fillStyle = rgba(hex, 1);
+  ctx.globalAlpha = Math.min(1, alpha);
+  ctx.strokeStyle = hex;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(tip.x, tip.y, tip.r + halo, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = shadeHex(hex, bodyDim, tip.pulse * lighten);
-  ctx.beginPath();
-  ctx.arc(tip.x, tip.y, tip.r, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.moveTo(x, y);
+  ctx.lineTo(tipX, tipY);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -2109,33 +1987,13 @@ function drawTip(ctx, pts, { hex, alpha = 1, halo = 3, bodyDim = 1, lighten = 0 
         const grip = state.grip / 100;
         const tipX = at.x + (to.x - at.x) * grip;
         const tipY = at.y + (to.y - at.y) * grip;
-        const pts = beamPoints({
+        drawBeam(c2, {
           x: at.x, y: at.y, tipX, tipY,
-          baseR: (state.width / 100) * layout.cell * 0.5 * env,
-          tipR: (state.width / 100) * layout.cell * 0.5 * env * (state.taper / 100),
-          samples: 14,
-          wave: state.wave,
-          waveAmp: (state.waveamp / 100) * layout.cell,
-          time: seconds,
-          seed: i * 1.7,
-          spread: bt,
-          band: state.band ? bt : null,
-        });
-        drawShaft(c2, pts, {
-          hex: state.useink ? p.ink : p.ground,
+          // One envelope, two properties: the sister game's whole trick.
+          width: (state.width / 100) * layout.cell * env + 1,
           alpha: (state.alpha / 100) * env,
-          glowBlur: (state.glowblur / 100) * layout.cell,
-          glowBoost: (state.glowblur / 100) * layout.cell,
-          bodyDim: state.dim / 100,
-          lighten: 0.6,
+          hex: state.useink ? p.ink : p.ground,
           glow: state.glow,
-        });
-        drawTip(c2, pts, {
-          hex: state.useink ? p.ink : p.ground,
-          alpha: (state.alpha / 100) * env,
-          halo: layout.cell * 0.03,
-          bodyDim: state.dim / 100,
-          lighten: 0.6,
         });
       }
     },
@@ -2186,21 +2044,26 @@ function drawTip(ctx, pts, { hex, alpha = 1, halo = 3, bodyDim = 1, lighten = 0 
     requestAnimationFrame(frame);
   }
 
-  const KEYS = ['dur', 'width', 'swell', 'taper', 'grip', 'waveamp', 'glowblur', 'dim',
-    'alpha', 'delay', 'shrink', 'fadems', 'turns', 'rate'];
-  const FLAGS = ['glow', 'useink', 'band'];
+  const KEYS = ['dur', 'width', 'swell', 'grip', 'alpha', 'delay',
+    'shrink', 'fadems', 'turns', 'rate'];
+  const FLAGS = ['glow', 'useink'];
   const PRESETS = {
-    grip:  { dur: 420, width: 16, swell: 10, taper: 60, grip: 100, waveamp: 0,  glowblur: 8,  dim: 90,  alpha: 90, delay: 0, shrink: 220, fadems: 90, turns: 25, rate: 100, glow: false, useink: true,  band: false, wave: 'none' },
-    drag:  { dur: 520, width: 20, swell: 8,  taper: 40, grip: 100, waveamp: 16, glowblur: 14, dim: 85,  alpha: 95, delay: 0, shrink: 260, fadems: 90, turns: 25, rate: 100, glow: true,  useink: true,  band: true,  wave: 'curl' },
-    lash:  { dur: 340, width: 12, swell: 14, taper: 20, grip: 90,  waveamp: 22, glowblur: 6,  dim: 100, alpha: 95, delay: 0, shrink: 200, fadems: 90, turns: 25, rate: 100, glow: true,  useink: true,  band: true,  wave: 'whip' },
-    quiet: { dur: 600, width: 10, swell: 8,  taper: 80, grip: 75,  waveamp: 6,  glowblur: 0,  dim: 100, alpha: 55, delay: 0, shrink: 400, fadems: 90, turns: 25, rate: 100, glow: false, useink: false, band: false, wave: 'snake' },
+    grip:   { dur: 420, width: 16, swell: 10, grip: 100, alpha: 90,  delay: 0,  shrink: 220, fadems: 90,  turns: 25, rate: 100, glow: false, useink: true },
+    drag:   { dur: 520, width: 22, swell: 8,  grip: 100, alpha: 95,  delay: 0,  shrink: 260, fadems: 110, turns: 25, rate: 100, glow: true,  useink: true },
+    lash:   { dur: 300, width: 10, swell: 16, grip: 95,  alpha: 100, delay: 0,  shrink: 200, fadems: 60,  turns: 25, rate: 100, glow: true,  useink: true },
+    quiet:  { dur: 620, width: 8,  swell: 8,  grip: 80,  alpha: 45,  delay: 0,  shrink: 400, fadems: 150, turns: 25, rate: 100, glow: false, useink: false },
+    clamp:  { dur: 360, width: 34, swell: 12, grip: 100, alpha: 95,  delay: 0,  shrink: 200, fadems: 70,  turns: 25, rate: 100, glow: false, useink: true },
+    tether: { dur: 800, width: 6,  swell: 6,  grip: 110, alpha: 60,  delay: 0,  shrink: 320, fadems: 120, turns: 25, rate: 100, glow: false, useink: true },
+    reel:   { dur: 460, width: 18, swell: 11, grip: 60,  alpha: 90,  delay: 0,  shrink: 240, fadems: 90,  turns: 25, rate: 100, glow: false, useink: true },
+    halo:   { dur: 540, width: 28, swell: 7,  grip: 70,  alpha: 55,  delay: 0,  shrink: 280, fadems: 100, turns: 25, rate: 100, glow: true,  useink: false },
+    snare:  { dur: 240, width: 14, swell: 18, grip: 100, alpha: 100, delay: 0,  shrink: 180, fadems: 50,  turns: 25, rate: 100, glow: true,  useink: true },
+    anchor: { dur: 700, width: 40, swell: 9,  grip: 90,  alpha: 100, delay: 0,  shrink: 340, fadems: 130, turns: 25, rate: 100, glow: false, useink: true },
   };
   const state = { ...PRESETS.grip };
   const SHOWN = {
     dur: (v) => `${v}ms`, delay: (v) => `${v}ms`, shrink: (v) => `${v}ms`,
     fadems: (v) => `${v}ms`,
-    width: (v) => `${v}%`, taper: (v) => `${v}%`, grip: (v) => `${v}%`,
-    waveamp: (v) => `${v}%`, glowblur: (v) => `${v}%`, dim: (v) => `${v}%`,
+    width: (v) => `${v}%`, grip: (v) => `${v}%`,
     alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
     swell: (v) => (v / 10).toFixed(1),
     turns: (v) => `${Math.round((v / 100) * 360)}deg`,
@@ -2212,7 +2075,6 @@ function drawTip(ctx, pts, { hex, alpha = 1, halo = 3, bodyDim = 1, lighten = 0 
       document.getElementById(`${k}-o`).textContent = (SHOWN[k] ?? String)(state[k]);
     }
     for (const f of FLAGS) document.getElementById(f).checked = !!state[f];
-    document.getElementById('wave').value = state.wave;
     document.getElementById('dump').textContent = JSON.stringify({
       rotorBeam: {
         beams: 4,
@@ -2220,14 +2082,8 @@ function drawTip(ctx, pts, { hex, alpha = 1, halo = 3, bodyDim = 1, lighten = 0 
         delayMs: state.delay,
         width: state.width / 100,
         swell: state.swell / 10,
-        taper: state.taper / 100,
         grip: state.grip / 100,
-        wave: state.wave,
-        waveAmp: state.waveamp / 100,
-        glowBlur: state.glowblur / 100,
-        bodyDim: state.dim / 100,
         alpha: state.alpha / 100,
-        chargeBand: state.band,
         glow: state.glow,
         useInk: state.useink,
         cell: { shrinkMs: state.shrink, glyphFadeMs: state.fadems, turns: state.turns / 100 },
@@ -2246,10 +2102,6 @@ function drawTip(ctx, pts, { hex, alpha = 1, halo = 3, bodyDim = 1, lighten = 0 
       writeControls();
     });
   }
-  document.getElementById('wave').addEventListener('change', (e) => {
-    state.wave = e.target.value;
-    writeControls();
-  });
   for (const b of document.querySelectorAll('[data-preset]')) {
     b.addEventListener('click', () => {
       Object.assign(state, PRESETS[b.dataset.preset]);

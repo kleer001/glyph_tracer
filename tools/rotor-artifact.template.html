@@ -74,25 +74,15 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
 
   <div class="panel">
     <div class="grp">
-      <h2>The beam</h2>
+      <h2>The beams</h2>
       <div class="row"><label for="dur">travel</label><input type="range" id="dur" min="80" max="1400" step="20"><output id="dur-o"></output></div>
       <div class="row"><label for="width">width</label><input type="range" id="width" min="2" max="70" step="1"><output id="width-o"></output></div>
       <div class="row"><label for="swell">swell</label><input type="range" id="swell" min="5" max="40" step="1"><output id="swell-o"></output></div>
-      <div class="row"><label for="taper">taper</label><input type="range" id="taper" min="0" max="100" step="5"><output id="taper-o"></output></div>
-      <div class="row"><label for="fade">tip fade</label><input type="range" id="fade" min="0" max="100" step="5"><output id="fade-o"></output></div>
+      <div class="row"><label for="grip">grip</label><input type="range" id="grip" min="30" max="120" step="5"><output id="grip-o"></output></div>
       <div class="row"><label for="alpha">alpha</label><input type="range" id="alpha" min="10" max="100" step="5"><output id="alpha-o"></output></div>
       <div class="row"><label for="delay">delay</label><input type="range" id="delay" min="0" max="500" step="10"><output id="delay-o"></output></div>
       <label class="check"><input type="checkbox" id="glow"> add light where beams cross</label>
-      <label class="check"><input type="checkbox" id="useink"> beam takes the glyph's ink</label>
-    </div>
-    <div class="grp">
-      <h2>The grip</h2>
-      <div class="row"><label for="grip">grip</label><input type="range" id="grip" min="30" max="120" step="5"><output id="grip-o"></output></div>
-      <div class="row"><label for="wave">wave</label><select id="wave"><option value="none">none</option><option value="snake">snake</option><option value="whip">whip</option><option value="curl">curl</option></select><output></output></div>
-      <div class="row"><label for="waveamp">wave amp</label><input type="range" id="waveamp" min="0" max="40" step="2"><output id="waveamp-o"></output></div>
-      <div class="row"><label for="glowblur">glow</label><input type="range" id="glowblur" min="0" max="40" step="2"><output id="glowblur-o"></output></div>
-      <div class="row"><label for="dim">body</label><input type="range" id="dim" min="50" max="100" step="5"><output id="dim-o"></output></div>
-      <label class="check"><input type="checkbox" id="band"> a charge band rides out to the piece</label>
+      <label class="check"><input type="checkbox" id="useink"> beams take the glyph's ink</label>
     </div>
     <div class="grp">
       <h2>The cell going</h2>
@@ -118,10 +108,16 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     <div class="panel">
       <h2>Presets</h2>
       <div class="presets">
-        <button type="button" data-preset="cross">cross &mdash; four square arms</button>
-        <button type="button" data-preset="pinwheel">pinwheel &mdash; swept, staggered</button>
-        <button type="button" data-preset="star">star &mdash; eight thin arms</button>
-        <button type="button" data-preset="quiet">quiet &mdash; short arms, long turn</button>
+        <button type="button" data-preset="grip">grip &mdash; a clean hold</button>
+        <button type="button" data-preset="drag">drag &mdash; heavier, lit</button>
+        <button type="button" data-preset="lash">lash &mdash; thin and fast</button>
+        <button type="button" data-preset="quiet">quiet &mdash; faint and short</button>
+        <button type="button" data-preset="clamp">clamp &mdash; thick and brief</button>
+        <button type="button" data-preset="tether">tether &mdash; thin, held long</button>
+        <button type="button" data-preset="reel">reel &mdash; stops short of the piece</button>
+        <button type="button" data-preset="halo">halo &mdash; wide and soft</button>
+        <button type="button" data-preset="snare">snare &mdash; a bright catch</button>
+        <button type="button" data-preset="anchor">anchor &mdash; heavy and slow</button>
       </div>
       <p class="hint">Click a rotate to land it on its own colour. The four neighbours it takes
       round are the engine's answer, and each beam holds one of them.</p>
@@ -136,12 +132,12 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
 </div>
 
 <footer>
-  <p><code>aim</code> turns the whole set of arms, so four arms at an aim of 45 point at the corners
-  instead of the edges. <code>sweep</code> turns each arm as it travels, which is what makes the set
-  read as a pinwheel rather than a cross. <code>stagger</code> delays each arm behind the one before,
-  so they leave in sequence. The turn out is the glyph's own quarter: a mirrored <strong>r</strong>
-  takes it the other way, because the piece turns the way its ability does. This page runs the game's
-  own renderer, and the beam maths is <code>src/fx.js</code>.</p>
+  <p>Four beams, always four &mdash; that is how many neighbours the rules take round. Each one
+  ends on the live position of the piece it has hold of, so its direction and its speed are the
+  piece's rather than a circle drawn around the cell. <code>grip</code> is how far along it
+  reaches: at 100 the tip sits on the piece, below that it stops short, above that it overshoots.
+  The beams draw under the pieces, so a piece reads as held rather than painted over. This page
+  runs the game's own renderer over the turn the rules actually resolve.</p>
 </footer>
 
 </div>
@@ -255,33 +251,13 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
         const grip = state.grip / 100;
         const tipX = at.x + (to.x - at.x) * grip;
         const tipY = at.y + (to.y - at.y) * grip;
-        const pts = beamPoints({
+        drawBeam(c2, {
           x: at.x, y: at.y, tipX, tipY,
-          baseR: (state.width / 100) * layout.cell * 0.5 * env,
-          tipR: (state.width / 100) * layout.cell * 0.5 * env * (state.taper / 100),
-          samples: 14,
-          wave: state.wave,
-          waveAmp: (state.waveamp / 100) * layout.cell,
-          time: seconds,
-          seed: i * 1.7,
-          spread: bt,
-          band: state.band ? bt : null,
-        });
-        drawShaft(c2, pts, {
-          hex: state.useink ? p.ink : p.ground,
+          // One envelope, two properties: the sister game's whole trick.
+          width: (state.width / 100) * layout.cell * env + 1,
           alpha: (state.alpha / 100) * env,
-          glowBlur: (state.glowblur / 100) * layout.cell,
-          glowBoost: (state.glowblur / 100) * layout.cell,
-          bodyDim: state.dim / 100,
-          lighten: 0.6,
+          hex: state.useink ? p.ink : p.ground,
           glow: state.glow,
-        });
-        drawTip(c2, pts, {
-          hex: state.useink ? p.ink : p.ground,
-          alpha: (state.alpha / 100) * env,
-          halo: layout.cell * 0.03,
-          bodyDim: state.dim / 100,
-          lighten: 0.6,
         });
       }
     },
@@ -332,21 +308,26 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     requestAnimationFrame(frame);
   }
 
-  const KEYS = ['dur', 'width', 'swell', 'taper', 'grip', 'waveamp', 'glowblur', 'dim',
-    'alpha', 'delay', 'shrink', 'fadems', 'turns', 'rate'];
-  const FLAGS = ['glow', 'useink', 'band'];
+  const KEYS = ['dur', 'width', 'swell', 'grip', 'alpha', 'delay',
+    'shrink', 'fadems', 'turns', 'rate'];
+  const FLAGS = ['glow', 'useink'];
   const PRESETS = {
-    grip:  { dur: 420, width: 16, swell: 10, taper: 60, grip: 100, waveamp: 0,  glowblur: 8,  dim: 90,  alpha: 90, delay: 0, shrink: 220, fadems: 90, turns: 25, rate: 100, glow: false, useink: true,  band: false, wave: 'none' },
-    drag:  { dur: 520, width: 20, swell: 8,  taper: 40, grip: 100, waveamp: 16, glowblur: 14, dim: 85,  alpha: 95, delay: 0, shrink: 260, fadems: 90, turns: 25, rate: 100, glow: true,  useink: true,  band: true,  wave: 'curl' },
-    lash:  { dur: 340, width: 12, swell: 14, taper: 20, grip: 90,  waveamp: 22, glowblur: 6,  dim: 100, alpha: 95, delay: 0, shrink: 200, fadems: 90, turns: 25, rate: 100, glow: true,  useink: true,  band: true,  wave: 'whip' },
-    quiet: { dur: 600, width: 10, swell: 8,  taper: 80, grip: 75,  waveamp: 6,  glowblur: 0,  dim: 100, alpha: 55, delay: 0, shrink: 400, fadems: 90, turns: 25, rate: 100, glow: false, useink: false, band: false, wave: 'snake' },
+    grip:   { dur: 420, width: 16, swell: 10, grip: 100, alpha: 90,  delay: 0,  shrink: 220, fadems: 90,  turns: 25, rate: 100, glow: false, useink: true },
+    drag:   { dur: 520, width: 22, swell: 8,  grip: 100, alpha: 95,  delay: 0,  shrink: 260, fadems: 110, turns: 25, rate: 100, glow: true,  useink: true },
+    lash:   { dur: 300, width: 10, swell: 16, grip: 95,  alpha: 100, delay: 0,  shrink: 200, fadems: 60,  turns: 25, rate: 100, glow: true,  useink: true },
+    quiet:  { dur: 620, width: 8,  swell: 8,  grip: 80,  alpha: 45,  delay: 0,  shrink: 400, fadems: 150, turns: 25, rate: 100, glow: false, useink: false },
+    clamp:  { dur: 360, width: 34, swell: 12, grip: 100, alpha: 95,  delay: 0,  shrink: 200, fadems: 70,  turns: 25, rate: 100, glow: false, useink: true },
+    tether: { dur: 800, width: 6,  swell: 6,  grip: 110, alpha: 60,  delay: 0,  shrink: 320, fadems: 120, turns: 25, rate: 100, glow: false, useink: true },
+    reel:   { dur: 460, width: 18, swell: 11, grip: 60,  alpha: 90,  delay: 0,  shrink: 240, fadems: 90,  turns: 25, rate: 100, glow: false, useink: true },
+    halo:   { dur: 540, width: 28, swell: 7,  grip: 70,  alpha: 55,  delay: 0,  shrink: 280, fadems: 100, turns: 25, rate: 100, glow: true,  useink: false },
+    snare:  { dur: 240, width: 14, swell: 18, grip: 100, alpha: 100, delay: 0,  shrink: 180, fadems: 50,  turns: 25, rate: 100, glow: true,  useink: true },
+    anchor: { dur: 700, width: 40, swell: 9,  grip: 90,  alpha: 100, delay: 0,  shrink: 340, fadems: 130, turns: 25, rate: 100, glow: false, useink: true },
   };
   const state = { ...PRESETS.grip };
   const SHOWN = {
     dur: (v) => `${v}ms`, delay: (v) => `${v}ms`, shrink: (v) => `${v}ms`,
     fadems: (v) => `${v}ms`,
-    width: (v) => `${v}%`, taper: (v) => `${v}%`, grip: (v) => `${v}%`,
-    waveamp: (v) => `${v}%`, glowblur: (v) => `${v}%`, dim: (v) => `${v}%`,
+    width: (v) => `${v}%`, grip: (v) => `${v}%`,
     alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
     swell: (v) => (v / 10).toFixed(1),
     turns: (v) => `${Math.round((v / 100) * 360)}deg`,
@@ -358,7 +339,6 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       document.getElementById(`${k}-o`).textContent = (SHOWN[k] ?? String)(state[k]);
     }
     for (const f of FLAGS) document.getElementById(f).checked = !!state[f];
-    document.getElementById('wave').value = state.wave;
     document.getElementById('dump').textContent = JSON.stringify({
       rotorBeam: {
         beams: 4,
@@ -366,14 +346,8 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
         delayMs: state.delay,
         width: state.width / 100,
         swell: state.swell / 10,
-        taper: state.taper / 100,
         grip: state.grip / 100,
-        wave: state.wave,
-        waveAmp: state.waveamp / 100,
-        glowBlur: state.glowblur / 100,
-        bodyDim: state.dim / 100,
         alpha: state.alpha / 100,
-        chargeBand: state.band,
         glow: state.glow,
         useInk: state.useink,
         cell: { shrinkMs: state.shrink, glyphFadeMs: state.fadems, turns: state.turns / 100 },
@@ -392,10 +366,6 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       writeControls();
     });
   }
-  document.getElementById('wave').addEventListener('change', (e) => {
-    state.wave = e.target.value;
-    writeControls();
-  });
   for (const b of document.querySelectorAll('[data-preset]')) {
     b.addEventListener('click', () => {
       Object.assign(state, PRESETS[b.dataset.preset]);
