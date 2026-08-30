@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Glyph Tracer — fx frame harness</title>
+<link rel="icon" href="../favicon.svg">
+<style>
+  body { margin: 0; background: #E7E8EA; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="screen" width="460" height="460"></canvas>
+
+<script type="module">
+// A harness, not a sandbox: it draws one named effect at an elapsed time you give it,
+// and never runs a clock of its own. Nothing here races requestAnimationFrame, so a
+// capture is the same frame every run -- which is what makes a recording of an effect
+// worth comparing against the next one.
+//
+//   window.SCENES          the effects it can draw
+//   window.load(name)      set one up; returns its total length in ms
+//   window.renderAt(ms)    draw that effect at ms
+//
+// Drive it from outside, a frame at a time, and encode the stills however you like.
+
+import { ANCHOR, PUSH_RIGHT, applySwap, blankBoard, copyBoard, createRecorder, settle } from '../src/board.js';
+import { beamStyleFor, targetsFor } from '../src/abilityFx.js';
+import { buildTimeline, sampleTimeline, staticFrame } from '../src/animate.js';
+import { createCompositor } from '../src/compositor.js';
+import { beamSpan, drawBeam, ghostAt, grabAt, swellAt } from '../src/fx.js';
+import { CELL } from '../src/glyphShapes.js';
+import { resolvePalette } from '../src/palette.js';
+import { mulberry32 } from '../src/rng.js';
+import { boardLayout, cellOrigin, createGlyphLayer, createGroundLayer, drawGlyph, VIEW } from '../src/render.js';
+
+const load = async (p) => (await fetch(p)).json();
+const PALETTE = resolvePalette(await load('../data/palette.json'));
+const GLOSS = await load('../data/gloss.json');
+const GEOMETRY = await load('../data/geometry.json');
+const PATHS = (await load('../data/glyphPaths.json')).paths;
+const GLYPHS = (await load('../data/glyphs.json')).glyphs;
+const ANIM = await load('../data/animation.json');
+const RULES = await load('../data/rules.json');
+const byId = new Map(GLYPHS.map((g) => [g.id, g]));
+const byKind = new Map(GLYPHS.map((g) => [g.kind, g]));
+
+const canvas = document.getElementById('screen');
+const ctx = canvas.getContext('2d');
+const VIEW_HERE = { ...VIEW, hudHeight: 0, pad: 20, gap: 4 };
+const SIZE = 5;
+const MID = 2;
+
+// The beam every ability throws, tuned where the two sandboxes landed.
+// A thrown beam leaves and dissipates; a grabbed one reaches out and holds on. The
+// numbers are where the two sandboxes landed on tracer and halo.
+const THROW = { travelMs: 300, reachCells: 3.0, chase: 0.85, width: 0.10, swell: 1.6, alpha: 1, outline: 3 };
+const GRAB = { travelMs: 480, reachMs: 150, width: 0.16, swell: 1.0, alpha: 0.92, outline: 3 };
+
+/** A board of plain pieces, so every ability has something in reach to act on. */
+function bed() {
+  const b = blankBoard({ ...RULES, width: SIZE, height: SIZE, colors: PALETTE.colors.length });
+  const rand = mulberry32(708);
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      b.bg[r][c] = Math.floor(rand() * PALETTE.colors.length);
+      const ink = Math.floor(rand() * (PALETTE.colors.length - 1));
+      b.glyph[r][c] = ink >= b.bg[r][c] ? ink + 1 : ink;
+      b.kind[r][c] = '';
+      b.art[r][c] = 'inert';
+    }
+  }
+  return b;
+}
+
+function put(b, r, c, glyph) {
+  b.kind[r][c] = glyph.kind;
+  b.art[r][c] = glyph.id;
+}
+
+/** Land a cell on its own colour and let the rules answer. */
+function resolveAt(b, r, c) {
+  b.glyph[r][c] = b.bg[r][c];
+  const before = copyBoard(b);
+  const recorder = createRecorder();
+  settle(b, mulberry32(9), recorder);
+  const timeline = buildTimeline({ before, swap: [[r, c], [r, c]], recorder, timing: ANIM });
+  const opening = timeline.phases[0];
+  return { before, recorder, timeline, firedAt: opening.tweenMs + opening.holdMs, at: [r, c] };
+}
+
+export const SCENES = {
+  pulse: () => { const b = bed(); put(b, MID, MID, byKind.get('pulse')); return resolveAt(b, MID, MID); },
+  swapOrth: () => { const b = bed(); put(b, MID, MID, byKind.get('swapOrth')); return resolveAt(b, MID, MID); },
+  swapDiag: () => { const b = bed(); put(b, MID, MID, byKind.get('swapDiag')); return resolveAt(b, MID, MID); },
+  sink: () => { const b = bed(); put(b, MID, MID, byKind.get('sink')); return resolveAt(b, MID, MID); },
+  inert: () => { const b = bed(); return resolveAt(b, MID, MID); },
+  // The anchor never fires, so its swallow has to be caused: a push two cells away
+  // drives its neighbour into the anchor, which eats it and stays put.
+  anchorSwallow: () => {
+    const b = bed();
+    put(b, MID, MID, byKind.get(ANCHOR));
+    put(b, MID, 0, byKind.get(PUSH_RIGHT));
+    return resolveAt(b, MID, 0);
+  },
+  anchorClear: () => { const b = bed(); put(b, MID, MID, byKind.get(ANCHOR)); return resolveAt(b, MID, MID); },
+};
+window.SCENES = Object.keys(SCENES);
+
+let scene = null;
+window.load = (name) => {
+  scene = { ...SCENES[name](), name };
+  return scene.timeline.totalMs;
+};
+
+const centreOf = (layout, row, col) => {
+  const { x, y } = cellOrigin(layout, row, col, VIEW_HERE);
+  return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
+};
+
+/**
+ * The effects layer: beams for an ability that throws them, a ghost for one that does
+ * not. Between the ground and the pieces, so a beam reads as holding what it grabbed.
+ */
+const fxLayer = {
+  name: 'fx',
+  draw(c2, frame) {
+    const { layout, elapsed } = frame;
+    c2.beginPath();
+    c2.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
+    c2.clip();
+
+    const [r, c] = scene.at;
+    const kind = scene.before.kind[r][c];
+    const glyph = byId.get(scene.before.art[r][c]);
+    const ink = PALETTE.colors[scene.before.glyph[r][c]].hex;
+    const from = centreOf(layout, r, c);
+    const since = elapsed - scene.firedAt;
+
+    // --- beams ---------------------------------------------------------------
+    const style = beamStyleFor(kind);
+    if (style) {
+      const tune = style === 'throw' ? THROW : GRAB;
+      const bt = since / tune.travelMs;
+      if (bt > 0 && bt < 1) {
+        const env = swellAt(bt, tune.swell);
+        const step = layout.cell + VIEW_HERE.gap;
+        for (const cell of targetsFor(kind, scene.at, scene.before)) {
+          let root = from;
+          let tip;
+          if (style === 'throw') {
+            // Away from the cell, along the line to what it is shoving, and onward:
+            // a shove does not stop where the piece was standing.
+            const a = Math.atan2(cell[0] - r, cell[1] - c);
+            const span = beamSpan(bt, tune.reachCells * step, tune.chase);
+            root = { x: from.x + Math.cos(a) * span.from, y: from.y + Math.sin(a) * span.from };
+            tip = { x: from.x + Math.cos(a) * span.to, y: from.y + Math.sin(a) * span.to };
+          } else {
+            // Onto the piece, and thereafter wherever the rules have taken it.
+            const held = frame.sprites.find((s) => s.to && s.to[0] === cell[0] && s.to[1] === cell[1])
+              ?? frame.sprites.find((s) => s.from && s.from[0] === cell[0] && s.from[1] === cell[1]);
+            const target = held ? centreOf(layout, held.y, held.x) : centreOf(layout, cell[0], cell[1]);
+            tip = grabAt(since, tune.reachMs, from, target);
+          }
+          drawBeam(c2, {
+            x: root.x, y: root.y, tipX: tip.x, tipY: tip.y,
+            width: tune.width * layout.cell * env + 1,
+            alpha: tune.alpha * env,
+            hex: ink,
+            keyline: tune.outline,
+            key: PALETTE.key,
+          });
+        }
+      }
+    }
+
+    // --- ghosts --------------------------------------------------------------
+    // An anchor holds its place when it swallows, so its pulse is small; when it
+    // matches and goes it swells the whole way. Simultaneous swallows are one event.
+    const ghosts = [];
+    if (glyph.exit === 'ghost') {
+      const swallowed = new Set();
+      for (const step of scene.recorder.steps) {
+        for (const e of step.events) {
+          if (e.type === 'eat' && e.reason === 'eater') swallowed.add(String(e.into));
+        }
+      }
+      for (const into of swallowed) {
+        const cell = into.split(',').map(Number);
+        ghosts.push({ cell, grow: ANIM.ghost.swallowGrow, glyph: byId.get(scene.before.art[cell[0]][cell[1]]),
+          ink: PALETTE.colors[scene.before.glyph[cell[0]][cell[1]]].hex });
+      }
+      if (scene.name === 'anchorClear') {
+        ghosts.push({ cell: scene.at, grow: ANIM.ghost.clearGrow, glyph, ink });
+      }
+    }
+    for (const g of ghosts) {
+      const { scale, alpha } = ghostAt(since / ANIM.ghost.ms, g.grow);
+      if (alpha <= 0) continue;
+      const size = layout.cell * scale;
+      const mid = centreOf(layout, g.cell[0], g.cell[1]);
+      c2.save();
+      c2.globalAlpha = alpha;
+      c2.translate(mid.x - size / 2, mid.y - size / 2);
+      c2.scale(size / CELL, size / CELL);
+      // Outline only: the ink is left out so the black keyline is all that swells.
+      drawGlyph(c2, g.glyph, { ink: 'rgba(0,0,0,0)', core: PALETTE.key, key: PALETTE.key },
+        { ...GLOSS, glyphShadowA: 0 }, GEOMETRY, size, PATHS);
+      c2.restore();
+    }
+  },
+};
+
+const scene3 = createCompositor()
+  .add(createGroundLayer(VIEW_HERE))
+  .add(fxLayer)
+  .add(createGlyphLayer(VIEW_HERE));
+
+window.renderAt = (ms) => {
+  const drawList = sampleTimeline(scene.timeline, ms, ANIM.spin) ?? staticFrame(scene.before);
+  scene3.render(ctx, {
+    width: canvas.width,
+    height: canvas.height,
+    ...drawList,
+    elapsed: ms,
+    layout: boardLayout(scene.before, canvas.width, canvas.height, VIEW_HERE),
+    palette: PALETTE,
+    gloss: GLOSS,
+    geometry: GEOMETRY,
+    glyphPaths: PATHS,
+    glyphsById: byId,
+  });
+};
+
+window.__ready = true;
+</script>
+</body>
+</html>
