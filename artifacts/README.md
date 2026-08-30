@@ -20,14 +20,19 @@ why they sit here instead.
 |---|---|---|
 | `juice-bench.html` | Glyph Tracer Juice Bench — the priced shelf of visual work, with live demos and the palette and silhouette measurements. Text version: `docs/JUICE.md`. | hand-written |
 | `burst-bench.html` | Glyph Tracer Burst Sandbox — tune a cleared cell's throw on a live board. | **generated** |
+| `beam-bench.html` | Glyph Tracer Beam Sandbox — the directional beam a push throws. | **generated** |
+| `rotor-bench.html` | Glyph Tracer Rotor Sandbox — the rotate's four arms and its quarter turn out. | **generated** |
 
-`burst-bench.html` is built, not edited. It is the whole engine and every data file
-inlined into one page, because an Artifact has no origin to fetch from and cannot import
-`src/` or read `data/`. Rebuild it after changing either:
+The generated pages are built, never edited. Each is the whole engine and every data
+file inlined into one page, because an Artifact has no origin to fetch from and cannot
+import `src/` or read `data/`. Rebuild after changing either:
 
 ```sh
-python3 tools/buildBurstArtifact.py
+python3 tools/buildArtifacts.py            # all of them
+python3 tools/buildArtifacts.py beam       # just one
 ```
 
-Edit `tools/burst-artifact.template.html` for the page itself, never the built file. The
-sandbox it mirrors, `dev/burst.html`, stays the one that loads `src/` live.
+Edit the matching `tools/*-artifact.template.html` for the page itself, never the built
+file. The effects they tune live in `src/fx.js`, so a page and the game cannot drift
+apart on the maths — only on the numbers, which is the whole point of tuning them here.
+`dev/burst.html` stays the sandbox that loads `src/` live.

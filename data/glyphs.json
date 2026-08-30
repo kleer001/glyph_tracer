@@ -1,5 +1,5 @@
 {
-  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation — the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind.",
+  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation \u2014 the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind.",
   "glyphs": [
     {
       "id": "inert",
@@ -9,7 +9,7 @@
       "flip": false,
       "name": "Inert",
       "kind": "",
-      "effect": "nothing — it matches, its cell goes, and no ability runs"
+      "effect": "nothing \u2014 it matches, its cell goes, and no ability runs"
     },
     {
       "id": "pulse",
@@ -93,7 +93,7 @@
     },
     {
       "id": "rotate",
-      "letter": "R",
+      "letter": "r",
       "mark": "@",
       "rot": 0,
       "flip": false,
@@ -103,7 +103,7 @@
     },
     {
       "id": "rotate-rev",
-      "letter": "R",
+      "letter": "r",
       "mark": "%",
       "rot": 0,
       "flip": true,

@@ -1,0 +1,394 @@
+<title>Glyph Tracer Beam Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root { --paper:#EDEEF0; --surface:#F7F8F9; --sunk:#E2E4E7; --ink:#16171A; --dim:#6B6F76; --hair:#D3D6DA; --accent:#3B51D6; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --paper:#141518; --surface:#1C1E22; --sunk:#101114; --ink:#E6E7EA; --dim:#969BA3; --hair:#2E3138; --accent:#93A2FF; }
+}
+:root[data-theme="dark"] { --paper:#141518; --surface:#1C1E22; --sunk:#101114; --ink:#E6E7EA; --dim:#969BA3; --hair:#2E3138; --accent:#93A2FF; }
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: Newsreader, Georgia, serif;
+  font-size: 17px; line-height: 1.6; margin: 0; padding: 0 20px 80px; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1120px; margin: 0 auto; }
+header { padding: 60px 0 30px; display: flex; flex-direction: column; gap: 13px; }
+.eyebrow { font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 0; }
+h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 300; line-height: 1.03; letter-spacing: -.022em; margin: 0; text-wrap: balance; }
+h1 em { font-style: italic; font-weight: 400; }
+.standfirst { font-size: 19px; line-height: 1.5; color: var(--dim); margin: 0; max-width: 62ch; }
+.cols { display: grid; grid-template-columns: 250px minmax(0,1fr) 236px; gap: 18px; align-items: start;
+  border-top: 1px solid var(--hair); padding-top: 26px; }
+@media (max-width: 980px) { .cols { grid-template-columns: 250px minmax(0,1fr); } }
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--hair); border-radius: 4px; padding: 15px 14px; }
+.panel + .panel { margin-top: 16px; }
+h2 { font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--dim); margin: 0 0 11px; }
+.grp + .grp { margin-top: 17px; }
+.row { display: grid; grid-template-columns: 60px 1fr 50px; align-items: center; gap: 8px; margin-bottom: 6px; }
+.row label { font-size: 13px; color: var(--dim); }
+.row output { font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; text-align: right;
+  font-variant-numeric: tabular-nums; color: var(--ink); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); margin: 9px 0 0; }
+.stage { background: var(--sunk); border: 1px solid var(--hair); border-radius: 4px; padding: 18px;
+  display: flex; flex-direction: column; align-items: center; gap: 13px; }
+canvas { display: block; width: 100%; max-width: 460px; height: auto; cursor: pointer; border-radius: 3px; }
+.bar { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; }
+button { font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--hair); border-radius: 3px; padding: 7px 11px; cursor: pointer; }
+button:hover { border-color: var(--dim); }
+button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.readout { font-family: "Martian Mono", ui-monospace, monospace; font-size: 10.5px; color: var(--dim);
+  text-align: center; line-height: 1.75; white-space: pre-line; font-variant-numeric: tabular-nums; }
+.presets { display: flex; flex-direction: column; gap: 5px; }
+.presets button { text-align: left; text-transform: none; letter-spacing: 0; font-size: 10.5px; }
+pre { background: var(--sunk); border: 1px solid var(--hair); border-radius: 3px; padding: 10px;
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 9.5px; line-height: 1.6;
+  overflow-x: auto; margin: 0; color: var(--ink); user-select: all; }
+.hint { font-size: 13px; color: var(--dim); margin: 9px 0 0; line-height: 1.5; }
+footer { border-top: 1px solid var(--hair); margin-top: 34px; padding-top: 20px; font-size: 14px;
+  color: var(--dim); max-width: 66ch; }
+code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; background: var(--surface);
+  border: 1px solid var(--hair); border-radius: 3px; padding: .1em .35em; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Glyph Tracer &middot; fx sandbox 1 of 2</p>
+  <h1>The <em>A</em> shows its heading</h1>
+  <p class="standfirst">A push fires along the direction its letter points, and the beam is the only
+  thing that says which way the shove went. It leaves as a thin line, swells, and dissipates over
+  about three cells &mdash; one envelope drives the width and the opacity together, so it reads as a
+  single travelling thing rather than a line being faded out.</p>
+</header>
+
+<div class="cols">
+
+  <div class="panel">
+    <div class="grp">
+      <h2>The beam</h2>
+      <div class="row"><label for="reach">reach</label><input type="range" id="reach" min="5" max="60" step="1"><output id="reach-o"></output></div>
+      <div class="row"><label for="dur">travel</label><input type="range" id="dur" min="80" max="1400" step="20"><output id="dur-o"></output></div>
+      <div class="row"><label for="width">width</label><input type="range" id="width" min="2" max="70" step="1"><output id="width-o"></output></div>
+      <div class="row"><label for="swell">swell</label><input type="range" id="swell" min="5" max="40" step="1"><output id="swell-o"></output></div>
+      <div class="row"><label for="taper">taper</label><input type="range" id="taper" min="0" max="100" step="5"><output id="taper-o"></output></div>
+      <div class="row"><label for="fade">tip fade</label><input type="range" id="fade" min="0" max="100" step="5"><output id="fade-o"></output></div>
+      <div class="row"><label for="chase">chase</label><input type="range" id="chase" min="0" max="100" step="5"><output id="chase-o"></output></div>
+      <div class="row"><label for="alpha">alpha</label><input type="range" id="alpha" min="10" max="100" step="5"><output id="alpha-o"></output></div>
+      <div class="row"><label for="delay">delay</label><input type="range" id="delay" min="0" max="500" step="10"><output id="delay-o"></output></div>
+      <label class="check"><input type="checkbox" id="glow"> add light where beams cross</label>
+      <label class="check"><input type="checkbox" id="useink"> beam takes the glyph's ink</label>
+    </div>
+    <div class="grp">
+      <h2>The cell going</h2>
+      <div class="row"><label for="shrink">shrink</label><input type="range" id="shrink" min="80" max="900" step="20"><output id="shrink-o"></output></div>
+      <div class="row"><label for="turns">turns</label><input type="range" id="turns" min="0" max="30" step="1"><output id="turns-o"></output></div>
+      <div class="row"><label for="rate">rate</label><input type="range" id="rate" min="10" max="200" step="5"><output id="rate-o"></output></div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <canvas id="screen" width="920" height="920" role="button" tabindex="0"
+            aria-label="A board of directional pushes. Click one to fire it."></canvas>
+    <div class="bar">
+      <button type="button" id="fireall">fire every push</button>
+      <button type="button" id="refill">refill</button>
+      <button type="button" id="loop">loop one</button>
+    </div>
+    <p class="readout" id="readout"></p>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>Presets</h2>
+      <div class="presets">
+        <button type="button" data-preset="lance">lance &mdash; long and thin</button>
+        <button type="button" data-preset="bolt">bolt &mdash; travels and leaves</button>
+        <button type="button" data-preset="wedge">wedge &mdash; wide root, sharp point</button>
+        <button type="button" data-preset="ghost">ghost &mdash; faint and slow</button>
+      </div>
+      <p class="hint">Click any cell to fire its push. Every cell holds an <strong>A</strong> at one
+      of its four turns, so each fires a different way.</p>
+    </div>
+    <div class="panel">
+      <h2>Settings</h2>
+      <pre id="dump"></pre>
+      <p class="hint">Click the block to select it, then copy it back to me.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>Reach is in cells, so a reach of 3 dissipates three cells out whatever size the board is drawn.
+  <code>chase</code> pulls the beam's root along behind its tip: at zero it is a spear growing out of
+  the cell, at full it is a bolt that travels and leaves nothing behind. <code>swell</code> sharpens
+  the envelope's peak, which shortens how long the beam is visible without changing how long it takes
+  to cross. This page runs the game's own renderer, and the beam maths is <code>src/fx.js</code>.</p>
+</footer>
+
+</div>
+
+<script type="module">
+/*__DATA__*/
+
+/*__ENGINE__*/
+
+(() => {
+  'use strict';
+  const PALETTE = resolvePalette(DATA_PALETTE);
+  const GLOSS = DATA_GLOSS;
+  const GEOMETRY = DATA_GEOMETRY;
+  const GLYPH_PATHS = DATA_GLYPHPATHS.paths;
+  const GLYPHS = DATA_GLYPHS.glyphs;
+  const RULES = DATA_RULES;
+  const byId = new Map(GLYPHS.map((g) => [g.id, g]));
+  const PUSHES = ['push-up', 'push-right', 'push-down', 'push-left'];
+
+  const canvas = document.getElementById('screen');
+  const ctx = canvas.getContext('2d');
+  const VIEW_HERE = { ...VIEW, hudHeight: 0, pad: 38, gap: 8 };
+  const TAU = Math.PI * 2;
+  const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
+
+  let board = null;
+  const shots = [];
+
+  function deal() {
+    const rand = mulberry32(708);
+    board = randomBoard({ ...RULES, width: 5, height: 5, colors: PALETTE.colors.length }, RULES.mix, rand);
+    dealArt(board, GLYPHS, rand);
+    // Every cell carries a push, so every cell has a heading to show.
+    for (let r = 0; r < board.height; r++) {
+      for (let c = 0; c < board.width; c++) {
+        const art = PUSHES[(r * board.width + c) % 4];
+        board.art[r][c] = art;
+        board.kind[r][c] = byId.get(art).kind;
+      }
+    }
+    shots.length = 0;
+  }
+
+  function fire(r, c) {
+    const layout = boardLayout(board, canvas.width, canvas.height, VIEW_HERE);
+    const { x, y } = cellOrigin(layout, r, c, VIEW_HERE);
+    const glyph = byId.get(board.art[r][c]);
+    shots.push({
+      r, c,
+      x: x + layout.cell / 2,
+      y: y + layout.cell / 2,
+      cell: layout.cell,
+      step: layout.cell + VIEW_HERE.gap,
+      angle: headingFor(glyph.kind) ?? 0,
+      glyph,
+      ground: PALETTE.colors[board.bg[r][c]].hex,
+      ink: PALETTE.colors[board.glyph[r][c]].hex,
+      born: performance.now(),
+    });
+    board.alive[r][c] = false;
+    board.glyph[r][c] = null;
+    board.art[r][c] = null;
+    board.kind[r][c] = '';
+  }
+
+  /** The turn a dying cell makes, held under what the shrink has made room for. */
+  function spinAt(t, turns) {
+    if (!turns) return 0;
+    return turns * t ** (2 + Math.log2(turns) / 2) * TAU;
+  }
+
+  /**
+   * Layer three: the death of a cell and the heading it threw. The board layers have
+   * already forgotten these cells, so this draws the tile and the glyph as well as
+   * the beam.
+   */
+  const fxLayer = {
+    name: 'fx',
+    draw(c2, frame) {
+      const now = performance.now();
+      for (const s of frame.shots) {
+        const age = (now - s.born) * (state.rate / 100);
+
+        // the cell going
+        const dt = clamp01(age / state.shrink);
+        if (dt < 1) {
+          const turns = state.turns / 10;
+          const size = s.cell * (1 - dt);
+          const spin = spinAt(dt, turns);
+          if (size > 0) {
+            c2.save();
+            c2.translate(s.x, s.y);
+            c2.rotate(spin);
+            c2.translate(-size / 2, -size / 2);
+            drawTile(c2, { x: 0, y: 0, size }, s.ground, GLOSS);
+            c2.scale(size / CELL, size / CELL);
+            drawGlyph(c2, s.glyph, { ink: s.ink, core: PALETTE.core, key: PALETTE.key },
+                      GLOSS, GEOMETRY, size, GLYPH_PATHS);
+            c2.restore();
+          }
+        }
+
+        // the heading it threw
+        const bt = clamp01((age - state.delay) / state.dur);
+        if (bt <= 0 || bt >= 1) continue;
+        const env = swellAt(bt, state.swell / 10);
+        const reachPx = (state.reach / 10) * s.step;
+        const span = beamSpan(bt, reachPx, state.chase / 100);
+        const len = span.to - span.from;
+        if (len <= 0) continue;
+        drawBeam(c2, {
+          x: s.x + Math.cos(s.angle) * span.from,
+          y: s.y + Math.sin(s.angle) * span.from,
+          angle: s.angle,
+          length: len,
+          width: (state.width / 100) * s.cell * env,
+          alpha: (state.alpha / 100) * env,
+          taper: state.taper / 100,
+          fade: state.fade / 100,
+          hex: state.useink ? s.ink : s.ground,
+          glow: state.glow,
+        });
+      }
+    },
+  };
+  const scene = createCompositor()
+    .add(createGroundLayer(VIEW_HERE))
+    .add(createGlyphLayer(VIEW_HERE))
+    .add(fxLayer);
+
+  let looping = false;
+  let loopAt = 0;
+
+  function frame(now) {
+    const longest = Math.max(state.shrink, state.delay + state.dur) / (state.rate / 100);
+    for (let i = shots.length - 1; i >= 0; i--) {
+      if (now - shots[i].born > longest + 40) shots.splice(i, 1);
+    }
+    if (looping && !shots.length && now - loopAt > 320) {
+      deal();
+      fire(2, 2);
+      loopAt = now;
+    }
+    scene.render(ctx, {
+      width: canvas.width,
+      height: canvas.height,
+      ...staticFrame(board),
+      shots,
+      layout: boardLayout(board, canvas.width, canvas.height, VIEW_HERE),
+      palette: PALETTE,
+      gloss: GLOSS,
+      geometry: GEOMETRY,
+      glyphPaths: GLYPH_PATHS,
+      glyphsById: byId,
+    });
+    const alive = board.alive.flat().filter(Boolean).length;
+    document.getElementById('readout').textContent =
+      `${shots.length} beam${shots.length === 1 ? '' : 's'} live \u00b7 ${alive} cell${alive === 1 ? '' : 's'} left\n`
+      + `reach ${(state.reach / 10).toFixed(1)} cells \u00b7 beam done at ${Math.round(state.delay + state.dur)}ms`;
+    requestAnimationFrame(frame);
+  }
+
+  // --- controls -------------------------------------------------------------
+  const KEYS = ['reach', 'dur', 'width', 'swell', 'taper', 'fade', 'chase', 'alpha', 'delay',
+    'shrink', 'turns', 'rate'];
+  const FLAGS = ['glow', 'useink'];
+  const PRESETS = {
+    lance: { reach: 30, dur: 420, width: 22, swell: 10, taper: 0,  fade: 0,  chase: 0,  alpha: 90, delay: 0,  shrink: 200, turns: 10, rate: 100, glow: false, useink: true },
+    bolt:  { reach: 34, dur: 340, width: 30, swell: 14, taper: 20, fade: 40, chase: 70, alpha: 95, delay: 40, shrink: 200, turns: 10, rate: 100, glow: true,  useink: true },
+    wedge: { reach: 26, dur: 520, width: 52, swell: 8,  taper: 0,  fade: 20, chase: 0,  alpha: 80, delay: 0,  shrink: 260, turns: 10, rate: 100, glow: false, useink: true },
+    ghost: { reach: 40, dur: 900, width: 16, swell: 6,  taper: 60, fade: 80, chase: 25, alpha: 45, delay: 60, shrink: 320, turns: 5,  rate: 60,  glow: true,  useink: false },
+  };
+  const state = { ...PRESETS.lance };
+  const SHOWN = {
+    reach: (v) => `${(v / 10).toFixed(1)}c`,
+    dur: (v) => `${v}ms`, delay: (v) => `${v}ms`, shrink: (v) => `${v}ms`,
+    width: (v) => `${v}%`, taper: (v) => `${v}%`, fade: (v) => `${v}%`,
+    chase: (v) => `${v}%`, alpha: (v) => `${v}%`, rate: (v) => `${v}%`,
+    swell: (v) => (v / 10).toFixed(1),
+    turns: (v) => (v / 10).toFixed(1),
+  };
+
+  function writeControls() {
+    for (const k of KEYS) {
+      document.getElementById(k).value = String(state[k]);
+      document.getElementById(`${k}-o`).textContent = (SHOWN[k] ?? String)(state[k]);
+    }
+    for (const f of FLAGS) document.getElementById(f).checked = !!state[f];
+    document.getElementById('dump').textContent = JSON.stringify({
+      pushBeam: {
+        reachCells: state.reach / 10,
+        travelMs: state.dur,
+        delayMs: state.delay,
+        width: state.width / 100,
+        swell: state.swell / 10,
+        taper: state.taper / 100,
+        tipFade: state.fade / 100,
+        chase: state.chase / 100,
+        alpha: state.alpha / 100,
+        glow: state.glow,
+        useInk: state.useink,
+        cell: { shrinkMs: state.shrink, turns: state.turns / 10 },
+      },
+    }, null, 2);
+  }
+  for (const k of KEYS) {
+    document.getElementById(k).addEventListener('input', (e) => {
+      state[k] = Number(e.target.value);
+      writeControls();
+    });
+  }
+  for (const f of FLAGS) {
+    document.getElementById(f).addEventListener('change', (e) => {
+      state[f] = e.target.checked;
+      writeControls();
+    });
+  }
+  for (const b of document.querySelectorAll('[data-preset]')) {
+    b.addEventListener('click', () => {
+      Object.assign(state, PRESETS[b.dataset.preset]);
+      writeControls();
+    });
+  }
+  document.getElementById('refill').addEventListener('click', deal);
+  document.getElementById('fireall').addEventListener('click', () => {
+    for (let r = 0; r < board.height; r++) {
+      for (let c = 0; c < board.width; c++) if (board.alive[r][c]) fire(r, c);
+    }
+  });
+  document.getElementById('loop').addEventListener('click', (e) => {
+    looping = !looping;
+    e.target.classList.toggle('on', looping);
+    e.target.textContent = looping ? 'stop the loop' : 'loop one';
+  });
+
+  function hit(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const scale = canvas.width / rect.width;
+    const layout = boardLayout(board, canvas.width, canvas.height, VIEW_HERE);
+    return cellAt(layout, board, (clientX - rect.left) * scale, (clientY - rect.top) * scale, VIEW_HERE);
+  }
+  canvas.addEventListener('click', (e) => {
+    const at = hit(e.clientX, e.clientY);
+    if (at && board.alive[at[0]][at[1]]) fire(at[0], at[1]);
+  });
+  canvas.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    for (let r = 0; r < board.height; r++) {
+      for (let c = 0; c < board.width; c++) if (board.alive[r][c]) { fire(r, c); return; }
+    }
+  });
+
+  deal();
+  writeControls();
+  requestAnimationFrame(frame);
+})();
+</script>
