@@ -254,10 +254,14 @@ test('a hold adds still time after each phase without moving anything', () => {
   const held = timelineFor({ ...TIMING, holdMs: 100 });
   assert.equal(held.phases.length, plain.phases.length);
   assert.equal(held.totalMs, plain.totalMs + 100 * plain.phases.length);
-  // Through the hold the frame is whatever the phase ended on.
+  // Through the hold nothing moves: every piece and every cell is where the phase
+  // left it. The beat's own clock does keep running, because an effect thrown on this
+  // beat may still be playing — so the comparison is of positions, not of the frame.
   const atEnd = sampleTimeline(held, FLOOR, SPIN);
   const inHold = sampleTimeline(held, FLOOR + 60, SPIN);
-  assert.deepEqual(inHold, atEnd, 'nothing moves during a hold');
+  assert.deepEqual(inHold.sprites, atEnd.sprites, 'no piece moves during a hold');
+  assert.deepEqual(inHold.tiles, atEnd.tiles, 'no cell moves during a hold');
+  assert.ok(inHold.since > atEnd.since, 'but the beat is still getting older');
 });
 
 test('stagger delays pieces by how far they sit from what fired', () => {

@@ -14,6 +14,7 @@ import { createProgress } from './progress.js';
 import { mountPicker } from './picker.js';
 import { describeSwap } from './debugLog.js';
 import { mountDebugPanel } from './debugPanel.js';
+import { createFxLayer, createGhostLayer } from './fxLayer.js';
 import {
   VIEW,
   boardLayout,
@@ -71,9 +72,13 @@ export async function start(canvas, panels) {
   const glyphs = data.glyphs.glyphs;
   const glyphsById = new Map(glyphs.map((g) => [g.id, g]));
 
+  // The order is the argument: a beam is holding or shoving a piece, so it draws
+  // behind them; a ghost comes off a piece, so it draws in front.
   const scene = createCompositor()
     .add(createGroundLayer())
+    .add(createFxLayer())
     .add(createGlyphLayer())
+    .add(createGhostLayer())
     .add(createSelectionLayer())
     .add(createHudLayer());
 
@@ -151,6 +156,7 @@ export async function start(canvas, panels) {
       geometry: data.geometry,
       glyphPaths: data.glyphPaths.paths,
       glyphsById,
+      animation: data.animation,
       selected: playing ? null : selected,
       level: shown,
       // Mid-cascade the swap is already spent and the clearing has not landed, so the

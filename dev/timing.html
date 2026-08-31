@@ -146,9 +146,11 @@ function pick(o) { return Object.fromEntries(KEYS.map((k) => [k, o[k] ?? 0])); }
 const state = { ...PRESETS.shipped };
 
 // --- scenarios: each builds a board and names the swap that sets it off -------
+// The bare ground is the one colour no piece in these scenarios wears, so nothing
+// sitting on it activates before the swap that is meant to set it off.
 const bare = () => {
   const b = blankBoard(RULES);
-  for (let r = 0; r < b.height; r++) for (let c = 0; c < b.width; c++) b.bg[r][c] = 5;
+  for (let r = 0; r < b.height; r++) for (let c = 0; c < b.width; c++) b.bg[r][c] = 3;
   return b;
 };
 const put = (b, r, c, glyph, kind = '', art = 'pulse') => {
@@ -159,28 +161,28 @@ const SCENARIOS = {
   'one match': {
     note: 'A plain glyph lands on its colour. One cell spins away; nothing else moves. The floor case for the spin.',
     build() { const b = bare();
-      put(b, 3, 1, 0); b.bg[3][2] = 0; put(b, 3, 2, 4, '', 'anchor');
+      put(b, 3, 1, 0); b.bg[3][2] = 0; put(b, 3, 2, 1, '', 'anchor');
       return { board: b, swap: [[3, 1], [3, 2]] }; },
   },
   'clean line': {
     note: 'A pusher fires into a run of three with an empty cell behind them, so the whole line advances and nothing is eaten. The best test for stagger — with it at zero this reads as one rigid block.',
     build() { const b = bare();
-      put(b, 4, 1, 1); put(b, 4, 2, 2); put(b, 4, 3, 3);
-      b.bg[4][4] = 0; put(b, 4, 4, 4, '', 'anchor'); put(b, 7, 0, 0, PULSE, 'pulse');
+      put(b, 4, 1, 1); put(b, 4, 2, 2); put(b, 4, 3, 0);
+      b.bg[4][4] = 0; put(b, 4, 4, 1, '', 'anchor'); put(b, 7, 0, 0, PULSE, 'pulse');
       return { board: b, swap: [[7, 0], [4, 4]] }; },
   },
   'line of four': {
     note: 'The ABCD sink: an eater at the left end, a pusher firing into it. The front piece is eaten where it stands and the rest advance one.',
     build() { const b = bare();
-      put(b, 2, 0, 1, ANCHOR, 'anchor'); put(b, 2, 1, 2); put(b, 2, 2, 3);
-      b.bg[2][3] = 0; put(b, 2, 3, 4, '', 'anchor'); put(b, 2, 4, 0, PULSE, 'pulse');
+      put(b, 2, 0, 1, ANCHOR, 'anchor'); put(b, 2, 1, 2); put(b, 2, 2, 0);
+      b.bg[2][3] = 0; put(b, 2, 3, 1, '', 'anchor'); put(b, 2, 4, 0, PULSE, 'pulse');
       return { board: b, swap: [[2, 4], [2, 3]] }; },
   },
   'one shove': {
     note: 'A pusher activating in open board. Two pieces slide, two go off the edge.',
     build() { const b = bare();
-      put(b, 4, 0, 1); put(b, 4, 1, 2); put(b, 4, 2, 3);
-      b.bg[4][3] = 0; put(b, 4, 3, 4, '', 'anchor'); put(b, 4, 4, 0, PULSE, 'pulse');
+      put(b, 4, 0, 1); put(b, 4, 1, 2); put(b, 4, 2, 0);
+      b.bg[4][3] = 0; put(b, 4, 3, 1, '', 'anchor'); put(b, 4, 4, 0, PULSE, 'pulse');
       return { board: b, swap: [[4, 4], [4, 3]] }; },
   },
   'void pulls in': {
@@ -193,18 +195,18 @@ const SCENARIOS = {
   'two-step chain': {
     note: 'A shove carries a piece onto its own colour, which fires in turn. The first case where the hold has two beats to separate.',
     build() { const b = bare();
-      b.bg[1][2] = 3; put(b, 1, 2, 1);
+      b.bg[1][2] = 0; put(b, 1, 2, 1);
       put(b, 1, 3, 2); b.bg[1][4] = 2; put(b, 1, 4, 1, '', 'anchor');
-      put(b, 5, 3, 3, PULSE, 'push-right');
+      put(b, 5, 3, 0, PULSE, 'push-right');
       return { board: b, swap: [[5, 3], [1, 2]] }; },
   },
   'three-step chain': {
     note: 'Three activations, each caused by the one before it. If the timing is right you should be able to say which shove caused which match.',
     build() { const b = bare();
-      b.bg[1][1] = 3; put(b, 1, 1, 1);
+      b.bg[1][1] = 0; put(b, 1, 1, 1);
       put(b, 1, 2, 2, PULSE, 'push-right'); b.bg[1][3] = 2;
-      put(b, 2, 3, 4); b.bg[3][3] = 4;
-      put(b, 6, 0, 3, PULSE, 'push-right');
+      put(b, 2, 3, 1); b.bg[3][3] = 1;
+      put(b, 6, 0, 0, PULSE, 'push-right');
       return { board: b, swap: [[6, 0], [1, 1]] }; },
   },
   'deep cascade': {

@@ -208,6 +208,9 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       // The swap is the player's own beat, so it lasts as long as it is given
       // whether or not the two pieces differ.
       floorMs: swapMs,
+      fires: [],
+      eats: [],
+      board: before,
       tiles: tilesOf(before),
       sprites: restingSprites(before, { moveMs: swapMs, shrinkMs, glyphFadeMs }).map((sprite) => {
         if (key(sprite.from) === key(a)) return { ...sprite, to: z };
@@ -220,6 +223,11 @@ export function buildTimeline({ before, swap, recorder, timing }) {
   for (const step of recorder.steps) {
     const { deadCells, fates } = collapseStep(step);
     const { snapshot, activated } = step;
+    // What an effect layer needs to draw this beat: which glyphs fired, and what any
+    // eater swallowed. Both are already in the recording; reading them off the phase
+    // saves every layer from walking the whole settle to find its own beat.
+    const fires = step.events.filter((e) => e.type === 'fire');
+    const eats = step.events.filter((e) => e.type === 'eat' && e.reason === 'eater');
     const sprite = ({ origin, end, kind }) => ({
       art: snapshot.art[origin[0]][origin[1]],
       ink: snapshot.glyph[origin[0]][origin[1]],
@@ -242,6 +250,9 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       phases.push(phaseOf({
         cleared,
         holdMs,
+        fires,
+        eats,
+        board: snapshot,
         tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
         sprites: fates.map(sprite),
       }));
@@ -253,6 +264,9 @@ export function buildTimeline({ before, swap, recorder, timing }) {
     // clearing; one beat only says they happened together.
     phases.push(phaseOf({
       cleared, // nothing has died yet on this beat
+      fires,
+      eats,
+      board: snapshot,
       holdMs,
       tiles: tilesOf(snapshot, [], activated, staggerMs, shrinkMs),
       // The cell holds its ground for this beat, but a doomed piece is already going:
@@ -265,6 +279,11 @@ export function buildTimeline({ before, swap, recorder, timing }) {
     phases.push(phaseOf({
       cleared,
       holdMs,
+      // The ability fired on the beat before; carrying the fires again here would
+      // start its beam over just as the pieces it moved are being cleared.
+      fires: [],
+      eats: [],
+      board: snapshot,
       tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
       // By now the piece has gone and only the ground is still collapsing, so the fade
       // is spent rather than run again from full.
@@ -307,7 +326,7 @@ const lerp = (from, to, t) => from + (to - from) * t;
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 /** Sample one phase at `elapsed` ms into it, in cell space. */
-function sampleFrame(phase, elapsed, spin) {
+function sampleFrame(phase, elapsed, spin, since = elapsed) {
   const at = (delay, duration) => clamp01((elapsed - delay) / Math.max(1, duration));
   // A cell being destroyed turns as it collapses. The angle is in radians; the
   // renderer turns tile and piece together about the cell's own centre.
@@ -326,6 +345,13 @@ function sampleFrame(phase, elapsed, spin) {
   return {
     // how much of this swap's clearing has actually happened on screen
     cleared: phase.cleared ?? 0,
+    // What fired on this beat and how long ago, for a layer drawing what an ability
+    // means. `since` is not clamped to the movement: an effect may outlast it and
+    // play on through the hold.
+    fires: phase.fires ?? [],
+    eats: phase.eats ?? [],
+    board: phase.board ?? null,
+    since,
     tiles: phase.tiles.map((tile) => {
       const t = at(tile.delay, tile.shrinkMs);
       return {
@@ -369,7 +395,9 @@ export function sampleTimeline(timeline, elapsed, spin) {
   let remaining = elapsed;
   for (const phase of timeline.phases) {
     const span = phase.tweenMs + phase.holdMs;
-    if (remaining < span) return sampleFrame(phase, Math.min(remaining, phase.tweenMs), spin);
+    if (remaining < span) {
+      return sampleFrame(phase, Math.min(remaining, phase.tweenMs), spin, remaining);
+    }
     remaining -= span;
   }
   return null;

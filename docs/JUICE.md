@@ -147,11 +147,16 @@ in the ground layer.
 The yellow-on-paper measurement above is the reason this matters more here than it would
 elsewhere: emptiness currently has almost no luminance separation from a yellow tile.
 
-### 6. A flash on activation — cheap, needs the clock
+### 6. A flash on activation — cheap
 
 A brief tint on the activating cell, or across the board, at the moment of a landing.
 `globalCompositeOperation = 'lighter'` gives additive brightening for the cost of a state
-flag; `'screen'` is the gentler version ([MDN][gco]). Needs elapsed time on the frame.
+flag; `'screen'` is the gentler version ([MDN][gco]). The clock it needs is on the frame
+now, and a beat already knows what fired on it.
+
+Worth knowing before reaching for it: additive blending is weak on this board. Measured
+on the rotate's beam, `lighter` moved a sample from `182,37,25` to `243,49,34` — real,
+but far less than it would be on a dark ground, because the paper is already near-white.
 
 ### 7. Move preview — moderate, and unusually cheap for what it is
 

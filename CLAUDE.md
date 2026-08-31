@@ -63,6 +63,7 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 | `src/glyphShapes.js`, `src/render.js` | the render spec's geometry, and the canvas layers that paint it |
 | `src/animate.js` | folding a resolved settle back into phases you can watch |
 | `src/fx.js`, `src/abilityFx.js` | the beam and the ghost, and which cells an ability reaches |
+| `src/fxLayer.js` | those two joined to the compositor: beams under the pieces, ghosts over them |
 | `src/palette.js` | one named palette resolved, and which levels it can paint |
 | `data/` | rules, palette, glyph geometry, gloss, the twelve glyphs, the run, animation timings — the tuning |
 | `tools/` | the sweeps and studies (`swapBudget.js`, `trapBoards.js`, `boardShapes.js`, `maxCombo.js`, `contrast.js`, `studyBoard.js`), the glyph baker, and the artifact builders |
