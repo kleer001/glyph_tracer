@@ -62,6 +62,10 @@ figcaption { padding: 15px 16px 18px; display: flex; flex-direction: column; gap
   font-family: Newsreader, Georgia, serif; font-size: 30px; font-weight: 600;
   line-height: 1; margin: 0; color: var(--ink);
 }
+/* The diagonal swap is the cross turned to meet the diagonals, so its mark is turned
+   too. Rotating the character beats naming another one: a serif X is a letterform and
+   this glyph stopped being one. */
+.mark.turned { display: inline-block; align-self: flex-start; transform: rotate(45deg); }
 .card h3 {
   font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
   letter-spacing: .11em; text-transform: uppercase; color: var(--dim); margin: 0;
@@ -85,9 +89,11 @@ strong { font-weight: 600; }
 <header>
   <p class="eyebrow">Glyph Tracer &middot; every ability, once</p>
   <h1>What each symbol <em>does when it goes</em></h1>
-  <p class="standfirst">Nine recordings, one per ability. Every one is the real engine
-  resolving the real rules &mdash; the shove, the trade, the turn and the swallow are all
-  the board's answer, and the effect is drawn over the top of whatever it decided.</p>
+  <p class="standfirst">Eleven recordings, one per effect &mdash; the four pushes share
+  theirs, and so do the pairs that differ only in which way they lean. Every one is the
+  real engine resolving the real rules: the shove, the trade, the turn and the swallow
+  are all the board's answer, and the effect is drawn over the top of whatever it
+  decided.</p>
 </header>
 
 <hr class="rule" />

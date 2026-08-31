@@ -1,0 +1,269 @@
+<title>Glyph Tracer Flash on Approval</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --paper:   #EDEEF0;
+  --surface: #F7F8F9;
+  --ink:     #16171A;
+  --dim:     #6B6F76;
+  --hair:    #D3D6DA;
+  --accent:  #3B51D6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141518; --surface: #1C1E22; --ink: #E6E7EA;
+    --dim: #969BA3; --hair: #2E3138; --accent: #93A2FF;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141518; --surface: #1C1E22; --ink: #E6E7EA;
+  --dim: #969BA3; --hair: #2E3138; --accent: #93A2FF;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Newsreader, Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.65;
+  margin: 0;
+  padding: 0 20px 90px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1000px; margin: 0 auto; }
+
+header { padding: 68px 0 36px; display: flex; flex-direction: column; gap: 14px; }
+.eyebrow {
+  font-family: "Martian Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--dim); margin: 0;
+}
+h1 {
+  font-size: clamp(38px, 7vw, 58px); font-weight: 300; line-height: 1.02;
+  letter-spacing: -.022em; margin: 0; text-wrap: balance;
+}
+h1 em { font-style: italic; font-weight: 400; }
+.standfirst { font-size: 21px; line-height: 1.5; color: var(--dim); margin: 0; max-width: 40em; }
+
+.rule { border: 0; border-top: 1px solid var(--hair); margin: 0 0 34px; }
+
+section { margin: 0 0 56px; }
+h2 {
+  font-size: 27px; font-weight: 400; letter-spacing: -.015em;
+  margin: 0 0 6px; text-wrap: balance;
+}
+.lede { margin: 0 0 22px; color: var(--dim); max-width: 62ch; }
+p { max-width: 66ch; margin: 0 0 15px; }
+
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px; }
+figure {
+  margin: 0; background: var(--surface); border: 1px solid var(--hair);
+  border-radius: 5px; overflow: hidden;
+}
+figure.picked { border-color: var(--accent); }
+figure img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--hair); }
+figcaption { padding: 14px 16px 17px; display: flex; flex-direction: column; gap: 5px; }
+figcaption h3 {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--dim); margin: 0;
+}
+figure.picked figcaption h3 { color: var(--accent); }
+figcaption p { margin: 0; font-size: 16.5px; line-height: 1.5; }
+
+.wide { grid-column: 1 / -1; }
+
+table { border-collapse: collapse; width: 100%; font-size: 16px; }
+.scroll { overflow-x: auto; }
+th, td { text-align: left; padding: 9px 16px 9px 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
+th {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--dim);
+}
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+code {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em;
+  background: var(--paper); border: 1px solid var(--hair); border-radius: 3px; padding: .1em .35em;
+}
+ul { max-width: 66ch; margin: 0 0 15px; padding-left: 1.25em; display: flex; flex-direction: column; gap: 8px; }
+strong { font-weight: 600; }
+.ask {
+  border-left: 2px solid var(--accent); padding: 2px 0 2px 18px; margin: 0 0 56px;
+}
+.ask p { margin: 0; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Glyph Tracer &middot; one candidate, on approval</p>
+  <h1>Is the landing flash <em>doing anything?</em></h1>
+  <p class="standfirst">The same recording twice, one knob apart. A piece lands on its
+  own colour, shoves the line in front of it, and its cell goes. On the right, the cell
+  it landed on floods with more of its own colour for a fifth of a second.</p>
+</header>
+
+<hr class="rule" />
+
+<section>
+  <div class="pair">
+    <figure>
+      <img src="__OFFGIF__" alt="the push effect playing with no flash" loading="lazy" />
+      <figcaption>
+        <h3>without</h3>
+        <p>The beam, the shove, the freeze at the landing, the collapse.</p>
+      </figcaption>
+    </figure>
+    <figure class="picked">
+      <img src="__ONGIF__" alt="the same recording with an additive bloom on the firing cell" loading="lazy" />
+      <figcaption>
+        <h3>with</h3>
+        <p>The same frames, plus an additive bloom on the cell that fired.</p>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<div class="ask">
+  <p>Everything else on this page has landed. This one is built and drawn here, and is
+  not in the game: it is one line in the compositor away, or one deletion.</p>
+</div>
+
+<section>
+  <h2>What the flash is</h2>
+  <p>A radial bloom in the colour of the cell that fired, composited with
+  <code>lighter</code>, loudest at the landing and spent 180&nbsp;ms later. It draws over
+  the ground and under everything else, so a beam and a piece both pass in front of it.</p>
+  <p>A bloom rather than a filled cell, because the tiles have rounded corners and sit in
+  gutters: a square of added light would put four bright corners in the gaps between cells,
+  which is precisely where nothing happened. It reaches __SPREAD__ of a cell width, which
+  keeps it off the neighbours &mdash; a wider one lights up cells that did not do anything.</p>
+  <h2>The case against: the palette does not take it evenly</h2>
+  <p>The cell above is green, and green is the best case. Adding a colour to itself only
+  brightens it where the colour has headroom left, and this palette leaves wildly
+  different amounts. Every live colour at the flash's loudest instant:</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>colour</th><th>tile</th><th>at the flash</th><th>lift</th></tr></thead>
+    <tbody>
+      <tr><td>cyan</td><td class="num">87, 184, 194</td><td class="num">148, 255, 255</td><td class="num">+0.45</td></tr>
+      <tr><td>green</td><td class="num">41, 136, 0</td><td class="num">70, 231, 0</td><td class="num">+0.40</td></tr>
+      <tr><td>blue</td><td class="num">83, 108, 249</td><td class="num">141, 184, 255</td><td class="num">+0.28</td></tr>
+      <tr><td>yellow</td><td class="num">239, 232, 167</td><td class="num">255, 255, 255</td><td class="num">+0.21</td></tr>
+      <tr><td>magenta</td><td class="num">194, 1, 184</td><td class="num">255, 2, 255</td><td class="num">+0.14</td></tr>
+      <tr><td>red</td><td class="num">243, 49, 34</td><td class="num">255, 83, 58</td><td class="num">+0.06</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Lift is in relative luminance, and the spread is sevenfold. A green cell floods; a red
+  one barely moves, because red's own channel is already at 243 and adding more of it clips
+  on the first frame, leaving only the two channels that are not the colour to do anything.
+  The recording above is showing the flash at close to its strongest.</p>
+  <p>That is worse than being weak. A feedback signal is supposed to report the event, and
+  this one reports the hue of the tile the event happened on: the same activation is a
+  flood on cyan and a shrug on red. If it stays, the fix is to flash a fixed colour rather
+  than the cell's own &mdash; even across the palette, at the cost of the thing that made
+  it worth trying, which was the cell filling up with more of itself.</p>
+  <p>It also arrives late to a job already done. The landing is now marked by a freeze,
+  the collapse by a turn that quickens down a chain, and the ability itself by a beam. A
+  fourth voice saying <em>here, this cell, now</em> is the one that has to justify itself.</p>
+  <h2>The case for it</h2>
+  <p>Those three all mark the <em>consequence</em>. The freeze happens on the beat before
+  the fire, the beam leaves after it and the collapse comes later still; none of them
+  brightens the cell at the moment of arrival. The flash is the only one that lands on the
+  instant itself, which is also the only moment a still frame of this game would show.</p>
+</section>
+
+<section>
+  <h2>What landed</h2>
+  <p class="lede">Three candidates off the shelf, cheapest first. All three are knobs in
+  <code>data/animation.json</code>, and all three are no-ops at zero: any one of them can
+  be turned off without touching code.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>change</th><th>where</th><th>set to</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Easing on every tween.</strong> A piece decelerates into its cell; a
+        dying one gathers pace and eases out. What is eased is the parameter, never the
+        value: a cell's turn is held under the room its shrink has made, and that bound is
+        a relation between the scale and the angle. Bend those apart and the corners leave
+        the cell.</td>
+        <td>the sampler</td>
+        <td class="num"><code>outCubic</code><br /><code>inOutCubic</code></td>
+      </tr>
+      <tr>
+        <td><strong>Hit stop.</strong> The beat that <em>ends</em> where an ability fires
+        runs longer, so a landing registers as an event rather than a frame. The still beat
+        after each phase already existed; this is that beat lengthened, not a new one.</td>
+        <td>the timeline</td>
+        <td class="num">+70 ms</td>
+      </tr>
+      <tr>
+        <td><strong>Escalation across the chain.</strong> A cascade used to play every link
+        identically. Each one further in now holds longer, turns further and collapses
+        faster, up to a cap &mdash; past a point more intensity stops reading as more and
+        starts reading as noise.</td>
+        <td>the timeline</td>
+        <td class="num">+15% a link<br />capped at 4</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>And the board sat down into a tray</h2>
+  <p class="lede">The one that is about the mechanic rather than the feel.</p>
+  <div class="pair">
+    <figure class="wide">
+      <img src="__WELLPNG__" alt="the same drained board without and with the recessed tray" loading="lazy" />
+      <figcaption>
+        <h3>before / after &middot; same frame</h3>
+        <p>The cleared cell in the middle row is the same cell in both.</p>
+      </figcaption>
+    </figure>
+  </div>
+  <p>Tiles used to float on the paper, which made a cleared cell a hole in the page. The
+  grid now sits in a recessed tray, and the same hole is a hole <em>in the board</em>.
+  For a game whose whole premise is that the board drains, that is the difference between
+  emptiness reading as progress and emptiness reading as nothing rendered.</p>
+  <p>The tray is six numbers under <code>well</code> in <code>data/gloss.json</code>: how
+  far it reaches past the outermost cells, how much darker than the paper it is, and the
+  shadow cast inward from its rim.</p>
+  <p>It matters more here than it would elsewhere, and the palette is why: a yellow tile
+  against the bare paper measures 1.02:1. They are the same luminance. Before the tray,
+  the gutter and the tile's own shadow were the only things separating a pale cell from a
+  gap where a cell used to be.</p>
+</section>
+
+<section>
+  <h2>What is still on the shelf</h2>
+  <ul>
+    <li><strong>Move preview</strong> &mdash; show what a swap would do before committing
+    to it. Normally expensive; here the engine already resolves a swap on a copy without
+    committing, and a deterministic cascade is the ideal case for it.</li>
+    <li><strong>A particle burst on a clear</strong> &mdash; needs a layer and a clock,
+    and the clock is now on the frame.</li>
+    <li><strong>Feedback for a dud swap</strong> &mdash; a swap that achieves nothing
+    currently produces nothing.</li>
+    <li><strong>Segment welding</strong> &mdash; priced cheap on the shelf, and it is not.
+    Welding consecutive moves into one envelope means rebuilding the timeline as per-piece
+    envelopes instead of phases, and it pulls against the two changes above, which exist to
+    make each link a distinct beat.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>How these were made</h2>
+  <p>Both recordings are the real engine resolving the real rules. The frame harness draws
+  one named effect at an elapsed time it is handed and runs no clock of its own, so a
+  capture is the same frame every run &mdash; which is what makes one recording worth
+  comparing against the next. The two above differ by a single number, substituted at the
+  network layer so nothing in the game moved between the passes.</p>
+</section>
+
+</div>

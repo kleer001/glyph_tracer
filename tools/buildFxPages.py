@@ -10,6 +10,7 @@ plate comes in well under the size a page is allowed.
 """
 
 import base64
+import json
 import pathlib
 import sys
 
@@ -25,11 +26,17 @@ PLATE = [
     ('pulse', 'O', 'pulse', 'Shoves in all four directions at once.',
      'The push four times over. A beam per direction, but only where a piece is '
      'standing: on a drained board it throws fewer.'),
+    ('swapVert', '|', 'swap', 'Trades the pair above and below, and nothing else.',
+     'Two beams where the cross throws four. The bar lies along the axis it acts on, so '
+     'which pair is about to move is readable before it moves.'),
     ('swapOrth', '+', 'swap', 'Trades the pair above and below, and the pair left and right.',
      'Beams reach out, take hold, and the pieces cross over on them before they let go.'),
-    ('swapDiag', 'X', 'swap', 'The same trade, on the two diagonals.',
+    ('swapDiagUp', '/', 'swap', 'Trades one corner pair, the one its bar lies across.',
+     'The same bar turned onto a diagonal. Its mirror leans the other way and takes the '
+     'other pair.'),
+    ('swapDiag', '+', 'swap', 'The same trade, on the two diagonals.',
      'The same effect turned forty-five degrees, which is also the difference between '
-     'the two letterforms.'),
+     'the two drawings.'),
     ('rotate', 'r', 'rotate', 'Steps the four neighbours one place around the ring.',
      'Four beams that hold on. Each tip rides the piece it has hold of, so the beams '
      'turn at exactly the speed the pieces do.'),
@@ -47,13 +54,34 @@ PLATE = [
 ]
 
 
+# Cards whose mark is the drawing turned rather than a character of its own. The
+# diagonal swap is the cross at forty-five degrees, and there is no ASCII for that.
+TURNED = {'swapDiag'}
+
+
 # The two-up page: one recording each, keyed by the placeholder it fills.
 PAIR = {'__XGIF__': 'swapDiag', '__HGIF__': 'anchorSwallow'}
 
+# The preview page: two recordings of one effect a single knob apart, and a still of
+# the tray. Keyed by file rather than by effect name, because not all of them are
+# recordings of an ability.
+PREVIEW = {
+    '__ONGIF__': 'flash-on.gif',
+    '__OFFGIF__': 'flash-off.gif',
+    '__WELLPNG__': 'well-tray.png',
+}
+
+MIME = {'.gif': 'image/gif', '.png': 'image/png'}
+
+
+def inline(path: pathlib.Path) -> str:
+    if not path.exists():
+        raise SystemExit(f'no {path.name}; capture it first')
+    return f'data:{MIME[path.suffix]};base64,' + base64.b64encode(path.read_bytes()).decode('ascii')
+
 
 def data_uri(name: str) -> str:
-    raw = (GIFS / f'{name}.gif').read_bytes()
-    return 'data:image/gif;base64,' + base64.b64encode(raw).decode('ascii')
+    return inline(GIFS / f'{name}.gif')
 
 
 def build_plate() -> None:
@@ -65,7 +93,7 @@ def build_plate() -> None:
     <figure class="card">
       <img src="{data_uri(name)}" alt="the {kind} effect playing on a board" loading="lazy" />
       <figcaption>
-        <p class="mark" aria-hidden="true">{mark}</p>
+        <p class="{'mark turned' if name in TURNED else 'mark'}" aria-hidden="true">{mark}</p>
         <h3>{kind}</h3>
         <p class="does">{does}</p>
         <p class="effect">{effect}</p>
@@ -85,6 +113,16 @@ def build_pair() -> None:
     write(page, 'fx-pair.html')
 
 
+def build_preview() -> None:
+    page = (ROOT / 'tools/juice-preview.template.html').read_text(encoding='utf-8')
+    for slot, filename in PREVIEW.items():
+        page = page.replace(slot, inline(GIFS / filename))
+    # The one number the page quotes that the game could retune underneath it.
+    anim = json.loads((ROOT / 'data/animation.json').read_text(encoding='utf-8'))
+    page = page.replace('__SPREAD__', f"{anim['flash']['spread']:g}")
+    write(page, 'juice-preview.html')
+
+
 def write(page: str, name: str) -> None:
     # The page carries its own gifs, so it has to survive a host that guesses at the
     # encoding. Pure ASCII is the cheapest way to make that impossible to get wrong.
@@ -96,7 +134,7 @@ def write(page: str, name: str) -> None:
     print(f'wrote {target.relative_to(ROOT)}  ({len(page) / 1e6:.2f} MB)')
 
 
-BUILDERS = {'plate': build_plate, 'pair': build_pair}
+BUILDERS = {'plate': build_plate, 'pair': build_pair, 'preview': build_preview}
 
 
 def main() -> None:

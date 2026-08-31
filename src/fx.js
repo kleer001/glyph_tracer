@@ -98,6 +98,17 @@ export function grabAt(ms, reachMs, from, target) {
 }
 
 /**
+ * A palette hex at an opacity.
+ *
+ * `globalAlpha` cannot reach inside a gradient, and a bloom is a gradient from a
+ * colour to the same colour at nothing.
+ */
+export function rgbaOf(hex, alpha) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/**
  * One beam: a stroke from root to tip over a black keyline. Both ends are cut square.
  *
  * The keyline is the same trick the glyphs use, and for the same reason: the palette

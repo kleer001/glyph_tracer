@@ -1,10 +1,14 @@
 {
-  "note": "Linear tweens, in milliseconds. A swap is a SPEED \u2014 `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `glyphFadeMs` is how long the piece takes to go, which is shorter than the cell it sat on: the glyph leaves as the ability fires and the ground keeps turning without it. `fx` is what an ability throws: a `throw` beam leaves and dissipates over `reachCells`, a `grab` beam reaches out over `reachMs` and then holds whatever it caught. `ghost` is the outline a glyph with no beam swells out of itself: a small pulse when it swallows something and holds its place, a big one when it matches and goes. `grow` is how much a plain piece swells as it fades. `spin` is how many full turns a cell being destroyed makes as it shrinks away. Tune in dev/timing.html.",
+  "note": "Linear tweens, in milliseconds. A swap is a SPEED — `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `glyphFadeMs` is how long the piece takes to go, which is shorter than the cell it sat on: the glyph leaves as the ability fires and the ground keeps turning without it. `fx` is what an ability throws: a `throw` beam leaves and dissipates over `reachCells`, a `grab` beam reaches out over `reachMs` and then holds whatever it caught. `ghost` is the outline a glyph with no beam swells out of itself: a small pulse when it swallows something and holds its place, a big one when it matches and goes. `grow` is how much a plain piece swells as it fades. `spin` is how many full turns a cell being destroyed makes as it shrinks away. `easing` names the curve each tween runs on: `move` for a piece travelling, `shrink` for a cell being destroyed — the parameter is what bends, so the turn stays inside the footprint the shrink has made for it. `hitStopMs` lengthens the beat that ends where an ability fires, so a landing registers as an event rather than a frame. `escalate` builds the chain: `per` is how much louder each further link plays and `cap` is the link past which it stops growing. `flash` is the bloom a landing throws into its own cell: `spread` in cell widths, `falloff` how sharply it goes. Tune in dev/timing.html.",
   "swapMsPerCell": 100,
   "swapMinMs": 150,
   "stepMs": 200,
   "shrinkMs": 200,
   "glyphFadeMs": 90,
+  "easing": {
+    "move": "outCubic",
+    "shrink": "inOutCubic"
+  },
   "fx": {
     "throw": {
       "travelMs": 300,
@@ -29,8 +33,19 @@
     "clearGrow": 0.5,
     "ms": 260
   },
+  "flash": {
+    "ms": 180,
+    "alpha": 0.7,
+    "falloff": 1.6,
+    "spread": 0.62
+  },
   "grow": 0.25,
   "holdMs": 100,
+  "hitStopMs": 70,
+  "escalate": {
+    "per": 0.15,
+    "cap": 4
+  },
   "staggerMs": 50,
   "splitBeats": true,
   "spin": {

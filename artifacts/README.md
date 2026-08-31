@@ -18,25 +18,30 @@ why they sit here instead.
 
 | file | page | source |
 |---|---|---|
-| `juice-bench.html` | Glyph Tracer Juice Bench -- the priced shelf of visual work, with live demos and the palette and silhouette measurements. Text version: `docs/JUICE.md`. | hand-written |
+| `juice-bench.html` | Glyph Tracer Juice Bench -- the priced shelf of visual work, with live demos and the palette and silhouette measurements. | hand-written |
 | `fx-plate.html` | Glyph Tracer Effects Plate -- every ability's effect, recorded. | **generated** |
 | `fx-pair.html` | Glyph Tracer X and H -- the swap made followable and the anchor made to stop beams. | **generated** |
+| `juice-preview.html` | Glyph Tracer Flash on Approval -- one candidate effect shown both ways for a decision, beside the ones already taken off the shelf. | **generated** |
 
 The generated pages are built from recordings, never edited: a still page cannot run
 the engine, so each effect is captured as a GIF and inlined as a data URI. Rebuild
 after re-recording:
 
 ```sh
-python3 tools/buildFxPages.py            # both
+python3 tools/buildFxPages.py            # all of them
 python3 tools/buildFxPages.py pair       # just one
 ```
 
-Edit the matching `tools/fx-*.template.html` for the page itself, never the built file.
+Edit the page's own template under `tools/`, never the built file.
 
 To re-record an effect: `dev/fxframes.html` draws a named effect at an elapsed time it
 is handed and runs no clock of its own, so a capture is the same frame every time.
 Drive it a frame at a time from a browser, writing stills to `tmp/frames/<effect>/`,
 then encode with `tools/framesToGif.sh tmp/frames/<effect> tmp/gifs/<effect>.gif 20`.
+
+A page that shows one effect both ways records the same scene twice with the knob
+substituted at the network layer between the passes, so the two recordings differ by
+that number and nothing else -- not by anything that moved in the repo in between.
 
 Three sandbox pages -- a slider per knob for the burst, the push beam and the rotate --
 lived here while those effects were being tuned. The numbers they produced are in

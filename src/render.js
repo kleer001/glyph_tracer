@@ -3,9 +3,9 @@
 // pure. This module owns the board itself — the ground, the pieces, the selection and
 // the HUD; fx.js owns what an ability throws over the top of them.
 //
-// RENDER_SPEC.md is the paint order this implements. Each glyph is drawn in the
-// spec's 100x100 cell and scaled to the view; the lengths and the gloss both arrive
-// as data, so nothing about the look is spelled out here.
+// The paint order is this file, read top to bottom. Each glyph is drawn in a 100x100
+// cell and scaled to the view; the lengths and the gloss both arrive as data, so
+// nothing about the look is fixed here.
 
 import { CELL, GEOMETRY_KEYS, glyphDrawing, keylineUnits } from './glyphShapes.js';
 
@@ -80,8 +80,13 @@ export function cellAt(layout, board, px, py, view = VIEW) {
   return [r, c];
 }
 
+/**
+ * Trace a rounded rectangle into whatever is collecting a path — the context, or a
+ * second subpath of one already begun. It does not open the path itself: the well
+ * below is a rectangle with a rounded hole punched out of it, and that is two of
+ * these in one path.
+ */
 function traceRoundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
   ctx.arcTo(x + w, y + h, x, y + h, r);
@@ -95,6 +100,50 @@ const GLOSS_KEYS = [
   'sheen', 'sheenStop', 'bevel',
   'glyphShadowY', 'glyphShadowBlur', 'glyphShadowA',
 ];
+
+const WELL_KEYS = ['pad', 'radius', 'tintA', 'shadowY', 'shadowBlur', 'shadowA'];
+
+/**
+ * The tray the board sits in, drawn under every tile.
+ *
+ * This game's premise is that the board drains, and a tile floating on the paper
+ * leaves a cleared cell reading as a hole in the page rather than a hole in the
+ * board. Recessing the grid makes emptiness a state of the board instead — which
+ * matters more here than it would elsewhere, because a yellow tile and bare paper
+ * are within a hair of the same luminance and the gutter is all that separates them.
+ *
+ * An inset shadow in Canvas 2D is the shadow of a hole: fill the tray, clip to it,
+ * then cast a shadow from a rectangle with the tray punched out. Everything but the
+ * blur creeping over the rim lands outside the clip.
+ */
+function drawWell(ctx, layout, well) {
+  for (const key of WELL_KEYS) {
+    if (typeof well?.[key] !== 'number') throw new Error(`gloss.well is missing "${key}"`); // boundary
+  }
+  const scale = layout.cell / CELL;
+  const pad = well.pad * scale;
+  const [x, y] = [layout.originX - pad, layout.originY - pad];
+  const [w, h] = [layout.spanW + pad * 2, layout.spanH + pad * 2];
+  const radius = well.radius * scale;
+
+  ctx.save();
+  ctx.beginPath();
+  traceRoundRect(ctx, x, y, w, h, radius);
+  ctx.fillStyle = `rgba(0,0,0,${well.tintA / 100})`;
+  ctx.fill();
+  ctx.clip();
+
+  const bleed = well.shadowBlur * scale * 3 + pad;
+  ctx.beginPath();
+  ctx.rect(x - bleed, y - bleed, w + bleed * 2, h + bleed * 2);
+  traceRoundRect(ctx, x, y, w, h, radius);
+  ctx.shadowColor = `rgba(0,0,0,${well.shadowA / 100})`;
+  ctx.shadowOffsetY = well.shadowY * scale;
+  ctx.shadowBlur = well.shadowBlur * scale;
+  ctx.fillStyle = '#000';
+  ctx.fill('evenodd');
+  ctx.restore();
+}
 
 /** Gloss is data; a missing knob is a broken data file, not a default to invent. */
 function assertGloss(gloss) {
@@ -148,6 +197,7 @@ export function drawTile(ctx, { x, y, size }, groundHex, gloss) {
     { alpha: gloss.cellShadowA, offsetY: gloss.cellShadowY, blur: gloss.cellShadowBlur },
     scale,
     () => {
+      ctx.beginPath();
       traceRoundRect(ctx, 0, 0, size, size, radius);
       ctx.fillStyle = groundHex;
       ctx.fill();
@@ -157,6 +207,7 @@ export function drawTile(ctx, { x, y, size }, groundHex, gloss) {
   // The sheen and the bevel both live inside the tile, so they share its clip.
   if (gloss.sheen > 0 || gloss.bevel > 0) {
     ctx.save();
+    ctx.beginPath();
     traceRoundRect(ctx, 0, 0, size, size, radius);
     ctx.clip();
 
@@ -175,6 +226,7 @@ export function drawTile(ctx, { x, y, size }, groundHex, gloss) {
       const inset = Math.max(1, 2 * scale);
       ctx.lineWidth = inset * 2;
       ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+      ctx.beginPath();
       traceRoundRect(ctx, inset, inset, size - inset * 2, size - inset * 2, Math.max(0, radius - inset));
       ctx.stroke();
       ctx.strokeStyle = `rgba(0,0,0,${alpha * 0.8})`;
@@ -322,6 +374,7 @@ export function createGroundLayer(view = VIEW) {
       const { tiles, layout, palette } = frame;
       ctx.fillStyle = view.paper;
       ctx.fillRect(0, 0, frame.width, frame.height);
+      drawWell(ctx, layout, frame.gloss.well);
       for (const tile of tiles) {
         const box = placed(layout, tile, view);
         if (box.size <= 0) continue;
@@ -378,6 +431,7 @@ export function createSelectionLayer(view = VIEW) {
       const [r, c] = frame.selected;
       const { x, y } = cellOrigin(frame.layout, r, c, view);
       const inset = view.selectionWidth;
+      ctx.beginPath();
       traceRoundRect(
         ctx,
         x - inset,

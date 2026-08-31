@@ -12,6 +12,27 @@
 const key = ([r, c]) => `${r},${c}`;
 
 /**
+ * The curves a tween may run on, named by a data file.
+ *
+ * What is eased is the parameter, never the value it produces. A dying cell's turn
+ * is held under what its shrink has made room for, and that bound is a relation
+ * between the scale and the angle — bend those two apart and the corners leave the
+ * cell. One curve, read once, drives both.
+ */
+const EASINGS = Object.freeze({
+  linear: (t) => t,
+  outCubic: (t) => 1 - (1 - t) ** 3,
+  inOutCubic: (t) => (t < 0.5 ? 4 * t ** 3 : 1 - ((-2 * t + 2) ** 3) / 2),
+});
+
+/** Linear is the no-op curve, so an unnamed tween is the tween this game always had. */
+function curveNamed(name) {
+  const fn = EASINGS[name ?? 'linear'];
+  if (!fn) throw new Error(`no easing named "${name}"`); // boundary
+  return fn;
+}
+
+/**
  * How long a swap takes: the distance the pieces travel, at a fixed speed.
  *
  * Any two live cells may be swapped, so a swap crosses anywhere from one cell to
@@ -189,15 +210,19 @@ export function staticFrame(board) {
  * @param {object} args.before - the board as it stood before the swap.
  * @param {Array} args.swap - the two cells the player exchanged.
  * @param {{steps: Array}} args.recorder - what settle() collected.
- * @param {object} args.timing - swapMs, stepMs, holdMs, staggerMs, splitBeats.
+ * @param {object} args.timing - swapMs, stepMs, holdMs, staggerMs, splitBeats,
+ *   easing, hitStopMs.
  *   `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how
  *   far it sits from what fired; `splitBeats` plays a step's movement and its
  *   destruction as two beats instead of one, which is the order the rules resolve in.
+ *   `hitStopMs` lengthens the beat that ends where an ability fires; `escalate`
+ *   scales that pause, the turn and the collapse with how deep into the chain a
+ *   link sits.
  * @returns {{phases: Array, totalMs: number}}
  */
 export function buildTimeline({ before, swap, recorder, timing }) {
   const { stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs,
-    glyphFadeMs = shrinkMs } = timing;
+    glyphFadeMs = shrinkMs, easing = null, hitStopMs = 0, escalate = null } = timing;
   const [a, z] = swap;
   const swapMs = swapDurationFor(a, z, timing);
   let cleared = 0;
@@ -220,7 +245,21 @@ export function buildTimeline({ before, swap, recorder, timing }) {
     }),
   ];
 
-  for (const step of recorder.steps) {
+  // How much louder the chain's Nth link plays than its first. A cascade of a dozen
+  // activations otherwise plays each one identically, and the mechanic's own drama is
+  // that it builds. Capped, because past a point more intensity stops reading as more
+  // and starts reading as noise; at link zero the factor is one, so a chain of one is
+  // the chain this game always had.
+  const loudness = (link) =>
+    (escalate ? 1 + escalate.per * Math.min(link, escalate.cap) : 1);
+
+  for (let link = 0; link < recorder.steps.length; link++) {
+    const step = recorder.steps[link];
+    const loud = loudness(link);
+    // The three things a link scales: the pause around it lengthens, the turn quickens,
+    // and the collapse sharpens.
+    const linkHoldMs = holdMs * loud;
+    const linkShrinkMs = shrinkMs / loud;
     const { deadCells, fates } = collapseStep(step);
     const { snapshot, activated } = step;
     // What an effect layer needs to draw this beat: which glyphs fired, and what any
@@ -228,6 +267,11 @@ export function buildTimeline({ before, swap, recorder, timing }) {
     // saves every layer from walking the whole settle to find its own beat.
     const fires = step.events.filter((e) => e.type === 'fire');
     const eats = step.events.filter((e) => e.type === 'eat' && e.reason === 'eater');
+    // Hit stop. The freeze belongs at the instant the piece arrives on its own colour,
+    // and that instant is the end of the beat before the one that fires: the swap for
+    // the first link, the previous step's clearing for every link after it. A hold is
+    // already a still beat, so this is that beat lengthened rather than a new one.
+    if (fires.length) phases.at(-1).holdMs += hitStopMs * loud;
     const sprite = ({ origin, end, kind }) => ({
       art: snapshot.art[origin[0]][origin[1]],
       ink: snapshot.glyph[origin[0]][origin[1]],
@@ -241,7 +285,7 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       fades: kind === 'eaten' || kind === 'destroyed',
       delay: delayFor(origin, activated, staggerMs),
       moveMs: stepMs,
-      shrinkMs,
+      shrinkMs: linkShrinkMs,
       glyphFadeMs,
     });
 
@@ -249,11 +293,12 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       cleared += activated.length;
       phases.push(phaseOf({
         cleared,
-        holdMs,
+        holdMs: linkHoldMs,
+        escalate: loud,
         fires,
         eats,
         board: snapshot,
-        tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
+        tiles: tilesOf(snapshot, deadCells, activated, staggerMs, linkShrinkMs),
         sprites: fates.map(sprite),
       }));
       continue;
@@ -267,8 +312,9 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       fires,
       eats,
       board: snapshot,
-      holdMs,
-      tiles: tilesOf(snapshot, [], activated, staggerMs, shrinkMs),
+      holdMs: linkHoldMs,
+      escalate: loud,
+      tiles: tilesOf(snapshot, [], activated, staggerMs, linkShrinkMs),
       // The cell holds its ground for this beat, but a doomed piece is already going:
       // it leaves while the ability it fired is still travelling, so the two read as
       // one event. A fade longer than this beat is cut off by the next one, which is
@@ -278,13 +324,14 @@ export function buildTimeline({ before, swap, recorder, timing }) {
     cleared += activated.length;
     phases.push(phaseOf({
       cleared,
-      holdMs,
+      holdMs: linkHoldMs,
+      escalate: loud,
       // The ability fired on the beat before; carrying the fires again here would
       // start its beam over just as the pieces it moved are being cleared.
       fires: [],
       eats: [],
       board: snapshot,
-      tiles: tilesOf(snapshot, deadCells, activated, staggerMs, shrinkMs),
+      tiles: tilesOf(snapshot, deadCells, activated, staggerMs, linkShrinkMs),
       // By now the piece has gone and only the ground is still collapsing, so the fade
       // is spent rather than run again from full.
       sprites: fates.map(sprite).map((s) => ({
@@ -292,7 +339,10 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       })),
     }));
   }
-  return { phases, totalMs: phases.reduce((sum, p) => sum + p.tweenMs + p.holdMs, 0) };
+  // Every phase of one timeline runs on the same curves, so they are set once here
+  // rather than threaded through four calls to phaseOf.
+  const eased = phases.map((phase) => ({ ...phase, easing }));
+  return { phases: eased, totalMs: eased.reduce((sum, p) => sum + p.tweenMs + p.holdMs, 0) };
 }
 
 /**
@@ -328,6 +378,10 @@ const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 /** Sample one phase at `elapsed` ms into it, in cell space. */
 function sampleFrame(phase, elapsed, spin, since = elapsed) {
   const at = (delay, duration) => clamp01((elapsed - delay) / Math.max(1, duration));
+  // Arriving and leaving are different motions: a piece decelerates into its cell,
+  // and a cell being destroyed gathers pace before easing out of existence.
+  const easeMove = curveNamed(phase.easing?.move);
+  const easeShrink = curveNamed(phase.easing?.shrink);
   // A cell being destroyed turns as it collapses. The angle is in radians; the
   // renderer turns tile and piece together about the cell's own centre.
   //
@@ -340,8 +394,13 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
   // release point, so the spin takes a power curve under it instead. The exponent
   // is what holds the corners in at any number of turns, and comes out a plain
   // square law for the one turn the game plays.
-  const ease = 2 + Math.log2(spin?.turns || 1) / 2;
-  const spinAt = (t) => (spin ? spin.turns * t ** ease * 2 * Math.PI : 0);
+  //
+  // The turns are the phase's own, not the timeline's: a link deeper into a chain
+  // turns further in the same room, so the exponent is taken from what is actually
+  // being spun rather than from what the data file asked for.
+  const turns = (spin?.turns ?? 1) * (phase.escalate ?? 1);
+  const ease = 2 + Math.log2(turns) / 2;
+  const spinAt = (t) => (spin ? turns * t ** ease * 2 * Math.PI : 0);
   return {
     // how much of this swap's clearing has actually happened on screen
     cleared: phase.cleared ?? 0,
@@ -353,7 +412,7 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
     board: phase.board ?? null,
     since,
     tiles: phase.tiles.map((tile) => {
-      const t = at(tile.delay, tile.shrinkMs);
+      const t = easeShrink(at(tile.delay, tile.shrinkMs));
       return {
         bg: tile.bg,
         x: tile.c,
@@ -365,8 +424,9 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
     sprites: phase.sprites.map((sprite) => {
       // Travel and shrink are separate clocks: a piece can slide at one speed and
       // vanish at another, which is the difference between a shove and a pop.
-      const moved = at(sprite.delay, sprite.moveMs);
-      const shrunk = at(sprite.delay, sprite.shrinkMs);
+      const moved = easeMove(at(sprite.delay, sprite.moveMs));
+      const shrunk = easeShrink(at(sprite.delay, sprite.shrinkMs));
+      // The fade stays linear: it is an opacity, and a curve on it reads as nothing.
       const faded = sprite.fades ? at(sprite.delay, sprite.glyphFadeMs) : 0;
       return {
         art: sprite.art,
