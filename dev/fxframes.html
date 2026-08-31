@@ -32,7 +32,7 @@ import { beamSpan, drawBeam, ghostAt, grabAt, swellAt } from '../src/fx.js';
 import { CELL } from '../src/glyphShapes.js';
 import { resolvePalette } from '../src/palette.js';
 import { mulberry32 } from '../src/rng.js';
-import { boardLayout, cellOrigin, createGlyphLayer, createGroundLayer, drawGlyph, VIEW } from '../src/render.js';
+import { boardLayout, cellCenter, createGlyphLayer, createGroundLayer, drawGlyph, VIEW } from '../src/render.js';
 
 const load = async (p) => (await fetch(p)).json();
 const PALETTE = resolvePalette(await load('../data/palette.json'));
@@ -145,11 +145,6 @@ window.load = (name) => {
   return scene.timeline.totalMs;
 };
 
-const centreOf = (layout, row, col) => {
-  const { x, y } = cellOrigin(layout, row, col, VIEW_HERE);
-  return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
-};
-
 /**
  * The effects layer: beams for an ability that throws them, a ghost for one that does
  * not. Between the ground and the pieces, so a beam reads as holding what it grabbed.
@@ -164,9 +159,8 @@ const fxLayer = {
 
     const [r, c] = scene.at;
     const kind = scene.before.kind[r][c];
-    const glyph = byId.get(scene.before.art[r][c]);
     const ink = PALETTE.colors[scene.before.glyph[r][c]].hex;
-    const from = centreOf(layout, r, c);
+    const from = cellCenter(layout, r, c, VIEW_HERE);
     const since = elapsed - scene.firedAt;
 
     // --- beams ---------------------------------------------------------------
@@ -177,6 +171,12 @@ const fxLayer = {
       if (bt > 0 && bt < 1) {
         const env = swellAt(bt, tune.swell);
         const step = layout.cell + VIEW_HERE.gap;
+        // Where every piece is headed, read once: a scan per target inside a per-frame
+        // draw is the same answer worked out four times over.
+        const arriving = new Map();
+        for (const sprite of frame.sprites) {
+          if (sprite.to) arriving.set(String(sprite.to), sprite);
+        }
         for (const cell of targetsFor(kind, scene.at, scene.before)) {
           let root = from;
           let tip;
@@ -193,9 +193,10 @@ const fxLayer = {
             tip = { x: from.x + Math.cos(a) * span.to, y: from.y + Math.sin(a) * span.to };
           } else {
             // Onto the piece, and thereafter wherever the rules have taken it.
-            const held = frame.sprites.find((s) => s.to && s.to[0] === cell[0] && s.to[1] === cell[1])
-              ?? frame.sprites.find((s) => s.from && s.from[0] === cell[0] && s.from[1] === cell[1]);
-            const target = held ? centreOf(layout, held.y, held.x) : centreOf(layout, cell[0], cell[1]);
+            const held = arriving.get(String(cell));
+            const target = held
+              ? cellCenter(layout, held.y, held.x, VIEW_HERE)
+              : cellCenter(layout, cell[0], cell[1], VIEW_HERE);
             tip = grabAt(since, tune.reachMs, from, target);
           }
           drawBeam(c2, {
@@ -224,7 +225,6 @@ const ghostLayer = {
     const { layout, elapsed } = frame;
     const [r, c] = scene.at;
     const glyph = byId.get(scene.before.art[r][c]);
-    const ink = PALETTE.colors[scene.before.glyph[r][c]].hex;
     const since = elapsed - scene.firedAt;
     const ghosts = [];
     // A swallow is not the firing glyph's event: whoever fired, the piece is eaten at
@@ -244,19 +244,24 @@ const ghostLayer = {
         cell,
         grow: ANIM.ghost.swallowGrow,
         glyph: eater,
-        ink: PALETTE.colors[scene.before.glyph[cell[0]][cell[1]]].hex,
       });
     }
     // Its own clearing is the firing glyph's event, and the big one.
     if (glyph.exit === 'ghost') {
-      ghosts.push({ cell: scene.at, grow: ANIM.ghost.clearGrow, glyph, ink });
+      ghosts.push({ cell: scene.at, grow: ANIM.ghost.clearGrow, glyph });
+    }
+    // A piece with no ability throws nothing, so it swells its own outline instead.
+    // Filling it would paint nothing: a piece only activates by landing on its own
+    // colour, so its ink is the colour of the cell it is standing on.
+    if (glyph.exit === 'grow') {
+      ghosts.push({ cell: scene.at, grow: ANIM.grow, glyph });
     }
 
     for (const g of ghosts) {
       const { scale, alpha } = ghostAt(since / ANIM.ghost.ms, g.grow);
       if (alpha <= 0) continue;
       const size = layout.cell * scale;
-      const mid = centreOf(layout, g.cell[0], g.cell[1]);
+      const mid = cellCenter(layout, g.cell[0], g.cell[1], VIEW_HERE);
       c2.save();
       c2.globalAlpha = alpha;
       c2.translate(mid.x - size / 2, mid.y - size / 2);

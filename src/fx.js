@@ -21,6 +21,10 @@
 // letterform in outline, swelling out of the cell as it goes. A piece never gets both --
 // two things claiming the same event read as two events.
 //
+// The push table is imported rather than restated: which way a shove goes is the rules'
+// to say, and a beam pointing somewhere the piece did not go would be a lie no test
+// could catch.
+//
 // Nothing here touches the DOM or reads a clock. A caller passes the time it wants
 // drawn, which is what keeps the effect testable and lets a sandbox scrub it.
 
@@ -36,20 +40,14 @@ export function ghostAt(t, grow = 0.5) {
   return { scale: 1 + grow * at, alpha: 1 - at };
 }
 
-/** Which way a push sends a piece, as [row, column] steps. */
-export const PUSH_STEPS = Object.freeze({
-  pushUp: [-1, 0],
-  pushRight: [0, 1],
-  pushDown: [1, 0],
-  pushLeft: [0, -1],
-});
+import { PUSH_DIR } from './board.js';
 
 /**
  * The direction a glyph's ability throws, in radians for a canvas whose y runs down,
  * or null for an ability that has no direction.
  */
 export function headingFor(kind) {
-  const step = PUSH_STEPS[kind];
+  const step = PUSH_DIR[kind];
   return step ? Math.atan2(step[0], step[1]) : null;
 }
 
@@ -62,12 +60,6 @@ export function headingFor(kind) {
 export function swellAt(t, power = 1) {
   if (t <= 0 || t >= 1) return 0;
   return Math.sin(Math.PI * t) ** power;
-}
-
-/** A hex colour at an alpha, as the string canvas wants. */
-export function rgba(hex, alpha) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${Math.max(0, Math.min(1, alpha))})`;
 }
 
 /**

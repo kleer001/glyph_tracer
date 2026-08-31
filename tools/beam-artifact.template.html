@@ -219,11 +219,6 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     };
   }
 
-  const centreOf = (layout, row, col) => {
-    const { x, y } = cellOrigin(layout, row, col, VIEW_HERE);
-    return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
-  };
-
   /** Layer three: the heading the push threw, over the top of the motion it caused. */
   const fxLayer = {
     name: 'fx',
@@ -238,7 +233,7 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       c2.beginPath();
       c2.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
       c2.clip();
-      const at = centreOf(layout, p.origin[0], p.origin[1]);
+      const at = cellCenter(layout, p.origin[0], p.origin[1], VIEW_HERE);
       const step = layout.cell + VIEW_HERE.gap;
       const env = swellAt(bt, state.swell / 10);
       const span = beamSpan(bt, (state.reach / 10) * step, state.chase / 100);

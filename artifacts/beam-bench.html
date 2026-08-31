@@ -151,10 +151,10 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
 const DATA_PALETTE = {"note":"Every palette is six colours a piece and a cell can both be drawn in, so what matters is that no two are confusable \u2014 including for the roughly one man in twelve with a red-green colour deficiency. Deficiencies flatten hue and leave lightness alone, so separation is bought by spreading the six in lightness rather than by spacing them evenly in hue. `core` and `key` are the glyph interior and its keyline, shared by every palette. Switch palette by changing `default`. Measured by tools/palette.js, which simulates each deficiency and reports the closest pair.","default":"lively","core":"#101216","key":"#000000","palettes":{"trace":{"name":"Trace","note":"Six hues evenly spaced and close in weight. The most colourful of the set and the least separable: its closest pair is green against cyan.","colors":[{"name":"red","hex":"#EC3334"},{"name":"yellow","hex":"#FFF627"},{"name":"green","hex":"#52DE52"},{"name":"cyan","hex":"#00E0DF"},{"name":"blue","hex":"#6482FF"},{"name":"magenta","hex":"#B82CBB"}]},"deep":{"name":"Deep","note":"Muted, and free to spread in lightness \u2014 which is where its separation comes from. The widest margin of any palette here, at the cost of green reading pale and magenta dark.","colors":[{"name":"red","hex":"#BE5034"},{"name":"yellow","hex":"#C2A702"},{"name":"green","hex":"#B9E997"},{"name":"cyan","hex":"#0AC5D3"},{"name":"blue","hex":"#4F7ED5"},{"name":"magenta","hex":"#70407B"}]},"even":{"name":"Even","note":"Muted, but held to a narrow lightness range so the six read as one set. Buys less separation than Deep and looks closer to Trace.","colors":[{"name":"red","hex":"#C15544"},{"name":"yellow","hex":"#BB9F00"},{"name":"green","hex":"#9EC683"},{"name":"cyan","hex":"#00CFDF"},{"name":"blue","hex":"#6598F6"},{"name":"magenta","hex":"#9D70AB"}]},"legible":{"name":"Legible","note":"The Okabe-Ito palette (jfly.uni-koeln.de/color), chosen and verified by its authors to stay distinguishable under every colour deficiency. Keeps the six slot names, but they are orange, sky, blue-green, yellow, blue and vermilion.","colors":[{"name":"red","hex":"#D55E00"},{"name":"yellow","hex":"#F0E442"},{"name":"green","hex":"#009E73"},{"name":"cyan","hex":"#56B4E9"},{"name":"blue","hex":"#0072B2"},{"name":"magenta","hex":"#E69F00"}]},"lively":{"name":"Lively","note":"Colourful without glare: the yellow stays light but softens to cream, and the green goes deep enough to stop competing with the cyan. Its closest pair is 0.236 against Trace's 0.171 \u2014 further apart and calmer at once. Of its six, red, yellow, green and blue stand furthest apart at 0.342, which is the set `use` would name for a four-colour run.","colors":[{"name":"red","hex":"#F33122"},{"name":"yellow","hex":"#EFE8A7"},{"name":"green","hex":"#298800"},{"name":"cyan","hex":"#57B8C2"},{"name":"blue","hex":"#536CF9"},{"name":"magenta","hex":"#C201B8"}],"use":[0,1,2,4]}}};
 const DATA_GLOSS = {"note":"Highlight and shadow, tuned in dev/gloss.html. Lengths are in the render spec's 100-unit cell and scale with the board; alphas and sheen are percentages.","radius":6,"cellShadowY":6,"cellShadowBlur":4,"cellShadowA":45,"sheen":34,"sheenStop":16,"bevel":24,"glyphShadowY":3,"glyphShadowBlur":3,"glyphShadowA":62};
 const DATA_GEOMETRY = {"note":"Glyph geometry, tuned in dev/cell.html. Lengths are in the render spec's 100-unit cell and scale with the board. The letter metrics are measured off DejaVu Serif Bold: stem is its stem width, cap the height every capital shares, and centre the offset from the cell's middle to the cap-height centre.","stem":9,"cap":33,"centre":-0.5,"dotDiameter":24,"keylinePx":1};
-const DATA_GLYPHPATHS = {"note":"Letterforms baked out of DejaVu Serif Bold by tools/bakeGlyphs.py. The cap height is 1.0, x=0 is the horizontal centre and y=0 the middle of the cap, so data/geometry.json still owns the size and the vertical aim. The game ships these paths rather than the font, so a glyph looks the same on every machine and there is no webfont to wait for.","source":"DejaVuSerif-Bold.ttf","capHeightUnits":1493,"paths":{"A":"M-0.5452 0.5V0.419H-0.4635L-0.0871 -0.5H0.073L0.4501 0.419H0.5452V0.5H0.077V0.419H0.1748L0.0924 0.2147H-0.2833L-0.367 0.419H-0.2478V0.5ZM-0.2505 0.1336H0.0596L-0.0944 -0.2488Z","H":"M-0.5851 0.5V0.419H-0.4571V-0.419H-0.5851V-0.5H-0.0707V-0.419H-0.1993V-0.0827H0.1986V-0.419H0.0707V-0.5H0.5851V-0.419H0.4565V0.419H0.5851V0.5H0.0707V0.419H0.1986V0.009H-0.1993V0.419H-0.0707V0.5Z","O":"M0 0.4384Q0.1279 0.4384 0.1902 0.3305Q0.2525 0.2227 0.2525 0.001Q0.2525 -0.2214 0.1902 -0.3292Q0.1279 -0.437 0 -0.437Q-0.1273 -0.437 -0.1899 -0.3282Q-0.2525 -0.2194 -0.2525 0.001Q-0.2525 0.2207 -0.1899 0.3295Q-0.1273 0.4384 0 0.4384ZM0 0.5194Q-0.2525 0.5194 -0.3958 0.3814Q-0.5392 0.2435 -0.5392 0.001Q-0.5392 -0.2415 -0.3955 -0.3798Q-0.2518 -0.5181 0 -0.5181Q0.2525 -0.5181 0.3958 -0.3801Q0.5392 -0.2421 0.5392 0.001Q0.5392 0.2435 0.3955 0.3814Q0.2518 0.5194 0 0.5194Z","R":"M0.1219 0.0117Q0.1815 0.0204 0.2224 0.0512Q0.2632 0.082 0.2934 0.1403L0.4394 0.419H0.5419V0.5H0.213L0.0536 0.1979Q0.0074 0.1042 -0.0251 0.0784Q-0.0576 0.0526 -0.1152 0.0526H-0.1561V0.419H-0.0275V0.5H-0.5419V0.419H-0.4139V-0.419H-0.5419V-0.5H0.0288Q0.2029 -0.5 0.2977 -0.43Q0.3925 -0.36 0.3925 -0.2314Q0.3925 -0.1269 0.3252 -0.0663Q0.2579 -0.0057 0.1219 0.0117ZM-0.1561 -0.0278H-0.0683Q0.0255 -0.0278 0.076 -0.0787Q0.1266 -0.1296 0.1266 -0.224Q0.1266 -0.3185 0.076 -0.3687Q0.0255 -0.419 -0.0683 -0.419H-0.1561Z","S":"M-0.3935 0.4518V0.2147H-0.3084Q-0.289 0.3272 -0.2167 0.3828Q-0.1443 0.4384 -0.0164 0.4384Q0.0874 0.4384 0.1417 0.3989Q0.1959 0.3593 0.1959 0.283Q0.1959 0.2227 0.1591 0.1892Q0.1222 0.1557 0.007 0.1269L-0.143 0.0901Q-0.2897 0.0526 -0.3493 -0.0141Q-0.4089 -0.0807 -0.4089 -0.204Q-0.4089 -0.3526 -0.3101 -0.4354Q-0.2113 -0.5181 -0.0332 -0.5181Q0.0546 -0.5181 0.1494 -0.5033Q0.2441 -0.4886 0.3459 -0.4591V-0.2381H0.2609Q0.2415 -0.3413 0.1758 -0.3891Q0.1102 -0.437 -0.0111 -0.437Q-0.1102 -0.437 -0.1608 -0.4025Q-0.2113 -0.3681 -0.2113 -0.2997Q-0.2113 -0.2374 -0.1765 -0.205Q-0.1417 -0.1725 -0.0057 -0.1376L0.1443 -0.1008Q0.2837 -0.066 0.3463 0.0077Q0.4089 0.0814 0.4089 0.2106Q0.4089 0.362 0.3044 0.4407Q0.1999 0.5194 -0.003 0.5194Q-0.1008 0.5194 -0.1973 0.5027Q-0.2937 0.4859 -0.3935 0.4518Z","X":"M-0.07 0.1149 -0.2783 0.419H-0.1551V0.5H-0.51V0.419H-0.3868L-0.1236 0.0365L-0.4364 -0.419H-0.5281V-0.5H-0.0311V-0.419H-0.141L0.0526 -0.1376L0.2441 -0.419H0.1276V-0.5H0.4759V-0.419H0.3526L0.1055 -0.0599L0.4337 0.419H0.5281V0.5H0.0291V0.419H0.1403Z","r":"M0.3486 -0.22V-0.0077H0.2729Q0.2689 -0.0646 0.2421 -0.0924Q0.2153 -0.1202 0.1644 -0.1202Q0.0867 -0.1202 0.0419 -0.0519Q-0.003 0.0164 -0.003 0.1376V0.419H0.1263V0.5H-0.3413V0.419H-0.2401V-0.1309H-0.3486V-0.212H-0.003V-0.0854Q0.0318 -0.1597 0.0891 -0.1956Q0.1463 -0.2314 0.2294 -0.2314Q0.2502 -0.2314 0.28 -0.2284Q0.3098 -0.2254 0.3486 -0.22Z"}};
-const DATA_GLYPHS = {"note":"The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation \u2014 the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind.","glyphs":[{"id":"inert","letter":".","mark":".","rot":0,"flip":false,"name":"Inert","kind":"","effect":"nothing \u2014 it matches, its cell goes, and no ability runs"},{"id":"pulse","letter":"O","mark":"O","rot":0,"flip":false,"name":"Pulse","kind":"pulse","effect":"advance the line in all four directions by one"},{"id":"anchor","letter":"H","mark":"H","rot":0,"flip":false,"name":"Anchor","kind":"anchor","effect":"absorb whatever is shoved in, and stay put"},{"id":"push-up","letter":"A","mark":"^","rot":0,"flip":false,"name":"Push up","kind":"pushUp","effect":"advance the line above by one"},{"id":"push-right","letter":"A","mark":">","rot":90,"flip":false,"name":"Push right","kind":"pushRight","effect":"advance the line to the right by one"},{"id":"push-down","letter":"A","mark":"v","rot":180,"flip":false,"name":"Push down","kind":"pushDown","effect":"advance the line below by one"},{"id":"push-left","letter":"A","mark":"<","rot":270,"flip":false,"name":"Push left","kind":"pushLeft","effect":"advance the line to the left by one"},{"id":"swap-orth","letter":"+","mark":"+","rot":0,"flip":false,"name":"Swap orthogonal","kind":"swapOrth","effect":"exchange upper with lower, and left with right"},{"id":"swap-diag","letter":"X","mark":"X","rot":0,"flip":false,"name":"Swap diagonal","kind":"swapDiag","effect":"exchange both corner pairs"},{"id":"rotate","letter":"r","mark":"@","rot":0,"flip":false,"name":"Rotate","kind":"rotate","effect":"turn the four neighbours one step clockwise"},{"id":"rotate-rev","letter":"r","mark":"%","rot":0,"flip":true,"name":"Rotate reversed","kind":"rotateRev","effect":"turn the four neighbours one step anticlockwise"},{"id":"sink","letter":"S","mark":"S","rot":0,"flip":false,"name":"Sink","kind":"sink","effect":"draw all four lines inward; its own cell is the sink they fall into"}]};
+const DATA_GLYPHPATHS = {"note":"Letterforms baked out of DejaVu Serif Bold by tools/bakeGlyphs.py. The cap height is 1.0, x=0 is the horizontal centre and y=0 the middle of the cap, so data/geometry.json still owns the size and the vertical aim. The game ships these paths rather than the font, so a glyph looks the same on every machine and there is no webfont to wait for.","source":"DejaVuSerif-Bold.ttf","capHeightUnits":1493,"paths":{"A":"M-0.5452 0.5V0.419H-0.4635L-0.0871 -0.5H0.073L0.4501 0.419H0.5452V0.5H0.077V0.419H0.1748L0.0924 0.2147H-0.2833L-0.367 0.419H-0.2478V0.5ZM-0.2505 0.1336H0.0596L-0.0944 -0.2488Z","H":"M-0.5851 0.5V0.419H-0.4571V-0.419H-0.5851V-0.5H-0.0707V-0.419H-0.1993V-0.0827H0.1986V-0.419H0.0707V-0.5H0.5851V-0.419H0.4565V0.419H0.5851V0.5H0.0707V0.419H0.1986V0.009H-0.1993V0.419H-0.0707V0.5Z","O":"M0 0.4384Q0.1279 0.4384 0.1902 0.3305Q0.2525 0.2227 0.2525 0.001Q0.2525 -0.2214 0.1902 -0.3292Q0.1279 -0.437 0 -0.437Q-0.1273 -0.437 -0.1899 -0.3282Q-0.2525 -0.2194 -0.2525 0.001Q-0.2525 0.2207 -0.1899 0.3295Q-0.1273 0.4384 0 0.4384ZM0 0.5194Q-0.2525 0.5194 -0.3958 0.3814Q-0.5392 0.2435 -0.5392 0.001Q-0.5392 -0.2415 -0.3955 -0.3798Q-0.2518 -0.5181 0 -0.5181Q0.2525 -0.5181 0.3958 -0.3801Q0.5392 -0.2421 0.5392 0.001Q0.5392 0.2435 0.3955 0.3814Q0.2518 0.5194 0 0.5194Z","S":"M-0.3935 0.4518V0.2147H-0.3084Q-0.289 0.3272 -0.2167 0.3828Q-0.1443 0.4384 -0.0164 0.4384Q0.0874 0.4384 0.1417 0.3989Q0.1959 0.3593 0.1959 0.283Q0.1959 0.2227 0.1591 0.1892Q0.1222 0.1557 0.007 0.1269L-0.143 0.0901Q-0.2897 0.0526 -0.3493 -0.0141Q-0.4089 -0.0807 -0.4089 -0.204Q-0.4089 -0.3526 -0.3101 -0.4354Q-0.2113 -0.5181 -0.0332 -0.5181Q0.0546 -0.5181 0.1494 -0.5033Q0.2441 -0.4886 0.3459 -0.4591V-0.2381H0.2609Q0.2415 -0.3413 0.1758 -0.3891Q0.1102 -0.437 -0.0111 -0.437Q-0.1102 -0.437 -0.1608 -0.4025Q-0.2113 -0.3681 -0.2113 -0.2997Q-0.2113 -0.2374 -0.1765 -0.205Q-0.1417 -0.1725 -0.0057 -0.1376L0.1443 -0.1008Q0.2837 -0.066 0.3463 0.0077Q0.4089 0.0814 0.4089 0.2106Q0.4089 0.362 0.3044 0.4407Q0.1999 0.5194 -0.003 0.5194Q-0.1008 0.5194 -0.1973 0.5027Q-0.2937 0.4859 -0.3935 0.4518Z","X":"M-0.07 0.1149 -0.2783 0.419H-0.1551V0.5H-0.51V0.419H-0.3868L-0.1236 0.0365L-0.4364 -0.419H-0.5281V-0.5H-0.0311V-0.419H-0.141L0.0526 -0.1376L0.2441 -0.419H0.1276V-0.5H0.4759V-0.419H0.3526L0.1055 -0.0599L0.4337 0.419H0.5281V0.5H0.0291V0.419H0.1403Z","r":"M0.3486 -0.22V-0.0077H0.2729Q0.2689 -0.0646 0.2421 -0.0924Q0.2153 -0.1202 0.1644 -0.1202Q0.0867 -0.1202 0.0419 -0.0519Q-0.003 0.0164 -0.003 0.1376V0.419H0.1263V0.5H-0.3413V0.419H-0.2401V-0.1309H-0.3486V-0.212H-0.003V-0.0854Q0.0318 -0.1597 0.0891 -0.1956Q0.1463 -0.2314 0.2294 -0.2314Q0.2502 -0.2314 0.28 -0.2284Q0.3098 -0.2254 0.3486 -0.22Z"}};
+const DATA_GLYPHS = {"note":"The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation \u2014 the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind. `exit` is how a piece leaves: \"beam\" fades and lets its beam do the talking, \"ghost\" swells a black outline of itself out of the cell, \"grow\" swells the piece itself as it fades. A piece never both beams and ghosts.","glyphs":[{"id":"inert","letter":".","mark":".","rot":0,"flip":false,"name":"Inert","kind":"","effect":"nothing \u2014 it matches, its cell goes, and no ability runs","exit":"grow"},{"id":"pulse","letter":"O","mark":"O","rot":0,"flip":false,"name":"Pulse","kind":"pulse","effect":"advance the line in all four directions by one","exit":"beam"},{"id":"anchor","letter":"H","mark":"H","rot":0,"flip":false,"name":"Anchor","kind":"anchor","effect":"absorb whatever is shoved in, and stay put","exit":"ghost"},{"id":"push-up","letter":"A","mark":"^","rot":0,"flip":false,"name":"Push up","kind":"pushUp","effect":"advance the line above by one","exit":"beam"},{"id":"push-right","letter":"A","mark":">","rot":90,"flip":false,"name":"Push right","kind":"pushRight","effect":"advance the line to the right by one","exit":"beam"},{"id":"push-down","letter":"A","mark":"v","rot":180,"flip":false,"name":"Push down","kind":"pushDown","effect":"advance the line below by one","exit":"beam"},{"id":"push-left","letter":"A","mark":"<","rot":270,"flip":false,"name":"Push left","kind":"pushLeft","effect":"advance the line to the left by one","exit":"beam"},{"id":"swap-orth","letter":"+","mark":"+","rot":0,"flip":false,"name":"Swap orthogonal","kind":"swapOrth","effect":"exchange upper with lower, and left with right","exit":"beam"},{"id":"swap-diag","letter":"X","mark":"X","rot":0,"flip":false,"name":"Swap diagonal","kind":"swapDiag","effect":"exchange both corner pairs","exit":"beam"},{"id":"rotate","letter":"r","mark":"@","rot":0,"flip":false,"name":"Rotate","kind":"rotate","effect":"turn the four neighbours one step clockwise","exit":"beam"},{"id":"rotate-rev","letter":"r","mark":"%","rot":0,"flip":true,"name":"Rotate reversed","kind":"rotateRev","effect":"turn the four neighbours one step anticlockwise","exit":"beam"},{"id":"sink","letter":"S","mark":"S","rot":0,"flip":false,"name":"Sink","kind":"sink","effect":"draw all four lines inward; its own cell is the sink they fall into","exit":"beam"}]};
 const DATA_RULES = {"width":5,"height":8,"colors":6,"swapBudget":6,"adjacentOnly":false,"mix":{"anchor":0.125,"pulse":0.25,"pushUp":0.0625,"pushRight":0.0625,"pushDown":0.0625,"pushLeft":0.0625}};
-const DATA_ANIMATION = {"note":"Linear tweens, in milliseconds. A swap is a SPEED \u2014 `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `glyphFadeMs` is how long the piece takes to go, which is shorter than the cell it sat on: the glyph leaves as the ability fires and the ground keeps turning without it. `spin` is how many full turns a cell being destroyed makes as it shrinks away. Tune in dev/timing.html.","swapMsPerCell":100,"swapMinMs":150,"stepMs":200,"shrinkMs":200,"glyphFadeMs":90,"holdMs":100,"staggerMs":50,"splitBeats":true,"spin":{"turns":1}};
+const DATA_ANIMATION = {"note":"Linear tweens, in milliseconds. A swap is a SPEED \u2014 `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `glyphFadeMs` is how long the piece takes to go, which is shorter than the cell it sat on: the glyph leaves as the ability fires and the ground keeps turning without it. `ghost` is the outline a glyph with no beam swells out of itself: a small pulse when it swallows something and holds its place, a big one when it matches and goes. `grow` is how much a plain piece swells as it fades. `spin` is how many full turns a cell being destroyed makes as it shrinks away. Tune in dev/timing.html.","swapMsPerCell":100,"swapMinMs":150,"stepMs":200,"shrinkMs":200,"glyphFadeMs":90,"ghost":{"swallowGrow":0.5,"clearGrow":0.5,"ms":260},"grow":0.25,"holdMs":100,"staggerMs":50,"splitBeats":true,"spin":{"turns":1}};
 
 /* ---- src/rng.js ---- */
 // Seeded pseudo-random generator. Deterministic: same seed -> same sequence.
@@ -1393,8 +1393,10 @@ function createLevel({ rules, glyphs, stage, seed, trials = 120 }) {
 }
 
 /* ---- src/render.js ---- */
-// Render -- the board as ordered compositor layers. This is the boundary: it is the
-// only place that touches a canvas, so board.js and level.js stay pure.
+// Render -- the board as ordered compositor layers. This and `fx.js` are the canvas
+// boundary: between them they hold every drawing call, so board.js and level.js stay
+// pure. This module owns the board itself -- the ground, the pieces, the selection and
+// the HUD; fx.js owns what an ability throws over the top of them.
 //
 // RENDER_SPEC.md is the paint order this implements. Each glyph is drawn in the
 // spec's 100x100 cell and scaled to the view; the lengths and the gloss both arrive
@@ -1450,6 +1452,15 @@ function cellOrigin(layout, r, c, view = VIEW) {
     x: layout.originX + c * (layout.cell + view.gap),
     y: layout.originY + r * (layout.cell + view.gap),
   };
+}
+
+/**
+ * The middle of a cell, in canvas pixels. Where an effect aims from and at, so it lives
+ * beside `cellOrigin` rather than being worked out again by everything that draws one.
+ */
+function cellCenter(layout, r, c, view = VIEW) {
+  const { x, y } = cellOrigin(layout, r, c, view);
+  return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
 }
 
 /** Which cell a point lands in, or null. The input boundary's half of the layout. */
@@ -1601,12 +1612,19 @@ function drawGlyph(ctx, glyph, colors, gloss, geom, cellPx, paths) {
   // every fill below cast its own would stack them into mud. The piece carries no
   // highlight of its own -- the sheen belongs to the cell, and a highlight drawn here
   // would travel with the sprite across the board while a swap plays.
-  withShadow(
-    ctx,
-    { alpha: gloss.glyphShadowA, offsetY: gloss.glyphShadowY, blur: gloss.glyphShadowBlur },
-    1,
-    () => paintGlyph(ctx, d, geom, colors.key, colors.key, key),
-  );
+  //
+  // Skipped outright when there is no shadow to cast. That copy is opaque, so with the
+  // shadow off it is a solid black glyph painted under the real one -- invisible while
+  // the ink covers it exactly, and a solid black blob the moment the ink is anything
+  // less than opaque.
+  if (gloss.glyphShadowA > 0) {
+    withShadow(
+      ctx,
+      { alpha: gloss.glyphShadowA, offsetY: gloss.glyphShadowY, blur: gloss.glyphShadowBlur },
+      1,
+      () => paintGlyph(ctx, d, geom, colors.key, colors.key, key),
+    );
+  }
   paintGlyph(ctx, d, geom, colors.ink, colors.key, key);
 
   ctx.restore();
@@ -1812,23 +1830,37 @@ function createHudLayer(view = VIEW) {
 // what it has to say is a direction, and anything else it did would be saying something
 // the rules did not.
 //
+// A glyph that throws a beam says what it did by where the beam went. One that throws
+// nothing has to say it another way, so it leaves a ghost of itself instead: the same
+// letterform in outline, swelling out of the cell as it goes. A piece never gets both --
+// two things claiming the same event read as two events.
+//
+// The push table is imported rather than restated: which way a shove goes is the rules'
+// to say, and a beam pointing somewhere the piece did not go would be a lie no test
+// could catch.
+//
 // Nothing here touches the DOM or reads a clock. A caller passes the time it wants
 // drawn, which is what keeps the effect testable and lets a sandbox scrub it.
 
-/** Which way a push sends a piece, as [row, column] steps. */
-const PUSH_STEPS = Object.freeze({
-  pushUp: [-1, 0],
-  pushRight: [0, 1],
-  pushDown: [1, 0],
-  pushLeft: [0, -1],
-});
+/**
+ * How big a ghost is and how much is left of it, `t` through its life.
+ *
+ * It starts the size of the glyph and fully opaque, and arrives at `grow` bigger and
+ * gone. Both ends matter: a ghost that begins transparent never reads as the piece
+ * itself, and one that stops short of gone leaves a smear on the board.
+ */
+function ghostAt(t, grow = 0.5) {
+  const at = t < 0 ? 0 : t > 1 ? 1 : t;
+  return { scale: 1 + grow * at, alpha: 1 - at };
+}
+
 
 /**
  * The direction a glyph's ability throws, in radians for a canvas whose y runs down,
  * or null for an ability that has no direction.
  */
 function headingFor(kind) {
-  const step = PUSH_STEPS[kind];
+  const step = PUSH_DIR[kind];
   return step ? Math.atan2(step[0], step[1]) : null;
 }
 
@@ -1843,12 +1875,6 @@ function swellAt(t, power = 1) {
   return Math.sin(Math.PI * t) ** power;
 }
 
-/** A hex colour at an alpha, as the string canvas wants. */
-function rgba(hex, alpha) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${Math.max(0, Math.min(1, alpha))})`;
-}
-
 /**
  * Where a beam has got to at `t` through its life, given how far it may reach.
  *
@@ -1860,6 +1886,28 @@ function beamSpan(t, reach, chase = 0) {
   const head = Math.min(1, t / Math.max(1e-6, 1 - chase));
   const tail = chase <= 0 ? 0 : Math.max(0, (t - (1 - chase)) / chase);
   return { from: reach * tail, to: reach * head };
+}
+
+/**
+ * Where a beam's tip is when it reaches out to something and then holds on.
+ *
+ * It runs from the cell to `target` over `reachMs`, and after that it is wherever the
+ * target is -- which, once the rules have started moving that piece, means the beam
+ * follows it. Shooting out and then gripping is one function because they are one
+ * gesture: the pause between them is what a beam that missed would look like.
+ *
+ * @param {number} ms - since the beam fired.
+ * @param {number} reachMs - how long the reaching-out takes.
+ * @param {{x: number, y: number}} from - the cell that threw it.
+ * @param {{x: number, y: number}} target - where the far end is now.
+ */
+function grabAt(ms, reachMs, from, target) {
+  const out = reachMs <= 0 ? 1 : Math.min(1, Math.max(0, ms / reachMs));
+  return {
+    x: from.x + (target.x - from.x) * out,
+    y: from.y + (target.y - from.y) * out,
+    holding: out >= 1,
+  };
 }
 
 /**
@@ -1985,11 +2033,6 @@ function drawBeam(ctx, {
     };
   }
 
-  const centreOf = (layout, row, col) => {
-    const { x, y } = cellOrigin(layout, row, col, VIEW_HERE);
-    return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
-  };
-
   /** Layer three: the heading the push threw, over the top of the motion it caused. */
   const fxLayer = {
     name: 'fx',
@@ -2004,7 +2047,7 @@ function drawBeam(ctx, {
       c2.beginPath();
       c2.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
       c2.clip();
-      const at = centreOf(layout, p.origin[0], p.origin[1]);
+      const at = cellCenter(layout, p.origin[0], p.origin[1], VIEW_HERE);
       const step = layout.cell + VIEW_HERE.gap;
       const env = swellAt(bt, state.swell / 10);
       const span = beamSpan(bt, (state.reach / 10) * step, state.chase / 100);

@@ -1,5 +1,7 @@
-// Render — the board as ordered compositor layers. This is the boundary: it is the
-// only place that touches a canvas, so board.js and level.js stay pure.
+// Render — the board as ordered compositor layers. This and `fx.js` are the canvas
+// boundary: between them they hold every drawing call, so board.js and level.js stay
+// pure. This module owns the board itself — the ground, the pieces, the selection and
+// the HUD; fx.js owns what an ability throws over the top of them.
 //
 // RENDER_SPEC.md is the paint order this implements. Each glyph is drawn in the
 // spec's 100x100 cell and scaled to the view; the lengths and the gloss both arrive
@@ -56,6 +58,15 @@ export function cellOrigin(layout, r, c, view = VIEW) {
     x: layout.originX + c * (layout.cell + view.gap),
     y: layout.originY + r * (layout.cell + view.gap),
   };
+}
+
+/**
+ * The middle of a cell, in canvas pixels. Where an effect aims from and at, so it lives
+ * beside `cellOrigin` rather than being worked out again by everything that draws one.
+ */
+export function cellCenter(layout, r, c, view = VIEW) {
+  const { x, y } = cellOrigin(layout, r, c, view);
+  return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
 }
 
 /** Which cell a point lands in, or null. The input boundary's half of the layout. */

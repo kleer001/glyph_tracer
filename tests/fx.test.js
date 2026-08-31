@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  PUSH_STEPS, beamSpan, ghostAt, grabAt, headingFor, rgba, swellAt,
-} from '../src/fx.js';
+import { PUSH_DIR } from '../src/board.js';
+import { beamSpan, ghostAt, grabAt, headingFor, swellAt } from '../src/fx.js';
 
 test('a push heading points the way the rules send the piece', () => {
   // The canvas y axis runs down, so a heading of -PI/2 is up the screen and up the board.
@@ -17,7 +16,7 @@ test('a push heading points the way the rules send the piece', () => {
     assert.ok(Math.abs(headingFor(kind) - want) < 1e-9, `${kind} points at ${want}`);
   }
   // and the heading agrees with the step the rules actually take
-  for (const [kind, [dr, dc]] of Object.entries(PUSH_STEPS)) {
+  for (const [kind, [dr, dc]] of Object.entries(PUSH_DIR)) {
     const a = headingFor(kind);
     assert.ok(Math.abs(Math.round(Math.sin(a)) - dr) < 1e-9, `${kind} row`);
     assert.ok(Math.abs(Math.round(Math.cos(a)) - dc) < 1e-9, `${kind} column`);
@@ -72,11 +71,6 @@ test('a beam that chases pulls its root along behind the tip', () => {
   assert.ok(Math.abs(done.from - done.to) < 1e-9, 'by the end the beam has closed up');
 });
 
-test('rgba clamps rather than emitting a colour canvas would reject', () => {
-  assert.equal(rgba('#F33122', 0.5), 'rgba(243,49,34,0.5)');
-  assert.equal(rgba('#000000', -1), 'rgba(0,0,0,0)');
-  assert.equal(rgba('#FFFFFF', 9), 'rgba(255,255,255,1)');
-});
 
 test('a ghost starts as the piece and ends bigger and gone', () => {
   const start = ghostAt(0);

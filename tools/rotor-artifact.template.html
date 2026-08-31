@@ -158,8 +158,6 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
   const RULES = DATA_RULES;
   const byId = new Map(GLYPHS.map((g) => [g.id, g]));
   const ROTORS = ['rotate', 'rotate-rev'];
-  // The four the rules actually turn, in the order turn() steps them.
-  const RING = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
   const canvas = document.getElementById('screen');
   const ctx = canvas.getContext('2d');
@@ -185,11 +183,6 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
     }
     playing = null;
   }
-
-  const centreOf = (layout, row, col) => {
-    const { x, y } = cellOrigin(layout, row, col, VIEW_HERE);
-    return { x: x + layout.cell / 2, y: y + layout.cell / 2 };
-  };
 
   function resolveAt(r, c) {
     if (!board.alive[r][c] || board.glyph[r][c] === null) return null;
@@ -240,20 +233,25 @@ code { font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; b
       c2.beginPath();
       c2.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
       c2.clip();
-      const at = centreOf(layout, p.origin[0], p.origin[1]);
+      const at = cellCenter(layout, p.origin[0], p.origin[1], VIEW_HERE);
       const env = swellAt(bt, state.swell / 10);
       const seconds = frame.elapsed / 1000;
 
       // Each ring cell is receiving a piece; the sprite arriving there is the one this
       // beam has hold of. A ring cell nothing arrives at gets no beam -- the rules did
       // not turn anything there, so there is nothing to hold.
+      // Where every piece is headed, read once rather than scanned per arm.
+      const arriving = new Map();
+      for (const sprite of frame.sprites) {
+        if (sprite.to && (sprite.from[0] !== sprite.to[0] || sprite.from[1] !== sprite.to[1])) {
+          arriving.set(String(sprite.to), sprite);
+        }
+      }
       for (let i = 0; i < RING.length; i++) {
         const cell = [p.origin[0] + RING[i][0], p.origin[1] + RING[i][1]];
-        const held = frame.sprites.find((s) => s.to
-          && s.to[0] === cell[0] && s.to[1] === cell[1]
-          && (s.from[0] !== s.to[0] || s.from[1] !== s.to[1]));
+        const held = arriving.get(String(cell));
         if (!held) continue;
-        const to = centreOf(layout, held.y, held.x);
+        const to = cellCenter(layout, held.y, held.x, VIEW_HERE);
         const grip = state.grip / 100;
         const tipX = at.x + (to.x - at.x) * grip;
         const tipY = at.y + (to.y - at.y) * grip;

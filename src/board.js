@@ -45,7 +45,7 @@ export const ROTATE_REV = 'rotateRev';
 export const SINK = 'sink';
 
 /** Which way each push sends its line. */
-const PUSH_DIR = Object.freeze({
+export const PUSH_DIR = Object.freeze({
   [PUSH_UP]: [-1, 0],
   [PUSH_RIGHT]: [0, 1],
   [PUSH_DOWN]: [1, 0],
@@ -53,7 +53,7 @@ const PUSH_DIR = Object.freeze({
 });
 
 /** North, east, south, west — the order a rotation steps through. */
-const RING = Object.freeze([[-1, 0], [0, 1], [1, 0], [0, -1]]);
+export const RING = Object.freeze([[-1, 0], [0, 1], [1, 0], [0, -1]]);
 
 /**
  * An empty board of the given size. Callers fill `bg`, `glyph` and `kind`.

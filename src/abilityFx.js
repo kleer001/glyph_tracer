@@ -12,8 +12,7 @@
 // glyph throws four beams in the middle of a full board and one at a drained corner,
 // which is information rather than an inconsistency.
 
-import { ANCHOR, DIAG, ORTHO, armEnd, occupied, onBoard } from './board.js';
-import { PUSH_STEPS } from './fx.js';
+import { ANCHOR, DIAG, ORTHO, PUSH_DIR, RING, armEnd, occupied, onBoard } from './board.js';
 
 /**
  * How an ability's beam behaves, which follows from what the ability does to a piece.
@@ -28,15 +27,12 @@ import { PUSH_STEPS } from './fx.js';
  * as pulling the piece it is meant to be shoving.
  */
 export function beamStyleFor(kind) {
-  if (PUSH_STEPS[kind] || kind === 'pulse') return 'throw';
+  if (PUSH_DIR[kind] || kind === 'pulse') return 'throw';
   if (kind === 'swapOrth' || kind === 'swapDiag') return 'grab';
   if (kind === 'rotate' || kind === 'rotateRev') return 'grab';
   if (kind === 'sink') return 'grab';
   return null; // an anchor and a plain piece throw nothing at all
 }
-
-/** The ring a rotate steps its neighbours around, in the order `turn()` walks it. */
-const RING = Object.freeze([[-1, 0], [0, 1], [1, 0], [0, -1]]);
 
 /**
  * Every cell an ability at (r, c) reaches, filtered to the ones holding a piece.
@@ -49,14 +45,12 @@ const RING = Object.freeze([[-1, 0], [0, 1], [1, 0], [0, -1]]);
  */
 export function targetsFor(kind, [r, c], board) {
   const holding = ([rr, cc]) => occupied(board, rr, cc);
-  const step = PUSH_STEPS[kind];
+  const step = PUSH_DIR[kind];
   if (step) return [[r + step[0], c + step[1]]].filter(holding);
 
-  if (kind === 'pulse') {
-    // The push's ability four ways at once, so the same reach four times over.
-    return ORTHO.map(([dr, dc]) => [r + dr, c + dc]).filter(holding);
-  }
-  if (kind === 'swapOrth') {
+  // A pulse shoves all four neighbours and an orthogonal swap trades them: different
+  // verbs, the same four cells.
+  if (kind === 'pulse' || kind === 'swapOrth') {
     return ORTHO.map(([dr, dc]) => [r + dr, c + dc]).filter(holding);
   }
   if (kind === 'swapDiag') {
