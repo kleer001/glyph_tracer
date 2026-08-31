@@ -26,7 +26,7 @@ test('a turn and a mirror are handed back rather than applied', () => {
   const turned = glyphDrawing({ letter: 'A', rot: 90 }, GEOM, PATHS);
   assert.equal(turned.rot, 90);
   assert.equal(turned.flip, false);
-  const mirrored = glyphDrawing({ letter: 'R', flip: true }, GEOM, PATHS);
+  const mirrored = glyphDrawing({ letter: 'r', flip: true }, GEOM, PATHS);
   assert.equal(mirrored.rot, 0);
   assert.equal(mirrored.flip, true);
 });

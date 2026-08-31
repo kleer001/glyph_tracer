@@ -62,13 +62,16 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 | `src/levels.js`, `src/progress.js`, `src/picker.js` | the run, what is finished, and the level sheet |
 | `src/glyphShapes.js`, `src/render.js` | the render spec's geometry, and the canvas layers that paint it |
 | `src/animate.js` | folding a resolved settle back into phases you can watch |
-| `data/` | rules, palette, glyph geometry, gloss, the sixteen glyphs, stage factors, animation timings — the tuning |
-| `tools/` | `swapBudget.js`, `trapBoards.js`, `boardShapes.js` — the sweeps, the trap generator, the board-shape study |
-| `docs/` | the specimen plate, the trap write-up, the level structure, the board-shape study |
-| `dev/` | the cell, gloss and timing sandboxes — they drive `src/`, so what is tuned is what ships |
+| `src/fx.js`, `src/abilityFx.js` | the beam and the ghost, and which cells an ability reaches |
+| `src/palette.js` | one named palette resolved, and which levels it can paint |
+| `data/` | rules, palette, glyph geometry, gloss, the twelve glyphs, stage factors, animation timings — the tuning |
+| `tools/` | the sweeps and studies (`swapBudget.js`, `trapBoards.js`, `boardShapes.js`, `maxCombo.js`, `contrast.js`, `studyBoard.js`), the glyph baker, and the artifact builders |
+| `docs/` | the specimen plate, the trap write-up, the level structure, the board-shape study, the juice shelf |
+| `artifacts/` | sources of the pages published to claude.ai; fragments, not standalone pages |
+| `dev/` | the tuning sandboxes and the fx frame harness — they drive `src/`, so what is tuned is what ships |
 
 The engine knows four kinds — push, block, wild, void — and every glyph is one of
-them. Which of the sixteen a piece wears is `data/glyphs.json`, dealt once from the
+them. Which of the twelve a piece wears is `data/glyphs.json`, dealt once from the
 seed, so the drawing never decides what a piece does. A glyph whose effect the engine
 does not run yet is marked `"implemented": false` and plays as a plain glyph.
 

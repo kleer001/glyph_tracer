@@ -34,7 +34,7 @@ OUT = ROOT / 'data/glyphPaths.json'
 
 # Every letter the glyph pack draws. `+` and `.` are authored from measurements rather
 # than taken from the font, so they are not baked here.
-LETTERS = 'AHORSXr'
+LETTERS = 'AHOSXr'
 
 # The cap height is measured off this letter rather than read from the OS/2 table:
 # the table records intent and the outline records what was drawn.

@@ -23,6 +23,7 @@ why they sit here instead.
 | `beam-bench.html` | Glyph Tracer Beam Sandbox — the directional beam a push throws. | **generated** |
 | `rotor-bench.html` | Glyph Tracer Rotor Sandbox — the rotate's four arms and its quarter turn out. | **generated** |
 | `fx-plate.html` | Glyph Tracer Effects Plate — every ability's effect, recorded. | **generated** |
+| `fx-pair.html` | Glyph Tracer X and H — the swap made followable and the anchor made to stop beams. | **generated** |
 
 The generated pages are built, never edited. Each is the whole engine and every data
 file inlined into one page, because an Artifact has no origin to fetch from and cannot
