@@ -26,6 +26,6 @@ that reads that file back, so a page always shows what the game is doing now.
 
 Sliders in `timing.html` rebuild but do not play — press a scenario, or `replay`.
 
-`palette-panel.css` styles the swatch editor that `src/devPanels.js` mounts. The game
-screen does not mount it — `cell.html` does, where the palette is what the plate draws
+`palette-panel.css` styles the swatch editor that `palettePanel.js` mounts, beside it
+here because both are dev-only. The game screen does not mount it — `cell.html` does, where the palette is what the plate draws
 from, so the six colours are picked against the twelve glyphs rather than against one.

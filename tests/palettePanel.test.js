@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { hexToRgb, paletteFileText, paletteStateLines, rgbToHex } from '../src/devPanels.js';
+import { hexToRgb, paletteFileText, paletteStateLines, rgbToHex } from '../dev/palettePanel.js';
 import { paletteNames, resolvePalette } from '../src/palette.js';
 
 const PACK = JSON.parse(readFileSync(new URL('../data/palette.json', import.meta.url), 'utf8'));

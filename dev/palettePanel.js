@@ -1,10 +1,10 @@
-// Dev panels — the palette editor and the move log that flank the board.
+// Palette panel — the swatch editor, and the file it writes.
 //
-// These are instruments, not the game: they read and write the same data the game
-// does and otherwise stay out of its way. Everything here touches the DOM, which is
-// why it lives in its own module rather than in main.js.
-
-import { toText } from './debugLog.js';
+// Dev-only, and now sitting where its stylesheet already did. The game screen never
+// mounts it; dev/cell.html does, where the palette is picked against the whole glyph
+// plate rather than against one cell.
+//
+// The colour maths is pure and tested; only mountPalettePanel touches the DOM.
 
 const CHANNELS = ['r', 'g', 'b'];
 
@@ -187,49 +187,4 @@ export function mountPalettePanel(root, palette, onChange) {
 
   revert.addEventListener('click', () => apply(originals[selected]));
   refresh();
-}
-
-/**
- * The move log, and a button that puts all of it on the clipboard.
- * @param {HTMLElement} root
- * @returns {{append: Function, clear: Function, text: () => string}}
- */
-export function mountDebugPanel(root) {
-  const entries = [];
-
-  const header = el('div', 'panel-head');
-  header.append(el('h2', 'panel-title', 'Move log'));
-  const copy = el('button', 'copy', 'copy');
-  copy.type = 'button';
-  header.append(copy);
-  root.append(header);
-
-  const body = el('div', 'log');
-  root.append(body);
-
-  const text = () => entries.map(({ depth, text: line }) => '  '.repeat(depth) + line).join('\n');
-
-  copy.addEventListener('click', async () => {
-    await navigator.clipboard.writeText(text());
-    copy.textContent = 'copied';
-    setTimeout(() => {
-      copy.textContent = 'copy';
-    }, 1200);
-  });
-
-  return {
-    append(lines) {
-      for (const line of lines) {
-        entries.push(line);
-        const node = el('div', `log-line depth-${line.depth}`, line.text);
-        body.append(node);
-      }
-      body.scrollTop = body.scrollHeight;
-    },
-    clear() {
-      entries.length = 0;
-      body.replaceChildren();
-    },
-    text,
-  };
 }

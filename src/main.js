@@ -13,7 +13,7 @@ import { dealLevel, loadRun, nextAfter, outcome } from './levels.js';
 import { createProgress } from './progress.js';
 import { mountPicker } from './picker.js';
 import { describeSwap } from './debugLog.js';
-import { mountDebugPanel } from './devPanels.js';
+import { mountDebugPanel } from './debugPanel.js';
 import {
   VIEW,
   boardLayout,

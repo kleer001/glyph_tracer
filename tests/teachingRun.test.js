@@ -80,12 +80,6 @@ test('the difficulty factor rises across each act', () => {
   }
 });
 
-test('the stage bands agree with data/stages.json', () => {
-  const stages = JSON.parse(readFileSync(new URL('../data/stages.json', import.meta.url), 'utf8'));
-  const bands = [...HTML.matchAll(/<td class="num">([\d.]+) – ([\d.]+)<\/td>/g)]
-    .map(([, lo, hi]) => [Number(lo), Number(hi)]);
-  assert.deepEqual(stages.stages.map((s) => s.band), bands);
-});
 
 test('the dependency ladder is numbered from one with no gaps', () => {
   const rungs = [...HTML.matchAll(/<div class="rung"><span class="n">(\d+)<\/span>/g)].map(

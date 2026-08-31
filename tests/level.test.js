@@ -3,18 +3,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { mulberry32 } from '../src/rng.js';
 import { PLAIN, randomBoard, remaining, swapPairs } from '../src/board.js';
-import {
-  createLevel,
-  dealArt,
-  greedyPlay,
-  measureYield,
-  targetFor,
-} from '../src/level.js';
+import { dealArt, greedyPlay } from '../src/level.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
 const RULES = read('../data/rules.json');
 const GLYPHS = read('../data/glyphs.json').glyphs;
-const STAGES = read('../data/stages.json').stages;
 
 test('greedy play spends its budget and drains the board', () => {
   const rand = mulberry32(4);
@@ -26,22 +19,8 @@ test('greedy play spends its budget and drains the board', () => {
   assert.ok(run.deepest >= 1);
 });
 
-test('a measured yield reproduces from its seed', () => {
-  const args = { rules: RULES, mix: RULES.mix, budget: RULES.swapBudget, trials: 30, seed: 99 };
-  assert.deepEqual(measureYield(args), measureYield(args));
-});
 
-test('the target is the measured mean times the stage factor', () => {
-  assert.equal(targetFor(10, 0.45), 5);
-  assert.equal(targetFor(9.8, 1.03), 10);
-  assert.equal(targetFor(0.1, 0.35), 1, 'a target of zero would already be met');
-});
 
-test('a stage factor sits inside its documented band', () => {
-  for (const s of STAGES) {
-    assert.ok(s.factor >= s.band[0] && s.factor <= s.band[1], `${s.id} is outside its band`);
-  }
-});
 
 test('every cell is dealt art of its own kind', () => {
   const rand = mulberry32(5);
@@ -77,15 +56,6 @@ test('exactly one glyph is inert, and it is the one drawn as a full stop', () =>
   assert.equal(inert[0].letter, '.');
 });
 
-test('a level is reproducible and its target is reachable in the budget', () => {
-  const stage = STAGES.find((s) => s.id === 'practise');
-  const a = createLevel({ rules: RULES, glyphs: GLYPHS, stage, seed: 20260825, trials: 40 });
-  const b = createLevel({ rules: RULES, glyphs: GLYPHS, stage, seed: 20260825, trials: 40 });
-  assert.deepEqual(a.board, b.board);
-  assert.equal(a.target, b.target);
-  assert.ok(a.target > 0 && a.target < RULES.width * RULES.height);
-  assert.equal(a.budget, RULES.swapBudget);
-});
 
 test('every kind the rules can roll has a glyph drawn for it', () => {
   const kinds = new Set([PLAIN, ...Object.keys(RULES.mix)]);

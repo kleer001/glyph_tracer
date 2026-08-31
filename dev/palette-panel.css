@@ -1,5 +1,5 @@
 /* Palette editor — the swatches, the RGB picker and the state list that
-   src/devPanels.js mounts. The game screen does not mount it; dev/cell.html does,
+   dev/palettePanel.js mounts. The game screen does not mount it; dev/cell.html does,
    which is why these rules live next to that page rather than in the game's sheet.
    Tokens come from the page that links this file. */
 

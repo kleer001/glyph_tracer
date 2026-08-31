@@ -118,10 +118,13 @@ pre{background:var(--sunk);border:1px solid var(--rule);padding:11px;font-family
 import { blankBoard, createRecorder, applySwap, copyBoard, ANCHOR, PULSE, SINK } from '../src/board.js';
 import { buildTimeline, sampleTimeline, staticFrame, swapDurationFor } from '../src/animate.js';
 import { createCompositor } from '../src/compositor.js';
+import { resolvePalette } from '../src/palette.js';
 import { mulberry32 } from '../src/rng.js';
 import { boardLayout, createGlyphLayer, createGroundLayer, VIEW } from '../src/render.js';
 
-const PALETTE = await (await fetch('../data/palette.json')).json();
+// The file holds several named palettes; resolvePalette flattens the live one,
+// which is what every other page here draws from.
+const PALETTE = resolvePalette(await (await fetch('../data/palette.json')).json());
 const GLOSS = await (await fetch('../data/gloss.json')).json();
 const GEOMETRY = await (await fetch('../data/geometry.json')).json();
 const PATHS = (await (await fetch('../data/glyphPaths.json')).json()).paths;

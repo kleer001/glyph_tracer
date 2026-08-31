@@ -64,7 +64,7 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 | `src/animate.js` | folding a resolved settle back into phases you can watch |
 | `src/fx.js`, `src/abilityFx.js` | the beam and the ghost, and which cells an ability reaches |
 | `src/palette.js` | one named palette resolved, and which levels it can paint |
-| `data/` | rules, palette, glyph geometry, gloss, the twelve glyphs, stage factors, animation timings — the tuning |
+| `data/` | rules, palette, glyph geometry, gloss, the twelve glyphs, the run, animation timings — the tuning |
 | `tools/` | the sweeps and studies (`swapBudget.js`, `trapBoards.js`, `boardShapes.js`, `maxCombo.js`, `contrast.js`, `studyBoard.js`), the glyph baker, and the artifact builders |
 | `docs/` | the specimen plate, the trap write-up, the level structure, the board-shape study, the juice shelf |
 | `artifacts/` | sources of the pages published to claude.ai; fragments, not standalone pages |

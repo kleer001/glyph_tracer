@@ -1,12 +1,15 @@
-// Level — turning rules and a seed into something playable, and measuring what it
-// is worth before the player touches it.
+// Level — the measuring stick, and the drawing a piece wears.
 //
-// A level is `clear N cells in X swaps`. The budget is fixed at six, where the
-// yield curve flattens. The target is the measured mean yield for the level's
-// configuration times a stage factor, which is the whole difficulty curve.
+// Two things the run needs that are not rules. `greedyPlay` says how a player who
+// always takes the biggest visible payoff would do on a board, which is how a level's
+// difficulty gets judged by the tools. `dealArt` decides which of the glyph drawings
+// each piece carries, which the rules never read.
+//
+// Targets and budgets used to be measured here and derived from a stage factor. They
+// are authored in data/levels.json now and read by levels.js, so the level a player
+// gets is the one someone chose rather than one a curve produced.
 
-import { PLAIN, applySwap, gain, randomBoard, remaining, swapPairs } from './board.js';
-import { mulberry32 } from './rng.js';
+import { applySwap, gain, remaining, swapPairs } from './board.js';
 
 /**
  * Play a board out greedily: each turn take the swap with the highest visible
@@ -53,34 +56,7 @@ export function greedyPlay(board, budget, rand, candidates = swapPairs(board)) {
   return { cleared, cascade, deepest, turns };
 }
 
-/**
- * Mean greedy yield for a configuration, over freshly generated boards.
- *
- * Cascade depth is averaged over every swap of a full level rather than the
- * opening one: on a virgin board every cell is occupied, so a shove line runs
- * unbroken to the edge and is always refused. Sampling only the first swap reports
- * 1.00 by construction and says nothing about the game.
- */
-export function measureYield({ rules, mix, budget, trials, seed }) {
-  const candidates = swapPairs(rules);
-  let cleared = 0;
-  let cascade = 0;
-  let deepest = 0;
-  for (let i = 0; i < trials; i++) {
-    const rand = mulberry32(seed + i);
-    const board = randomBoard(rules, mix, rand);
-    const run = greedyPlay(board, budget, rand, candidates);
-    cleared += run.cleared;
-    cascade += run.cascade;
-    deepest += run.deepest;
-  }
-  return { mean: cleared / trials, cascade: cascade / trials, deepest: deepest / trials };
-}
 
-/** Round a measured mean into a level target. */
-export function targetFor(mean, factor) {
-  return Math.max(1, Math.round(mean * factor));
-}
 
 /**
  * Which glyph each piece is drawn as, written onto the board so it travels with the
@@ -102,24 +78,3 @@ export function dealArt(board, glyphs, rand) {
   }
 }
 
-/**
- * Build a playable level: a board, the art it wears, and a target measured from
- * the configuration it was generated under.
- */
-export function createLevel({ rules, glyphs, stage, seed, trials = 120 }) {
-  const { mix, swapBudget } = rules;
-  const measured = measureYield({ rules, mix, budget: swapBudget, trials, seed });
-  const rand = mulberry32(seed);
-  const board = randomBoard(rules, mix, rand);
-  dealArt(board, glyphs, rand);
-  return {
-    seed,
-    stage: stage.id,
-    board,
-    budget: swapBudget,
-    target: targetFor(measured.mean, stage.factor),
-    measured,
-    swapsUsed: 0,
-    cleared: 0,
-  };
-}

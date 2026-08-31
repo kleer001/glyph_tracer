@@ -118,10 +118,13 @@ canvas{display:block}
 </div>
 
 <script type="module">
+import { resolvePalette } from '../src/palette.js';
 import { drawGlyph, drawTile } from '../src/render.js';
 import { CELL } from '../src/glyphShapes.js';
 
-const PALETTE = await (await fetch('../data/palette.json')).json();
+// The file holds several named palettes; resolvePalette flattens the live one,
+// which is what every other page here draws from.
+const PALETTE = resolvePalette(await (await fetch('../data/palette.json')).json());
 const GLYPHS = (await (await fetch('../data/glyphs.json')).json()).glyphs;
 const SHIPPED = await (await fetch('../data/gloss.json')).json();
 const GEOMETRY = await (await fetch('../data/geometry.json')).json();
