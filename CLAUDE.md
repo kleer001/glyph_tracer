@@ -55,8 +55,6 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 
 | | |
 |---|---|
-| `SPEC.md` | the rules, the glyph grammar, and every measurement behind them |
-| `RENDER_SPEC.md` | how one glyph is drawn — geometry and paint order |
 | `src/board.js` | the rules as code: shove, sink, settle, swap resolution |
 | `src/level.js` | greedy measurement, the target policy, dealing a board |
 | `src/levels.js`, `src/progress.js`, `src/picker.js` | the run, what is finished, and the level sheet |
@@ -67,7 +65,7 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 | `src/palette.js` | one named palette resolved, and which levels it can paint |
 | `data/` | rules, palette, glyph geometry, gloss, the twelve glyphs, the run, animation timings — the tuning |
 | `tools/` | the sweeps and studies (`swapBudget.js`, `trapBoards.js`, `boardShapes.js`, `maxCombo.js`, `contrast.js`, `studyBoard.js`), the glyph baker, and the artifact builders |
-| `docs/` | the specimen plate, the trap write-up, the level structure, the board-shape study, the juice shelf |
+| `docs/` | the trap write-up, the board-shape study, the teaching run — published pages, each a dated snapshot rather than a live document |
 | `artifacts/` | sources of the pages published to claude.ai; fragments, not standalone pages |
 | `dev/` | the tuning sandboxes and the fx frame harness — they drive `src/`, so what is tuned is what ships |
 

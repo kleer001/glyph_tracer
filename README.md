@@ -54,15 +54,12 @@ node tools/boardShapes.js --curve     # what board size and palette size trade o
   policy, `glyphShapes.js` and `render.js` the drawing, `animate.js` the playback,
   `progress.js` and `picker.js` the run's chrome, `main.js` the only module that
   touches a browser.
-- `LEVELS.md` — the shipped run as a list; the levels themselves are `data/levels.json`.
 - `data/` — rules, palette, the sixteen glyphs, stage factors, the example board.
 - `tools/` — the measurement sweeps and the trap generator.
 - `dev/` — browser pages for tuning the look and the animation timing.
 - `tests/` — `node --test`, no framework.
 - `docs/` — the specimen plate, the trap write-up, the level structure, and why the
   board is the size it is.
-- `SPEC.md` — rules, glyph grammar, and every measurement behind them.
-  `RENDER_SPEC.md` — how one glyph is drawn.
 - `CLAUDE.md` — what this game is and which studio shelf holds what it hasn't needed.
 - `.trace_rom_studio.toml` — the studio version this game descends from.
 - `LICENSE` — MIT.
