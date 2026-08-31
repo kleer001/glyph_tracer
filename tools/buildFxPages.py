@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""Assemble the recorded effects into one self-contained page.
+"""Assemble the recorded effects into the pages that show them.
 
 An Artifact has no origin to fetch from, so every GIF is inlined as a data URI. They
 are small -- flat colour on a flat board is what GIF was built for -- and the whole
 plate comes in well under the size a page is allowed.
 
-    python3 tools/buildFxPlate.py        # reads tmp/gifs, writes artifacts/fx-plate.html
+    python3 tools/buildFxPages.py            # reads tmp/gifs, writes both pages
+    python3 tools/buildFxPages.py pair       # just one
 """
 
 import base64
-import json
 import pathlib
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GIFS = ROOT / 'tmp/gifs'
@@ -46,12 +47,16 @@ PLATE = [
 ]
 
 
+# The two-up page: one recording each, keyed by the placeholder it fills.
+PAIR = {'__XGIF__': 'swapDiag', '__HGIF__': 'anchorSwallow'}
+
+
 def data_uri(name: str) -> str:
     raw = (GIFS / f'{name}.gif').read_bytes()
     return 'data:image/gif;base64,' + base64.b64encode(raw).decode('ascii')
 
 
-def main() -> None:
+def build_plate() -> None:
     cards = []
     for name, mark, kind, does, effect in PLATE:
         if not (GIFS / f'{name}.gif').exists():
@@ -68,10 +73,39 @@ def main() -> None:
     </figure>''')
 
     page = (ROOT / 'tools/fx-plate.template.html').read_text(encoding='utf-8')
-    page = page.replace('<!--__CARDS__-->', ''.join(cards))
-    target = ROOT / 'artifacts/fx-plate.html'
-    target.write_text(page, encoding='utf-8')
+    write(page.replace('<!--__CARDS__-->', ''.join(cards)), 'fx-plate.html')
+
+
+def build_pair() -> None:
+    page = (ROOT / 'tools/fx-pair.template.html').read_text(encoding='utf-8')
+    for slot, name in PAIR.items():
+        if not (GIFS / f'{name}.gif').exists():
+            raise SystemExit(f'no recording for {name}; capture it first')
+        page = page.replace(slot, data_uri(name))
+    write(page, 'fx-pair.html')
+
+
+def write(page: str, name: str) -> None:
+    # The page carries its own gifs, so it has to survive a host that guesses at the
+    # encoding. Pure ASCII is the cheapest way to make that impossible to get wrong.
+    non_ascii = sorted({c for c in page if ord(c) > 127})
+    if non_ascii:
+        raise SystemExit(f'{name} must be pure ASCII; found {non_ascii}')
+    target = ROOT / 'artifacts' / name
+    target.write_text(page, encoding='ascii')
     print(f'wrote {target.relative_to(ROOT)}  ({len(page) / 1e6:.2f} MB)')
+
+
+BUILDERS = {'plate': build_plate, 'pair': build_pair}
+
+
+def main() -> None:
+    wanted = sys.argv[1:] or list(BUILDERS)
+    unknown = [w for w in wanted if w not in BUILDERS]
+    if unknown:
+        raise SystemExit(f'no such page {unknown}; known: {list(BUILDERS)}')
+    for name in wanted:
+        BUILDERS[name]()
 
 
 if __name__ == '__main__':

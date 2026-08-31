@@ -18,33 +18,28 @@ why they sit here instead.
 
 | file | page | source |
 |---|---|---|
-| `juice-bench.html` | Glyph Tracer Juice Bench — the priced shelf of visual work, with live demos and the palette and silhouette measurements. Text version: `docs/JUICE.md`. | hand-written |
-| `burst-bench.html` | Glyph Tracer Burst Sandbox — tune a cleared cell's throw on a live board. | **generated** |
-| `beam-bench.html` | Glyph Tracer Beam Sandbox — the directional beam a push throws. | **generated** |
-| `rotor-bench.html` | Glyph Tracer Rotor Sandbox — the rotate's four arms and its quarter turn out. | **generated** |
-| `fx-plate.html` | Glyph Tracer Effects Plate — every ability's effect, recorded. | **generated** |
-| `fx-pair.html` | Glyph Tracer X and H — the swap made followable and the anchor made to stop beams. | **generated** |
+| `juice-bench.html` | Glyph Tracer Juice Bench -- the priced shelf of visual work, with live demos and the palette and silhouette measurements. Text version: `docs/JUICE.md`. | hand-written |
+| `fx-plate.html` | Glyph Tracer Effects Plate -- every ability's effect, recorded. | **generated** |
+| `fx-pair.html` | Glyph Tracer X and H -- the swap made followable and the anchor made to stop beams. | **generated** |
 
-The generated pages are built, never edited. Each is the whole engine and every data
-file inlined into one page, because an Artifact has no origin to fetch from and cannot
-import `src/` or read `data/`. Rebuild after changing either:
+The generated pages are built from recordings, never edited: a still page cannot run
+the engine, so each effect is captured as a GIF and inlined as a data URI. Rebuild
+after re-recording:
 
 ```sh
-python3 tools/buildArtifacts.py            # the sandboxes: all of them
-python3 tools/buildArtifacts.py beam       # just one
+python3 tools/buildFxPages.py            # both
+python3 tools/buildFxPages.py pair       # just one
 ```
 
-The effects plate is built from recordings rather than from the engine, because a
-still page cannot run one. `dev/fxframes.html` draws a named effect at an elapsed time
-it is handed and runs no clock of its own, so a capture is the same frame every time;
-drive it a frame at a time from a browser, then:
+Edit the matching `tools/fx-*.template.html` for the page itself, never the built file.
 
-```sh
-tools/framesToGif.sh tmp/frames/<effect> tmp/gifs/<effect>.gif 20
-python3 tools/buildFxPlate.py               # inlines every gif as a data URI
-```
+To re-record an effect: `dev/fxframes.html` draws a named effect at an elapsed time it
+is handed and runs no clock of its own, so a capture is the same frame every time.
+Drive it a frame at a time from a browser, writing stills to `tmp/frames/<effect>/`,
+then encode with `tools/framesToGif.sh tmp/frames/<effect> tmp/gifs/<effect>.gif 20`.
 
-Edit the matching `tools/*-artifact.template.html` for the page itself, never the built
-file. The effects they tune live in `src/fx.js`, so a page and the game cannot drift
-apart on the maths — only on the numbers, which is the whole point of tuning them here.
-`dev/burst.html` stays the sandbox that loads `src/` live.
+Three sandbox pages -- a slider per knob for the burst, the push beam and the rotate --
+lived here while those effects were being tuned. The numbers they produced are in
+`data/animation.json` and in the effects themselves, so the pages were deleted once
+they had done their job rather than left to rot alongside the code they no longer
+match. `dev/` still holds the live tuning instruments.
