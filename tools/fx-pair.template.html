@@ -1,0 +1,103 @@
+<title>Glyph Tracer X and H</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root { --paper:#EDEEF0; --surface:#F7F8F9; --ink:#16171A; --dim:#6B6F76; --hair:#D3D6DA; --accent:#3B51D6; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#141518; --surface:#1C1E22; --ink:#E6E7EA; --dim:#969BA3; --hair:#2E3138; --accent:#93A2FF;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#141518; --surface:#1C1E22; --ink:#E6E7EA; --dim:#969BA3; --hair:#2E3138; --accent:#93A2FF;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: Newsreader, Georgia, "Times New Roman", serif;
+  font-size: 18px; line-height: 1.65; margin: 0; padding: 0 20px 90px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 940px; margin: 0 auto; }
+header { padding: 66px 0 34px; display: flex; flex-direction: column; gap: 13px; }
+.eyebrow {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 0;
+}
+h1 { font-size: clamp(36px, 6.5vw, 54px); font-weight: 300; line-height: 1.03; letter-spacing: -.022em; margin: 0; text-wrap: balance; }
+h1 em { font-style: italic; font-weight: 400; }
+.standfirst { font-size: 20px; line-height: 1.5; color: var(--dim); margin: 0; max-width: 40em; }
+hr { border: 0; border-top: 1px solid var(--hair); margin: 0 0 32px; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 22px; }
+figure { margin: 0; background: var(--surface); border: 1px solid var(--hair); border-radius: 5px; overflow: hidden; }
+figure img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--hair); }
+figcaption { padding: 16px 17px 19px; display: flex; flex-direction: column; gap: 8px; }
+.mark { font-size: 32px; font-weight: 600; line-height: 1; margin: 0; }
+figcaption h2 {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: 10px; font-weight: 600;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--dim); margin: 0;
+}
+figcaption p { margin: 0; font-size: 16.5px; line-height: 1.5; }
+figcaption p.dim { color: var(--dim); }
+.notes { margin-top: 46px; padding-top: 24px; border-top: 1px solid var(--hair); }
+.notes h2 { font-size: 24px; font-weight: 400; letter-spacing: -.015em; margin: 0 0 12px; }
+.notes p { max-width: 66ch; margin: 0 0 13px; }
+strong { font-weight: 600; }
+code {
+  font-family: "Martian Mono", ui-monospace, monospace; font-size: .78em; background: var(--paper);
+  border: 1px solid var(--hair); border-radius: 3px; padding: .1em .35em;
+}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Glyph Tracer &middot; two redone</p>
+  <h1>The swap you can <em>follow</em>, and the anchor that <em>eats</em></h1>
+  <p class="standfirst">Both were failing for reasons that had nothing to do with the beam.
+  One was a scene that hid what happened; the other was drawing past the point where the
+  rules had already stopped.</p>
+</header>
+<hr />
+
+<div class="pair">
+  <figure>
+    <img src="__XGIF__" alt="the diagonal swap, four distinct pieces trading corners" />
+    <figcaption>
+      <p class="mark">X</p>
+      <h2>swap &middot; on the diagonals</h2>
+      <p>Trades the two diagonal pairs.</p>
+      <p class="dim">Nothing was wrong with the effect &mdash; the four corners held pieces
+      that looked alike, so a trade that genuinely happened looked like nothing moving. They
+      now differ in shape, in ink and in ground, so each one can be followed from where it
+      was to where it went. The pieces cross through the middle because that is the straight
+      line between the two cells, which is what the orthogonal swap does too.</p>
+    </figcaption>
+  </figure>
+
+  <figure>
+    <img src="__HGIF__" alt="a push whose beam stops at the anchor, which swells as it eats" />
+    <figcaption>
+      <p class="mark">H</p>
+      <h2>anchor &middot; eating, not blocking</h2>
+      <p>Eats whatever is shoved into it, and stays where it is.</p>
+      <p class="dim">The push on the left throws three cells, which used to carry its beam
+      clean through the anchor and out the far side. It now stops on the anchor's near edge.
+      And the swallow is the full swell, the same as when the anchor matches and goes: it is
+      eating either way, and eating is the loud part.</p>
+    </figcaption>
+  </figure>
+</div>
+
+<div class="notes">
+  <h2>Why the beam stops</h2>
+  <p>An anchor is already the end of a line as far as the rules are concerned. A shove that
+  reaches one is swallowed there, and <code>armEnd</code> walks up to an anchor and no
+  further. A beam sailing through it would be drawing past the point where the ability's
+  effect actually ended &mdash; claiming a reach the piece never had.</p>
+  <p>It stops <strong>half a cell short</strong>, on the near edge rather than in the middle.
+  A line ending dead centre would look like it went in, and it did not: the thing that goes
+  in is whatever the anchor eats.</p>
+</div>
+</div>

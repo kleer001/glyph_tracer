@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { readFileSync } from 'node:fs';
 
-import { beamStyleFor, targetsFor } from '../src/abilityFx.js';
+import { beamReach, beamStyleFor, targetsFor } from '../src/abilityFx.js';
 import { ANCHOR, PULSE, PUSH_RIGHT, SINK, SWAP_DIAG, SWAP_ORTH, blankBoard } from '../src/board.js';
 
 const RULES = { width: 5, height: 5, colors: 4, adjacentOnly: false };
@@ -101,4 +101,41 @@ test('every glyph that leaves by beam has a beam style, and the rest have none',
     if (glyph.exit === 'beam') assert.ok(style, `${glyph.id} exits by beam but throws none`);
     else assert.equal(style, null, `${glyph.id} does not beam, so it should have no style`);
   }
+});
+
+test('an anchor stops a beam short of itself', () => {
+  const b = full();
+  b.kind[2][4] = ANCHOR;                       // two clear cells away, then the anchor
+  b.art[2][4] = 'anchor';
+  const reach = beamReach(b, [2, 2], [0, 1], 4);
+  assert.ok(Math.abs(reach - 1.5) < 1e-9,
+    `stopped on the anchor's near edge, not its middle: got ${reach}`);
+});
+
+test('a beam with nothing in the way runs its whole reach', () => {
+  const b = full();
+  assert.equal(beamReach(b, [2, 0], [0, 1], 3), 3);
+});
+
+test('an anchor right beside a glyph stops the beam almost at once', () => {
+  const b = full();
+  b.kind[2][3] = ANCHOR;
+  assert.ok(Math.abs(beamReach(b, [2, 2], [0, 1], 4) - 0.5) < 1e-9);
+});
+
+test('a beam stops at the board edge too', () => {
+  const b = full();
+  assert.equal(beamReach(b, [2, 3], [0, 1], 4), 1, 'one cell left before the edge');
+});
+
+test('the block works on a diagonal, which is where a swap throws', () => {
+  const b = full();
+  b.kind[0][0] = ANCHOR;
+  assert.ok(Math.abs(beamReach(b, [2, 2], [-1, -1], 4) - 1.5) < 1e-9);
+});
+
+test('an anchor does not stop a beam pointed away from it', () => {
+  const b = full();
+  b.kind[2][3] = ANCHOR;
+  assert.equal(beamReach(b, [2, 2], [0, -1], 2), 2, 'the other way is clear');
 });

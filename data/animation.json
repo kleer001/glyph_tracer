@@ -6,7 +6,7 @@
   "shrinkMs": 200,
   "glyphFadeMs": 90,
   "ghost": {
-    "swallowGrow": 0.1,
+    "swallowGrow": 0.5,
     "clearGrow": 0.5,
     "ms": 260
   },

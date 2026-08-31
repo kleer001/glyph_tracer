@@ -12,7 +12,7 @@
 // glyph throws four beams in the middle of a full board and one at a drained corner,
 // which is information rather than an inconsistency.
 
-import { DIAG, ORTHO, armEnd, occupied } from './board.js';
+import { ANCHOR, DIAG, ORTHO, armEnd, occupied, onBoard } from './board.js';
 import { PUSH_STEPS } from './fx.js';
 
 /**
@@ -71,4 +71,29 @@ export function targetsFor(kind, [r, c], board) {
     return ORTHO.map(([dr, dc]) => armEnd(board, r, c, dr, dc)).filter(Boolean).filter(holding);
   }
   return []; // an anchor throws nothing, and a plain piece has nothing to throw
+}
+
+/**
+ * How far a beam may travel from a cell before something stops it, in cells.
+ *
+ * An anchor stops it. The rules already treat one as the end of a line -- `armEnd`
+ * walks up to an anchor and no further, and a shove that reaches one is swallowed
+ * there -- so a beam sailing through would be drawing past the point where the
+ * ability's effect actually ended.
+ *
+ * The beam stops half a cell short, on the anchor's near edge rather than at its
+ * middle: a line that stopped dead centre would look like it went in, and it did not.
+ *
+ * @returns {number} cells, possibly fractional, never more than `maxCells`.
+ */
+export function beamReach(board, [r, c], [dr, dc], maxCells) {
+  let rr = r + dr;
+  let cc = c + dc;
+  for (let n = 0; n < maxCells; n++) {
+    if (!onBoard(board, rr, cc)) return n;
+    if (board.kind[rr][cc] === ANCHOR) return n + 0.5;
+    rr += dr;
+    cc += dc;
+  }
+  return maxCells;
 }

@@ -25,7 +25,7 @@
 // Drive it from outside, a frame at a time, and encode the stills however you like.
 
 import { ANCHOR, PUSH_RIGHT, applySwap, blankBoard, copyBoard, createRecorder, settle } from '../src/board.js';
-import { beamStyleFor, targetsFor } from '../src/abilityFx.js';
+import { beamReach, beamStyleFor, targetsFor } from '../src/abilityFx.js';
 import { buildTimeline, sampleTimeline, staticFrame } from '../src/animate.js';
 import { createCompositor } from '../src/compositor.js';
 import { beamSpan, drawBeam, ghostAt, grabAt, swellAt } from '../src/fx.js';
@@ -73,6 +73,19 @@ function bed() {
   return b;
 }
 
+/**
+ * Dress a cell: a drawing, an ink and a ground, with no ability behind any of it.
+ * The art layer never decides what a piece does, which is what makes it safe to pick
+ * a shape here purely so the eye can follow one piece from where it was to where it
+ * went.
+ */
+function mark(b, r, c, art, ink, ground) {
+  b.art[r][c] = art;
+  b.kind[r][c] = '';
+  b.glyph[r][c] = ink;
+  b.bg[r][c] = ground;
+}
+
 function put(b, r, c, glyph) {
   b.kind[r][c] = glyph.kind;
   b.art[r][c] = glyph.id;
@@ -92,7 +105,18 @@ function resolveAt(b, r, c) {
 export const SCENES = {
   pulse: () => { const b = bed(); put(b, MID, MID, byKind.get('pulse')); return resolveAt(b, MID, MID); },
   swapOrth: () => { const b = bed(); put(b, MID, MID, byKind.get('swapOrth')); return resolveAt(b, MID, MID); },
-  swapDiag: () => { const b = bed(); put(b, MID, MID, byKind.get('swapDiag')); return resolveAt(b, MID, MID); },
+  swapDiag: () => {
+    const b = bed();
+    put(b, MID, MID, byKind.get('swapDiag'));
+    // The pieces are what move, so they have to be told apart: the two that trade are
+    // given different shapes, different inks and different ground. A swap between two
+    // pieces that look alike is a swap nobody can see happen.
+    mark(b, 1, 1, 'pulse', 0, 2);
+    mark(b, 3, 3, 'sink', 3, 1);
+    mark(b, 1, 3, 'push-up', 2, 0);
+    mark(b, 3, 1, 'swap-orth', 1, 3);
+    return resolveAt(b, MID, MID);
+  },
   sink: () => { const b = bed(); put(b, MID, MID, byKind.get('sink')); return resolveAt(b, MID, MID); },
   inert: () => { const b = bed(); return resolveAt(b, MID, MID); },
   // The anchor never fires, so its swallow has to be caused: a push two cells away
@@ -101,6 +125,11 @@ export const SCENES = {
     const b = bed();
     put(b, MID, MID, byKind.get(ANCHOR));
     put(b, MID, 0, byKind.get(PUSH_RIGHT));
+    // The push throws three cells, which would carry its beam clean through the anchor
+    // and out the far side. Pieces beyond it make the stop legible rather than academic.
+    mark(b, MID, 1, 'pulse', 0, 2);
+    mark(b, MID, 3, 'swap-diag', 3, 1);
+    mark(b, MID, 4, 'sink', 1, 3);
     return resolveAt(b, MID, 0);
   },
   anchorClear: () => { const b = bed(); put(b, MID, MID, byKind.get(ANCHOR)); return resolveAt(b, MID, MID); },
@@ -155,7 +184,11 @@ const fxLayer = {
             // Away from the cell, along the line to what it is shoving, and onward:
             // a shove does not stop where the piece was standing.
             const a = Math.atan2(cell[0] - r, cell[1] - c);
-            const span = beamSpan(bt, tune.reachCells * step, tune.chase);
+            // An anchor is the end of a line as far as the rules are concerned, so a
+            // beam sailing through one would be drawing past where the effect stopped.
+            const dir = [Math.sign(cell[0] - r), Math.sign(cell[1] - c)];
+            const reach = beamReach(scene.before, scene.at, dir, tune.reachCells);
+            const span = beamSpan(bt, reach * step, tune.chase);
             root = { x: from.x + Math.cos(a) * span.from, y: from.y + Math.sin(a) * span.from };
             tip = { x: from.x + Math.cos(a) * span.to, y: from.y + Math.sin(a) * span.to };
           } else {
