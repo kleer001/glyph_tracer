@@ -27,8 +27,8 @@ export const AUTHORED = Object.freeze({ '+': 'bars', '.': 'dot' });
  * What to draw for one glyph, as primitives a renderer can paint without knowing
  * which glyph it got.
  *
- * `kind` here is the drawing kind, not the glyph's ability: 'text' means set the
- * letter, 'bars' and 'dot' mean fill the rects or the circle. The turn and the mirror
+ * `kind` here is the drawing kind, not the glyph's ability: 'path' means the baked
+ * letterform outline, 'bars' and 'dot' mean fill the rects or the circle. The turn and the mirror
  * are returned rather than applied, so the caller owns the transform the same way it
  * owns the scale.
  *

@@ -7,27 +7,35 @@
 // Every line carries a cell reference, because "where" is the question you are
 // actually asking when a cascade does something you did not expect.
 
+import {
+  ANCHOR, PLAIN, PULSE, PUSH_DOWN, PUSH_LEFT, PUSH_RIGHT, PUSH_UP, ROTATE, ROTATE_REV,
+  SINK, SWAP_DIAG, SWAP_ORTH,
+} from './board.js';
+
 const at = ([r, c]) => `[${r},${c}]`;
 
-const SINK = {
+const EATEN_BY = {
   edge: 'shoved off the board edge',
   hole: 'shoved into a destroyed cell',
   eater: 'shoved into an eater',
 };
 
+// Keyed by the rules' own constants rather than by retyped strings: renaming a kind
+// in board.js would otherwise leave this table silently falling back to printing the
+// raw kind, which is the quiet kind of wrong this log exists to avoid.
 const VERB = {
-  pulse: 'advances all four lines by one',
-  pushUp: 'advances the line above by one',
-  pushRight: 'advances the line to its right by one',
-  pushDown: 'advances the line below by one',
-  pushLeft: 'advances the line to its left by one',
-  swapOrth: 'exchanges upper with lower, and left with right',
-  swapDiag: 'exchanges both corner pairs',
-  rotate: 'turns its four neighbors one step clockwise',
-  rotateRev: 'turns its four neighbors one step anticlockwise',
-  sink: 'draws all four lines inward',
-  anchor: 'shoves nothing — it only eats',
-  '': 'does nothing but clear',
+  [PULSE]: 'advances all four lines by one',
+  [PUSH_UP]: 'advances the line above by one',
+  [PUSH_RIGHT]: 'advances the line to its right by one',
+  [PUSH_DOWN]: 'advances the line below by one',
+  [PUSH_LEFT]: 'advances the line to its left by one',
+  [SWAP_ORTH]: 'exchanges upper with lower, and left with right',
+  [SWAP_DIAG]: 'exchanges both corner pairs',
+  [ROTATE]: 'turns its four neighbors one step clockwise',
+  [ROTATE_REV]: 'turns its four neighbors one step anticlockwise',
+  [SINK]: 'draws all four lines inward',
+  [ANCHOR]: 'shoves nothing — it only eats',
+  [PLAIN]: 'does nothing but clear',
 };
 
 /**
@@ -119,7 +127,7 @@ function describeEvent(event, snapshot, palette, glyphsById) {
     case 'turn':
       return `${at(event.from)} -> ${at(event.to)}   turned`;
     case 'eat':
-      return `${at(event.at)} eaten — ${SINK[event.reason]}`;
+      return `${at(event.at)} eaten — ${EATEN_BY[event.reason]}`;
     case 'kill':
       return event.reason === 'sink'
         ? `${at(event.at)} cell destroyed — the sink's own cell becomes the hole`

@@ -88,6 +88,13 @@ export function collapseStep({ snapshot, events }) {
       if (origin) fates.push({ origin, end: event.into, kind: 'eaten' });
       continue;
     }
+    // Everything above is handled by name, so anything left has to be a kill. Saying
+    // so out loud matters: a new event type falling through here would be drawn as a
+    // piece being destroyed and its cell dying, which is a wrong animation with no
+    // error behind it. debugLog.js refuses the same stream on the same grounds.
+    if (event.type !== 'kill') {
+      throw new Error(`collapseStep cannot draw a "${event.type}" event`); // boundary
+    }
     // A void kills its own cell and the settle kills it again on the way out, so
     // the same cell can be reported twice; it only dies once on screen.
     if (!seenDead.has(at)) {

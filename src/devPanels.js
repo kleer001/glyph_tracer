@@ -4,6 +4,8 @@
 // does and otherwise stay out of its way. Everything here touches the DOM, which is
 // why it lives in its own module rather than in main.js.
 
+import { toText } from './debugLog.js';
+
 const CHANNELS = ['r', 'g', 'b'];
 
 /** '#RRGGBB' -> {r, g, b}. Fails loudly rather than guessing at a malformed value. */

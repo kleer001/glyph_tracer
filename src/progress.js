@@ -10,7 +10,8 @@ export const STORE_KEY = 'glyph-tracer:progress:1';
  * pass is how much of the budget was still unspent — and unlike "cleared more", that
  * cannot be padded by a lucky cascade after the goal was already reached.
  *
- * 3 finished with two or more swaps in hand, 2 with one, 1 finished at all, 0 never.
+ * The thresholds are three lines below; restating them here would be a second copy
+ * of a rule that changes.
  */
 export function stars(swapsLeft) {
   if (swapsLeft == null) return 0;

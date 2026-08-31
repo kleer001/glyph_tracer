@@ -16,12 +16,12 @@
 import {
   ANCHOR,
   PULSE,
-  applySwap,
   gain,
   randomBoard,
   remaining,
   swapPairs,
 } from '../src/board.js';
+import { greedyPlay } from '../src/level.js';
 import { mulberry32 } from '../src/rng.js';
 import { anneal } from './trapBoards.js';
 import { parseArgs } from './args.js';
@@ -71,41 +71,19 @@ export function freshRead(rules, mix, trials, seed) {
  */
 export function playOut(rules, mix, rand, cands, span) {
   const board = randomBoard(rules, mix, rand);
-  const curve = [];
-  const steps = [];
-  let cleared = 0;
-  let dead = 0;
-  for (let turn = 0; turn < span; turn++) {
-    let best = 0;
-    let picks = [];
-    for (const pair of cands) {
-      const g = gain(board, pair[0], pair[1]);
-      if (g > best) {
-        best = g;
-        picks = [pair];
-      } else if (g === best && g > 0) {
-        picks.push(pair);
-      }
-    }
-    if (!picks.length) {
-      dead += 1;
-      curve.push(cleared);
-      continue;
-    }
-    const [a, z] = picks[Math.floor(rand() * picks.length)];
-    const out = applySwap(board, a, z, rand);
-    cleared += out.activated;
-    steps.push(out.steps);
-    curve.push(cleared);
-  }
+  // greedyPlay is the measuring stick two other tools already use; re-deriving the
+  // same take-the-best-visible-payoff loop here would mean this sweep silently kept
+  // measuring the old policy the day that one changed.
+  const { cascade, deepest, turns } = greedyPlay(board, span, rand, cands);
   return {
-    curve,
-    dead,
+    curve: turns.map((t) => t.cleared),
+    dead: turns.filter((t) => t.steps === 0).length, // a turn with nothing worth doing
     left: remaining(board),
-    cascade: steps.length ? steps.reduce((x, y) => x + y, 0) / steps.length : 0,
-    deepest: Math.max(0, ...steps),
+    cascade,
+    deepest,
   };
 }
+
 
 /**
  * How far a shove can travel before it meets something. This is the ability layer's

@@ -23,7 +23,6 @@ export function tallyLabel(tally) {
 /** What a level cell's tooltip says. */
 export function cellTitle(level, progress) {
   const head = `${pad(level.id)} — ${level.teaches}`;
-  const goal = `clear ${level.target} in ${level.budget ?? level.act.budget ?? ''}`.trim();
   if (!progress.done(level.id)) return `${head} · not finished`;
   const left = progress.best(level.id);
   return `${head} · finished with ${left} swap${left === 1 ? '' : 's'} to spare (${progress.stars(level.id)}/3)`;

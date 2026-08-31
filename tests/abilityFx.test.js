@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { readFileSync } from 'node:fs';
 
-import { beamReach, beamStyleFor, targetsFor } from '../src/abilityFx.js';
+import { BEAMING, beamReach, beamStyleFor, targetsFor } from '../src/abilityFx.js';
 import { ANCHOR, PULSE, PUSH_RIGHT, SINK, SWAP_DIAG, SWAP_ORTH, blankBoard } from '../src/board.js';
 
 const RULES = { width: 5, height: 5, colors: 4, adjacentOnly: false };
@@ -138,4 +138,27 @@ test('an anchor does not stop a beam pointed away from it', () => {
   const b = full();
   b.kind[2][3] = ANCHOR;
   assert.equal(beamReach(b, [2, 2], [0, -1], 2), 2, 'the other way is clear');
+});
+
+test('every ability that beams knows both how it beams and where it reaches', () => {
+  // The two used to be separate chains keyed by the same list, and only one of them
+  // was checked. One row per ability makes a half-answer impossible to write, and this
+  // is the assertion that says so.
+  const b = full();
+  for (const kind of BEAMING) {
+    assert.ok(beamStyleFor(kind), `${kind} has no beam style`);
+    assert.ok(targetsFor(kind, [2, 2], b).length > 0,
+      `${kind} beams, but reaches nothing on a full board`);
+  }
+});
+
+test('the pack and the table agree about which abilities beam', () => {
+  const pack = JSON.parse(
+    readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8'),
+  ).glyphs;
+  for (const glyph of pack) {
+    const beams = BEAMING.includes(glyph.kind);
+    assert.equal(glyph.exit === 'beam', beams,
+      `${glyph.id} exits by "${glyph.exit}" but ${beams ? 'does' : 'does not'} throw a beam`);
+  }
 });

@@ -15,7 +15,8 @@ const fakeStore = (seed = {}) => {
   };
 };
 
-const levels = [1, 2, 3].map((id) => ({ id, teaches: `rung ${id}`, target: 5, act: { budget: 6 } }));
+// Shaped as `loadRun` actually returns them: the act carries no budget of its own.
+const levels = [1, 2, 3].map((id) => ({ id, teaches: `rung ${id}`, target: 5 }));
 
 test('stars come from swaps left over', () => {
   assert.equal(stars(null), 0, 'never finished');
