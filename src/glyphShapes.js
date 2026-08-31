@@ -1,4 +1,5 @@
-// Glyph geometry — pure, no canvas. RENDER_SPEC.md is the reference this implements.
+// Glyph geometry — pure, no canvas. The lengths are `data/geometry.json`; this turns
+// them into the shapes `render.js` paints.
 //
 // A glyph is a Roman letter, turned or mirrored: the letterform is the verb and the
 // turn is the direction. Two of the twelve are authored rather than drawn from a
@@ -20,8 +21,8 @@ export const CENTER = 50;
 /** The knobs data/geometry.json has to carry for a glyph to be drawable. */
 export const GEOMETRY_KEYS = Object.freeze(['stem', 'cap', 'centre', 'dotDiameter', 'keylinePx']);
 
-/** The two glyphs with no letter behind them, keyed by what `letter` holds. */
-export const AUTHORED = Object.freeze({ '+': 'bars', '.': 'dot' });
+/** The glyphs with no letter behind them, keyed by what `letter` holds. */
+export const AUTHORED = Object.freeze({ '|': 'bar', '+': 'cross', '.': 'dot' });
 
 /**
  * What to draw for one glyph, as primitives a renderer can paint without knowing
@@ -41,17 +42,23 @@ export function glyphDrawing(glyph, geom, paths) {
   const flip = glyph.flip === true;
   const authored = AUTHORED[glyph.letter];
 
-  if (authored === 'bars') {
-    // A cross at the letters' own stem width and cap height, so it sits with them.
+  if (authored === 'bar' || authored === 'cross') {
+    // Both at the letters' own stem width and cap height, so they sit with them. A
+    // cross is a bar and the bar turned, drawn at once -- which is the same thing the
+    // swap family says about what they do.
+    //
+    // A bar spans the cap-height box the letters sit in. Turned onto a diagonal that
+    // box is longer corner to corner, so the bar is too, or the diagonal marks read
+    // visibly shorter than the upright ones they are meant to compose with.
     const { stem, cap, centre } = geom;
+    const span = rot % 90 === 0 ? cap : cap * Math.SQRT2;
+    const upright = { x: CENTER - stem / 2, y: CENTER + centre - span / 2, w: stem, h: span };
+    const turned = { x: CENTER - span / 2, y: CENTER + centre - stem / 2, w: span, h: stem };
     return {
       kind: 'bars',
       rot,
       flip,
-      rects: [
-        { x: CENTER - stem / 2, y: CENTER + centre - cap / 2, w: stem, h: cap },
-        { x: CENTER - cap / 2, y: CENTER + centre - stem / 2, w: cap, h: stem },
-      ],
+      rects: authored === 'bar' ? [upright] : [upright, turned],
     };
   }
 

@@ -1,5 +1,5 @@
 {
-  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation \u2014 the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind. `exit` is how a piece leaves: \"beam\" fades and lets its beam do the talking, \"ghost\" swells a black outline of itself out of the cell, \"grow\" swells the piece itself as it fades. A piece never both beams and ghosts.",
+  "note": "The twelve. `letter` plus `rot`/`flip` is the drawing; `kind` is what src/board.js runs. One kind per glyph and no two alike, so a push carries its direction in its kind rather than in its rotation — the rules never read the drawing. Two glyphs are authored rather than taken from the font: `+` is two bars at the letters' own stem width and cap height, and `.` is a filled dot, the full stop that says nothing follows. Inert is the commonest piece on the board and the only one with no kind. `exit` is how a piece leaves: \"beam\" fades and lets its beam do the talking, \"ghost\" swells a black outline of itself out of the cell, \"grow\" swells the piece itself as it fades. A piece never both beams and ghosts.",
   "glyphs": [
     {
       "id": "inert",
@@ -9,7 +9,7 @@
       "flip": false,
       "name": "Inert",
       "kind": "",
-      "effect": "nothing \u2014 it matches, its cell goes, and no ability runs",
+      "effect": "nothing — it matches, its cell goes, and no ability runs",
       "exit": "grow"
     },
     {
@@ -79,6 +79,28 @@
       "exit": "beam"
     },
     {
+      "id": "swap-vert",
+      "letter": "|",
+      "mark": "|",
+      "rot": 0,
+      "flip": false,
+      "name": "Swap vertical",
+      "kind": "swapVert",
+      "effect": "exchange upper with lower",
+      "exit": "beam"
+    },
+    {
+      "id": "swap-horiz",
+      "letter": "|",
+      "mark": "-",
+      "rot": 90,
+      "flip": false,
+      "name": "Swap horizontal",
+      "kind": "swapHoriz",
+      "effect": "exchange left with right",
+      "exit": "beam"
+    },
+    {
       "id": "swap-orth",
       "letter": "+",
       "mark": "+",
@@ -90,10 +112,32 @@
       "exit": "beam"
     },
     {
+      "id": "swap-rise",
+      "letter": "|",
+      "mark": "/",
+      "rot": 45,
+      "flip": false,
+      "name": "Swap rising",
+      "kind": "swapDiagUp",
+      "effect": "exchange upper right with lower left",
+      "exit": "beam"
+    },
+    {
+      "id": "swap-fall",
+      "letter": "|",
+      "mark": "\\",
+      "rot": 135,
+      "flip": false,
+      "name": "Swap falling",
+      "kind": "swapDiagDown",
+      "effect": "exchange upper left with lower right",
+      "exit": "beam"
+    },
+    {
       "id": "swap-diag",
-      "letter": "X",
+      "letter": "+",
       "mark": "X",
-      "rot": 0,
+      "rot": 45,
       "flip": false,
       "name": "Swap diagonal",
       "kind": "swapDiag",

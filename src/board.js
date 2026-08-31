@@ -21,7 +21,7 @@ export const ORTHO = Object.freeze([
   [0, 1],
 ]);
 
-/** The four corners. Only swapDiag reaches them. */
+/** The four corners, which only the diagonal swaps reach. */
 export const DIAG = Object.freeze([
   [-1, -1],
   [-1, 1],
@@ -38,11 +38,34 @@ export const PUSH_UP = 'pushUp';
 export const PUSH_RIGHT = 'pushRight';
 export const PUSH_DOWN = 'pushDown';
 export const PUSH_LEFT = 'pushLeft';
+export const SWAP_VERT = 'swapVert';
+export const SWAP_HORIZ = 'swapHoriz';
 export const SWAP_ORTH = 'swapOrth';
+export const SWAP_DIAG_UP = 'swapDiagUp';
+export const SWAP_DIAG_DOWN = 'swapDiagDown';
 export const SWAP_DIAG = 'swapDiag';
 export const ROTATE = 'rotate';
 export const ROTATE_REV = 'rotateRev';
 export const SINK = 'sink';
+
+// The pairs each swap trades, as offsets from the glyph. One axis is one exchange, so
+// a glyph trading both axes is two rows of the same table rather than a second ability
+// -- which is what makes the family compose: the cross is the bar and the bar turned,
+// and it does what both of them do.
+const UP_DOWN = [[-1, 0], [1, 0]];
+const LEFT_RIGHT = [[0, -1], [0, 1]];
+const RISING = [[-1, 1], [1, -1]]; // '/' -- upper right with lower left
+const FALLING = [[-1, -1], [1, 1]]; // '\\' -- upper left with lower right
+
+/** Which axes each swap trades. */
+export const SWAP_AXES = Object.freeze({
+  [SWAP_VERT]: [UP_DOWN],
+  [SWAP_HORIZ]: [LEFT_RIGHT],
+  [SWAP_ORTH]: [UP_DOWN, LEFT_RIGHT],
+  [SWAP_DIAG_UP]: [RISING],
+  [SWAP_DIAG_DOWN]: [FALLING],
+  [SWAP_DIAG]: [FALLING, RISING],
+});
 
 /** Which way each push sends its line. */
 export const PUSH_DIR = Object.freeze({
@@ -343,6 +366,16 @@ function turn(b, r, c, clockwise, log) {
  * one shoved, so the whole arm advances and the glyph nearest the centre runs into
  * the sink the sink glyph leaves behind.
  */
+/**
+ * Run one glyph's ability.
+ *
+ * `rand` is threaded through and never used: no ability reaches for it, and none may.
+ * A board plus a swap has exactly one outcome, which is what makes a level authorable,
+ * a bug reportable from its seed, and a measurement worth printing. Randomness belongs
+ * to the deal, which is seeded and reproducible. An ability that drew a number here
+ * would be unfindable later -- so the absence is the rule, and this is where it is
+ * written down.
+ */
 export function fire(b, r, c, rand, log) {
   const kind = b.kind[r][c];
   log?.events.push({ type: 'fire', at: [r, c], kind, art: b.art[r][c] });
@@ -356,14 +389,10 @@ export function fire(b, r, c, rand, log) {
     shove(b, r + dr, c + dc, dr, dc, log);
     return;
   }
-  if (kind === SWAP_ORTH) {
-    exchange(b, [r - 1, c], [r + 1, c], log);
-    exchange(b, [r, c - 1], [r, c + 1], log);
-    return;
-  }
-  if (kind === SWAP_DIAG) {
-    exchange(b, [r - 1, c - 1], [r + 1, c + 1], log);
-    exchange(b, [r - 1, c + 1], [r + 1, c - 1], log);
+  if (SWAP_AXES[kind]) {
+    for (const [[ar, ac], [br, bc]] of SWAP_AXES[kind]) {
+      exchange(b, [r + ar, c + ac], [r + br, c + bc], log);
+    }
     return;
   }
   if (kind === ROTATE || kind === ROTATE_REV) {

@@ -9,7 +9,7 @@
 
 import {
   ANCHOR, PLAIN, PULSE, PUSH_DOWN, PUSH_LEFT, PUSH_RIGHT, PUSH_UP, ROTATE, ROTATE_REV,
-  SINK, SWAP_DIAG, SWAP_ORTH,
+  SINK, SWAP_DIAG, SWAP_DIAG_DOWN, SWAP_DIAG_UP, SWAP_HORIZ, SWAP_ORTH, SWAP_VERT,
 } from './board.js';
 
 const at = ([r, c]) => `[${r},${c}]`;
@@ -29,7 +29,11 @@ const VERB = {
   [PUSH_RIGHT]: 'advances the line to its right by one',
   [PUSH_DOWN]: 'advances the line below by one',
   [PUSH_LEFT]: 'advances the line to its left by one',
+  [SWAP_VERT]: 'exchanges upper with lower',
+  [SWAP_HORIZ]: 'exchanges left with right',
   [SWAP_ORTH]: 'exchanges upper with lower, and left with right',
+  [SWAP_DIAG_UP]: 'exchanges upper right with lower left',
+  [SWAP_DIAG_DOWN]: 'exchanges upper left with lower right',
   [SWAP_DIAG]: 'exchanges both corner pairs',
   [ROTATE]: 'turns its four neighbors one step clockwise',
   [ROTATE_REV]: 'turns its four neighbors one step anticlockwise',

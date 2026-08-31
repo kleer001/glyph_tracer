@@ -12,14 +12,47 @@ test('every glyph in the pack yields something drawable', () => {
     const d = glyphDrawing(g, GEOM, PATHS);
     assert.ok(['path', 'bars', 'dot'].includes(d.kind), `${g.id} drew as ${d.kind}`);
     if (d.kind === 'path') assert.ok(d.d.length > 0, `${g.id} has an empty path`);
-    if (d.kind === 'bars') assert.equal(d.rects.length, 2);
+    if (d.kind === 'bars') assert.ok(d.rects.length === 1 || d.rects.length === 2);
     if (d.kind === 'dot') assert.ok(d.circle.r > 0);
   }
 });
 
-test('the two authored glyphs are the ones with no letter behind them', () => {
-  const authored = GLYPHS.filter((g) => AUTHORED[g.letter]).map((g) => g.letter).sort();
-  assert.deepEqual(authored, ['+', '.']);
+test('the authored glyphs are the ones with no letter behind them', () => {
+  const authored = new Set(GLYPHS.filter((g) => AUTHORED[g.letter]).map((g) => g.letter));
+  assert.deepEqual([...authored].sort(), ['+', '.', '|']);
+});
+
+// The swap family is compositional: the cross does what the bar and the turned bar do
+// between them, and it is drawn as exactly those two rects. If that stops being true
+// the drawing has started lying about the rules.
+test('the cross is the bar and the bar turned, drawn at once', () => {
+  const bar = glyphDrawing({ letter: '|', rot: 0 }, GEOM, PATHS);
+  const turned = glyphDrawing({ letter: '|', rot: 90 }, GEOM, PATHS);
+  const cross = glyphDrawing({ letter: '+' }, GEOM, PATHS);
+  assert.equal(bar.rects.length, 1);
+  assert.equal(cross.rects.length, 2);
+  assert.deepEqual(cross.rects[0], bar.rects[0], 'the upright arm is the bar');
+
+  // A turn is handed to the caller rather than applied, so the turned bar is the same
+  // rect wearing a rotation -- which is why the cross has to carry both arms itself.
+  assert.deepEqual(turned.rects[0], bar.rects[0]);
+  assert.equal(turned.rot, 90);
+
+  // The second arm is the first with its sides exchanged, on the same centre. Not a
+  // literal transpose: the cap-height offset is an optical drop and stays vertical for
+  // both arms, or the flat arm would sit off to one side.
+  const mid = (r) => [r.x + r.w / 2, r.y + r.h / 2];
+  assert.deepEqual(mid(cross.rects[1]), mid(cross.rects[0]), 'both arms on one centre');
+  assert.equal(cross.rects[1].w, cross.rects[0].h);
+  assert.equal(cross.rects[1].h, cross.rects[0].w);
+});
+
+test('a bar on a diagonal spans the same box corner to corner', () => {
+  const upright = glyphDrawing({ letter: '|', rot: 0 }, GEOM, PATHS).rects[0];
+  const rising = glyphDrawing({ letter: '|', rot: 45 }, GEOM, PATHS).rects[0];
+  assert.ok(Math.abs(rising.h - upright.h * Math.SQRT2) < 1e-9,
+    'a diagonal bar shorter than this reads shorter than the cross it composes with');
+  assert.equal(rising.w, upright.w, 'and no thicker');
 });
 
 test('a turn and a mirror are handed back rather than applied', () => {
@@ -70,6 +103,14 @@ test('data/gloss.json carries every knob the renderer asks for', () => {
   }
   for (const key of ['cellShadowA', 'sheen', 'sheenStop', 'bevel', 'glyphShadowA']) {
     assert.ok(gloss[key] <= 100, `${key} is a percentage and must not exceed 100`);
+  }
+  // The well is the board's tray, not a knob on one cell, so it is its own group.
+  for (const key of ['pad', 'radius', 'tintA', 'shadowY', 'shadowBlur', 'shadowA']) {
+    assert.equal(typeof gloss.well[key], 'number', `gloss.well is missing "${key}"`);
+    assert.ok(gloss.well[key] >= 0, `well.${key} is negative`);
+  }
+  for (const key of ['tintA', 'shadowA']) {
+    assert.ok(gloss.well[key] <= 100, `well.${key} is a percentage and must not exceed 100`);
   }
 });
 

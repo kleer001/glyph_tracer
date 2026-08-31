@@ -13,8 +13,8 @@
 // which is information rather than an inconsistency.
 
 import {
-  ANCHOR, DIAG, ORTHO, PULSE, PUSH_DIR, RING, ROTATE, ROTATE_REV, SINK,
-  SWAP_DIAG, SWAP_ORTH, armEnd, occupied, onBoard,
+  ANCHOR, ORTHO, PULSE, PUSH_DIR, RING, ROTATE, ROTATE_REV, SINK,
+  SWAP_AXES, armEnd, occupied, onBoard,
 } from './board.js';
 
 /** The cells one step away along each of `steps`. */
@@ -43,8 +43,6 @@ const armEnds = ([r, c], board) =>
  */
 const ABILITY = {
   [PULSE]: { style: 'throw', reach: neighbours(ORTHO) },
-  [SWAP_ORTH]: { style: 'grab', reach: neighbours(ORTHO) },
-  [SWAP_DIAG]: { style: 'grab', reach: neighbours(DIAG) },
   [ROTATE]: { style: 'grab', reach: neighbours(RING) },
   [ROTATE_REV]: { style: 'grab', reach: neighbours(RING) },
   [SINK]: { style: 'grab', reach: armEnds },
@@ -54,6 +52,13 @@ const ABILITY = {
 // own direction table rather than being written out four more times.
 for (const [kind, step] of Object.entries(PUSH_DIR)) {
   ABILITY[kind] = { style: 'throw', reach: neighbours([step]) };
+}
+
+// And every swap is one ability over a different set of axes, so where each one reaches
+// comes from the rules' own table. Written out here as well, the beams and the exchanges
+// would be two lists of the same fact, free to drift apart.
+for (const [kind, axes] of Object.entries(SWAP_AXES)) {
+  ABILITY[kind] = { style: 'grab', reach: neighbours(axes.flat()) };
 }
 
 /** Every ability that throws a beam, for a caller that wants to check the set. */

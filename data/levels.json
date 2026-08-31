@@ -1,5 +1,5 @@
 {
-  "note": "The run. Acts, levels and targets are authored here — nothing generates this file. A level either carries a board, written out as rows of three-character cells (see `parseBoard` in src/board.js, and `node tools/trapBoards.js` to generate one), or deals a board from `width`/`height`/`colors` and a seed, with the act's `mix` saying how much of it has an ability. Run `node tools/makeLevels.js` to check every level is winnable and to choose seeds for the ones that deal; `--write` saves the seeds it picked.",
+  "note": "The run. Acts, levels and targets are authored here — nothing generates this file. A level either carries a board, written out as rows of three-character cells (see `parseBoard` in src/board.js, and `node tools/trapBoards.js` to generate one), or deals a board from `width`/`height`/`colors` and a seed, with the act's `mix` saying how much of it has an ability. Run `node tools/makeLevels.js` to check every level is winnable and to choose seeds for the ones that deal; `--write` saves the seeds it picked. `budget` is held fixed across the run. Six was chosen where the yield curve flattened under neighbour swaps; with any two cells reachable the curve keeps paying well past it, so six is a choice about how long a level should feel and not a measured ceiling. `node tools/swapBudget.js` prints the curve.",
   "budget": 6,
   "acts": [
     {
@@ -126,7 +126,7 @@
         },
         {
           "id": 11,
-          "teaches": "R turns the four around it one step clockwise",
+          "teaches": "r turns the four around it one step clockwise",
           "budget": 1,
           "target": 5,
           "note": "Four cells, each grounded for the piece the turn brings it. The letters say which way it went.",
@@ -427,8 +427,12 @@
       "no": "V",
       "name": "The trade",
       "mix": {
-        "swapOrth": 0.2,
-        "swapDiag": 0.1,
+        "swapVert": 0.05,
+        "swapHoriz": 0.05,
+        "swapOrth": 0.1,
+        "swapDiagUp": 0.025,
+        "swapDiagDown": 0.025,
+        "swapDiag": 0.05,
         "pulse": 0.125
       },
       "levels": [

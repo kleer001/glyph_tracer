@@ -5,21 +5,30 @@
 // rules under test live in src/board.js; this file only measures them, so a rule
 // change shows up here without being restated.
 //
+// What the sweeps have shown, so the next reader starts where the last one stopped:
+// palette size sets the score and the swap budget does not move with it; eaters brake
+// a level rather than accelerate it; and a rearranger -- a swap or a rotate -- buys
+// about the same cascade as a pusher at equal density but clears more over a whole
+// level, because it consumes no material where a shove eats the front of its line.
+// Numbers go stale the moment a rule moves; re-run rather than quoting these.
+//
 // Usage:
 //   node tools/swapBudget.js                      # full sweep
 //   node tools/swapBudget.js --colors 4 6 8       # pick the palette sizes
 //   node tools/swapBudget.js --blockers 0.25      # fraction of glyphs that eat
 //   node tools/swapBudget.js --rotators 0.1 --voids 0.1
+//   node tools/swapBudget.js --swaps 0.3          # split across the six swap kinds
 //   node tools/swapBudget.js --shipped            # the mix data/rules.json actually deals
 //   node tools/swapBudget.js --show               # play one board out loud
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { ANCHOR, PULSE, ROTATE, SINK, randomBoard, swapPairs } from '../src/board.js';
+import { ANCHOR, PULSE, ROTATE, SINK, SWAP_AXES, randomBoard, swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
 import { mulberry32 } from '../src/rng.js';
 import { parseArgs } from './args.js';
 
+const SWAP_KINDS = Object.keys(SWAP_AXES);
 const CHECKPOINTS = [3, 6, 10]; // swap budgets reported; the last one is played out
 const BUDGET = Math.max(...CHECKPOINTS);
 
@@ -36,7 +45,11 @@ const SPEC = {
   // without shoving, which is the other way a cascade can start.
   rotators: { type: 'number', default: 0 },
   voids: { type: 'number', default: 0 },
-  // The flags above reach four of the eleven kinds. A board the game actually deals
+  // The other rearranger, and the one an act in data/levels.json deals. The fraction is
+  // split evenly over the six swap kinds, so a board carries the whole family at once
+  // rather than whichever member the knob happened to name.
+  swaps: { type: 'number', default: 0 },
+  // The flags above reach ten of the fifteen kinds. A board the game actually deals
   // carries directional pushes too, and no flag can describe that — so this takes the
   // mix whole, from the file the game reads.
   shipped: { type: 'flag', default: false },
@@ -68,7 +81,13 @@ function main() {
   const rules = { width: args.width, height: args.height };
   const mix = args.shipped
     ? JSON.parse(readFileSync(new URL('../data/rules.json', import.meta.url), 'utf8')).mix
-    : { [ANCHOR]: args.blockers, [ROTATE]: args.rotators, [SINK]: args.voids, [PULSE]: args.pushers };
+    : {
+        [ANCHOR]: args.blockers,
+        [ROTATE]: args.rotators,
+        [SINK]: args.voids,
+        [PULSE]: args.pushers,
+        ...Object.fromEntries(SWAP_KINDS.map((k) => [k, args.swaps / SWAP_KINDS.length])),
+      };
   const blurb = Object.entries(mix)
     .filter(([, v]) => v)
     .map(([k, v]) => `${(v * 100).toFixed(0)}% ${k}`)

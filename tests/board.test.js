@@ -26,7 +26,11 @@ import {
   settle,
   SINK,
   SWAP_DIAG,
+  SWAP_DIAG_DOWN,
+  SWAP_DIAG_UP,
+  SWAP_HORIZ,
   SWAP_ORTH,
+  SWAP_VERT,
   swapPairs,
 } from '../src/board.js';
 
@@ -156,6 +160,49 @@ test('an exchange pair with a dead cell stays put while the other pair acts', ()
   b.kind[3][2] = SWAP_ORTH;
   fireMid(b);
   assert.deepEqual(read(b, RING), [null, 3, 2, 1]);
+});
+
+test('a single-axis swap trades one pair and leaves the other alone', () => {
+  // RING is [north, east, south, west]; CORNERS is [north-west, north-east,
+  // south-east, south-west].
+  for (const [kind, cells, want] of [
+    [SWAP_VERT, RING, [2, 1, 0, 3]],
+    [SWAP_HORIZ, RING, [0, 3, 2, 1]],
+    [SWAP_DIAG_DOWN, CORNERS, [2, 1, 0, 3]],
+    [SWAP_DIAG_UP, CORNERS, [0, 3, 2, 1]],
+  ]) {
+    const b = bareBoard();
+    pieces(b, cells);
+    b.kind[MID[0]][MID[1]] = kind;
+    fireMid(b);
+    assert.deepEqual(read(b, cells), want, `${kind} traded the wrong pair`);
+  }
+});
+
+// The family composes: the cross does what the bar and the turned bar do between them,
+// and the X does what the two diagonals do. That is not a coincidence of the drawings --
+// each glyph names a set of axes and every axis is one exchange.
+test('a both-axes swap is its two single-axis swaps, in either order', () => {
+  for (const [both, ones, cells] of [
+    [SWAP_ORTH, [SWAP_VERT, SWAP_HORIZ], RING],
+    [SWAP_DIAG, [SWAP_DIAG_DOWN, SWAP_DIAG_UP], CORNERS],
+  ]) {
+    const together = bareBoard();
+    pieces(together, cells);
+    together.kind[MID[0]][MID[1]] = both;
+    fireMid(together);
+
+    for (const order of [ones, [...ones].reverse()]) {
+      const apart = bareBoard();
+      pieces(apart, cells);
+      for (const kind of order) {
+        apart.kind[MID[0]][MID[1]] = kind;
+        fireMid(apart);
+      }
+      assert.deepEqual(read(apart, cells), read(together, cells),
+        `${both} is not ${order.join(' then ')}`);
+    }
+  }
 });
 
 test('swapOrth twice and swapDiag twice leave the board as they found it', () => {
