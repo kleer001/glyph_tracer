@@ -1,4 +1,4 @@
-<title>Glyph Tracer Flash on Approval</title>
+<title>Glyph Tracer Landing Flash</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;600&display=swap">
@@ -99,11 +99,11 @@ strong { font-weight: 600; }
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Glyph Tracer &middot; one candidate, on approval</p>
-  <h1>Is the landing flash <em>doing anything?</em></h1>
-  <p class="standfirst">The same recording twice, one knob apart. A piece lands on its
-  own colour, shoves the line in front of it, and its cell goes. On the right, the cell
-  it landed on floods with more of its own colour for a fifth of a second.</p>
+  <p class="eyebrow">Glyph Tracer &middot; one effect, decided</p>
+  <h1>The flash brightens <em>toward white</em></h1>
+  <p class="standfirst">The same recording three times, one knob apart. A piece lands on
+  its own colour, shoves the line in front of it, and its cell goes. The third is what
+  ships: for a fifth of a second the cell it landed on travels part of the way to white.</p>
 </header>
 
 <hr class="rule" />
@@ -113,38 +113,50 @@ strong { font-weight: 600; }
     <figure>
       <img src="__OFFGIF__" alt="the push effect playing with no flash" loading="lazy" />
       <figcaption>
-        <h3>without</h3>
+        <h3>no flash</h3>
         <p>The beam, the shove, the freeze at the landing, the collapse.</p>
       </figcaption>
     </figure>
-    <figure class="picked">
-      <img src="__ONGIF__" alt="the same recording with an additive bloom on the firing cell" loading="lazy" />
+    <figure>
+      <img src="__ONGIF__" alt="the same recording with an additive bloom in the cell's own colour" loading="lazy" />
       <figcaption>
-        <h3>with</h3>
-        <p>The same frames, plus an additive bloom on the cell that fired.</p>
+        <h3>toward its own colour &mdash; rejected</h3>
+        <p>Additive. The green channel is shoved and the other two barely move.</p>
+      </figcaption>
+    </figure>
+    <figure class="picked">
+      <img src="__SCREENGIF__" alt="the same recording with a white bloom composited with screen" loading="lazy" />
+      <figcaption>
+        <h3>toward white &mdash; shipped</h3>
+        <p>Every channel moves the same share of the room it has left.</p>
       </figcaption>
     </figure>
   </div>
 </section>
 
 <div class="ask">
-  <p>Everything else on this page has landed. This one is built and drawn here, and is
-  not in the game: it is one line in the compositor away, or one deletion.</p>
+  <p>Measured on the recordings above, at the brightest frame, on the cell that fired:
+  additive took <code>41,136,0</code> to <code>62,206,0</code> &mdash; one channel
+  driven, two stuck. Toward white it goes to <code>119,179,93</code>, with no channel
+  clipped. The first saturates; the second lightens.</p>
 </div>
 
 <section>
   <h2>What the flash is</h2>
-  <p>A radial bloom in the colour of the cell that fired, composited with
-  <code>lighter</code>, loudest at the landing and spent 180&nbsp;ms later. It draws over
-  the ground and under everything else, so a beam and a piece both pass in front of it.</p>
+  <p>A radial bloom of white composited with <code>screen</code>, at half strength,
+  loudest at the landing and spent 180&nbsp;ms later. It draws over the ground and under
+  everything else, so a beam and a piece both pass in front of it.</p>
+  <p><code>screen</code> with white is arithmetically the distance from a colour to
+  white: each channel moves the same fraction of the headroom it has left. Nothing can
+  clip, by construction, and no colour is left out.</p>
   <p>A bloom rather than a filled cell, because the tiles have rounded corners and sit in
   gutters: a square of added light would put four bright corners in the gaps between cells,
   which is precisely where nothing happened. It reaches __SPREAD__ of a cell width, which
   keeps it off the neighbours &mdash; a wider one lights up cells that did not do anything.</p>
-  <h2>The case against: the palette does not take it evenly</h2>
-  <p>The cell above is green, and green is the best case. Adding a colour to itself only
-  brightens it where the colour has headroom left, and this palette leaves wildly
-  different amounts. Every live colour at the flash's loudest instant:</p>
+  <h2>Why not brighten toward its own colour</h2>
+  <p>Because the palette does not take it evenly. Adding a colour to itself brightens it
+  only where that colour has headroom, and this palette leaves wildly different amounts.
+  Every live colour at the flash's loudest instant, additively:</p>
   <div class="scroll">
   <table>
     <thead><tr><th>colour</th><th>tile</th><th>at the flash</th><th>lift</th></tr></thead>
@@ -158,23 +170,36 @@ strong { font-weight: 600; }
     </tbody>
   </table>
   </div>
-  <p>Lift is in relative luminance, and the spread is sevenfold. A green cell floods; a red
-  one barely moves, because red's own channel is already at 243 and adding more of it clips
-  on the first frame, leaving only the two channels that are not the colour to do anything.
-  The recording above is showing the flash at close to its strongest.</p>
-  <p>That is worse than being weak. A feedback signal is supposed to report the event, and
+  <p>Lift is in relative luminance, and the spread is <strong>sevenfold</strong>. A green
+  cell floods; a red one barely moves, because red's own channel is already at 243 and
+  adding more of it clips on the first frame, leaving only the two channels that are not
+  the colour to do anything.</p>
+  <p>That is worse than being weak. A feedback signal is meant to report the event, and
   this one reports the hue of the tile the event happened on: the same activation is a
-  flood on cyan and a shrug on red. If it stays, the fix is to flash a fixed colour rather
-  than the cell's own &mdash; even across the palette, at the cost of the thing that made
-  it worth trying, which was the cell filling up with more of itself.</p>
-  <p>It also arrives late to a job already done. The landing is now marked by a freeze,
-  the collapse by a turn that quickens down a chain, and the ability itself by a beam. A
-  fourth voice saying <em>here, this cell, now</em> is the one that has to justify itself.</p>
-  <h2>The case for it</h2>
-  <p>Those three all mark the <em>consequence</em>. The freeze happens on the beat before
-  the fire, the beam leaves after it and the collapse comes later still; none of them
-  brightens the cell at the moment of arrival. The flash is the only one that lands on the
-  instant itself, which is also the only moment a still frame of this game would show.</p>
+  flood on cyan and a shrug on red.</p>
+  <h2>The same six, toward white</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>colour</th><th>tile</th><th>at the flash</th><th>lift</th></tr></thead>
+    <tbody>
+      <tr><td>blue</td><td class="num">83, 108, 249</td><td class="num">169, 182, 252</td><td class="num">+0.30</td></tr>
+      <tr><td>green</td><td class="num">41, 136, 0</td><td class="num">148, 196, 128</td><td class="num">+0.29</td></tr>
+      <tr><td>cyan</td><td class="num">87, 184, 194</td><td class="num">171, 220, 224</td><td class="num">+0.25</td></tr>
+      <tr><td>red</td><td class="num">243, 49, 34</td><td class="num">249, 152, 144</td><td class="num">+0.23</td></tr>
+      <tr><td>magenta</td><td class="num">194, 1, 184</td><td class="num">224, 128, 220</td><td class="num">+0.22</td></tr>
+      <tr><td>yellow</td><td class="num">239, 232, 167</td><td class="num">247, 244, 211</td><td class="num">+0.10</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Threefold, and red goes from worst to nearly best.</strong> What is left of
+  the spread is physical rather than a choice of blend mode: yellow already sits at 0.79
+  luminance and has almost nowhere bright to go. No arrangement of light fixes that, and
+  a table of six per-colour alphas would be six numbers spent buying an evenness the eye
+  was not asking for.</p>
+  <p>The other thing the numbers do not say: toward white the cell <em>desaturates</em>,
+  where additive <em>saturates</em>. A red tile flashing additively goes a more livid
+  red; toward white it goes pink. Pink is the one that reads as light falling on a
+  surface rather than the surface changing colour.</p>
 </section>
 
 <section>
@@ -243,17 +268,19 @@ strong { font-weight: 600; }
 <section>
   <h2>What is still on the shelf</h2>
   <ul>
-    <li><strong>Move preview</strong> &mdash; show what a swap would do before committing
-    to it. Normally expensive; here the engine already resolves a swap on a copy without
-    committing, and a deterministic cascade is the ideal case for it.</li>
     <li><strong>A particle burst on a clear</strong> &mdash; needs a layer and a clock,
-    and the clock is now on the frame.</li>
+    and the clock is on the frame now. Small particles, radial rather than falling.</li>
     <li><strong>Feedback for a dud swap</strong> &mdash; a swap that achieves nothing
-    currently produces nothing.</li>
-    <li><strong>Segment welding</strong> &mdash; priced cheap on the shelf, and it is not.
-    Welding consecutive moves into one envelope means rebuilding the timeline as per-piece
-    envelopes instead of phases, and it pulls against the two changes above, which exist to
-    make each link a distinct beat.</li>
+    currently produces nothing. It has to read as <em>legal but pointless</em>, because
+    the pieces really do trade and the budget really does go down.</li>
+    <li><strong>Move preview &mdash; declined.</strong> The game does not show the future
+    board state. A deterministic cascade makes it cheap to build, and that was never the
+    argument: the player learns the cascade by playing it.</li>
+    <li><strong>Segment welding &mdash; declined.</strong> Priced cheap by analogy with a
+    sister game that welds consecutive moves of one piece. Here a destruction beat sits
+    between every pair of movement beats, so welding means rebuilding the timeline as
+    per-piece envelopes instead of phases &mdash; and it pulls against the freeze and the
+    chain build, which exist to make each link a distinct beat.</li>
   </ul>
 </section>
 
@@ -264,6 +291,9 @@ strong { font-weight: 600; }
   capture is the same frame every run &mdash; which is what makes one recording worth
   comparing against the next. The two above differ by a single number, substituted at the
   network layer so nothing in the game moved between the passes.</p>
+  <p>The two rejected recordings are each shown at the strength it was judged at, not at
+  a shared number &mdash; an effect argued down at its own best setting has been argued
+  down properly.</p>
 </section>
 
 </div>

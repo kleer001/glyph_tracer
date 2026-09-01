@@ -67,6 +67,7 @@ PAIR = {'__XGIF__': 'swapDiag', '__HGIF__': 'anchorSwallow'}
 # recordings of an ability.
 PREVIEW = {
     '__ONGIF__': 'flash-on.gif',
+    '__SCREENGIF__': 'flash-screen.gif',
     '__OFFGIF__': 'flash-off.gif',
     '__WELLPNG__': 'well-tray.png',
 }

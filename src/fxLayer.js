@@ -13,18 +13,22 @@
 // draw a beam; this joins them to a compositor and nothing more.
 
 import { beamReach, beamStyleFor, targetsFor } from './abilityFx.js';
-import { beamSpan, drawBeam, ghostAt, grabAt, rgbaOf, swellAt } from './fx.js';
+import { beamSpan, drawBeam, ghostAt, grabAt, swellAt } from './fx.js';
 import { CELL } from './glyphShapes.js';
 import { VIEW, cellCenter, drawGlyph } from './render.js';
 
 /**
  * The bloom a landing throws, drawn over the ground and under everything else.
  *
- * A piece activates by arriving on its own colour, so the colour to brighten is the
- * one already there: the cell floods with more of itself and is over in a few frames.
- * Additive, because that is the only brightening Canvas 2D gives for the cost of a
- * state flag — and it is a weak one here, since the paper this board sits on is
- * already near white and there is not much headroom above a tile to add into.
+ * White under `screen`, which is exactly the distance from the cell's colour to white:
+ * every channel moves the same fraction of the headroom it has left, so nothing can
+ * clip and no colour is left out. Adding a colour to itself instead sounds righter and
+ * is not — it brightens only where that colour has room, and this palette leaves wildly
+ * different amounts. Measured across the six at equal strength, additive light lifted
+ * green by 0.40 relative luminance and red by 0.06, because red's own channel already
+ * sits at 243 and clips on the first frame. A signal that loud on one hue and silent on
+ * another is reporting the tile, not the event. Toward white the same spread is
+ * threefold, and what is left of it is physical: a pale tile has nowhere bright to go.
  *
  * A bloom rather than a filled cell. The tiles have rounded corners and sit in
  * gutters, so a square of added light would put four bright corners in the gaps
@@ -34,8 +38,8 @@ export function createFlashLayer(view = VIEW) {
   return {
     name: 'flash',
     draw(ctx, frame) {
-      const { fires, board, layout, palette, animation } = frame;
-      if (!fires?.length || !board) return;
+      const { fires, layout, animation } = frame;
+      if (!fires?.length) return;
       const tune = animation.flash;
       const t = frame.since / tune.ms;
       if (t <= 0 || t >= 1) return;
@@ -46,15 +50,14 @@ export function createFlashLayer(view = VIEW) {
       ctx.beginPath();
       ctx.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
       ctx.clip();
-      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalCompositeOperation = 'screen';
       for (const fired of fires) {
         const [r, c] = fired.at;
         const mid = cellCenter(layout, r, c, view);
         const reach = layout.cell * tune.spread;
-        const hex = palette.colors[board.bg[r][c]].hex;
         const bloom = ctx.createRadialGradient(mid.x, mid.y, 0, mid.x, mid.y, reach);
-        bloom.addColorStop(0, rgbaOf(hex, alpha));
-        bloom.addColorStop(1, rgbaOf(hex, 0));
+        bloom.addColorStop(0, `rgba(255,255,255,${alpha})`);
+        bloom.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = bloom;
         ctx.fillRect(mid.x - reach, mid.y - reach, reach * 2, reach * 2);
       }

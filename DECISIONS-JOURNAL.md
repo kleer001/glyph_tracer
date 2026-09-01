@@ -292,3 +292,25 @@ nobody noticed.
 **Threaded:** the conclusions moved to the tool that produces them — the header of
 `tools/swapBudget.js`, told to re-run rather than be quoted — and to the data they
 qualify, in the `note` on `data/levels.json`.
+
+### [2026-09-01] The flash brightens toward white, not toward itself
+
+**Decision:** The bloom a landing throws is white composited with `screen`, at half
+strength, and it sits in the game's compositor between the ground and the beams.
+
+**Why:** `screen` with white is arithmetically the distance from a colour to white —
+every channel moves the same fraction of the headroom it has left, so nothing can clip
+and no colour is left out.
+
+**Rejected:** Additive `lighter` in the cell's own colour, built first and deliberately
+held out of the compositor. At equal strength it lifted green by 0.40 relative luminance
+and red by 0.06: red's own channel already sits at 243 and clips on the first frame,
+leaving only the two channels that are not the colour to move. A sevenfold spread means
+the signal reports the hue of the tile rather than the event, which is worse than
+reporting it weakly. Toward white the spread is threefold and what remains is physical —
+a pale tile has nowhere bright to go. Also rejected: per-colour alpha to equalise the
+lift exactly, a table of six numbers to buy an evenness the eye was not asking for.
+
+**Threaded:** `createFlashLayer` in `src/fxLayer.js`; tuning under `flash` in
+`data/animation.json`; its place in the stack in `src/main.js`.
+

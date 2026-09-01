@@ -14,7 +14,7 @@ import { createProgress } from './progress.js';
 import { mountPicker } from './picker.js';
 import { describeSwap } from './debugLog.js';
 import { mountDebugPanel } from './debugPanel.js';
-import { createFxLayer, createGhostLayer } from './fxLayer.js';
+import { createFlashLayer, createFxLayer, createGhostLayer } from './fxLayer.js';
 import {
   VIEW,
   boardLayout,
@@ -72,10 +72,12 @@ export async function start(canvas, panels) {
   const glyphs = data.glyphs.glyphs;
   const glyphsById = new Map(glyphs.map((g) => [g.id, g]));
 
-  // The order is the argument: a beam is holding or shoving a piece, so it draws
-  // behind them; a ghost comes off a piece, so it draws in front.
+  // The order is the argument: the flash is light on the ground itself so it goes
+  // straight over it, a beam is holding or shoving a piece so it draws behind them,
+  // and a ghost comes off a piece so it draws in front.
   const scene = createCompositor()
     .add(createGroundLayer())
+    .add(createFlashLayer())
     .add(createFxLayer())
     .add(createGlyphLayer())
     .add(createGhostLayer())

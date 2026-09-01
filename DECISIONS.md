@@ -57,9 +57,9 @@
   either side, one of the two stops reading.
 - **A dying cell's turn is held under the room its shrink has made.** REJECTED: turning
   at constant speed from full size — the corners cross into the neighbours.
-- **The activation flash stays out of the compositor.** REJECTED: additive `lighter` in
-  the cell's own colour — a sevenfold luminance spread, so it reports the tile's hue
-  rather than the event.
+- **The activation flash is white under `screen` — the distance from the cell's colour
+  to white.** REJECTED: additive `lighter` in the cell's own colour — a sevenfold
+  luminance spread across the palette, so it reported the tile's hue and not the event.
 - **The game does not show the future board state.** REJECTED: move preview — that a
   deterministic cascade makes it cheap is not the argument; the player learns the
   cascade by playing it.
