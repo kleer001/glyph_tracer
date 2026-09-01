@@ -1,14 +1,14 @@
 # Glyph Tracer
 
-A 5x8 grid of colored cells, each carrying a glyph in a different color. Swap any two
-pieces on the board; one that lands on its own color activates, fires its ability, and
-its cell goes away. No gravity, no refill — the board drains, and the only thing that
-chains is the ability layer.
-
 A browser game raised in **Trace ROM Studio**. Vanilla JS, ES modules, no build step,
 runs straight in the browser.
 
-This file is the index. It says what this game is, what always applies, and where the
+What the game does is `src/board.js`. Why it does it that way, and what was rejected on
+the way there, is `DECISIONS.md`. Neither is restated here, and no rule is: a rule
+written twice can go stale in one of its two homes, and this is the file read aloud
+before every change — the worst possible place to keep a copy.
+
+This file is the index. It says where things are, what always applies, and where the
 studio keeps everything this game has not needed yet. A game starts with almost
 nothing on purpose — apparatus arrives when the game is ready for it, not at birth.
 
@@ -55,32 +55,21 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 
 | | |
 |---|---|
-| `src/board.js` | the rules as code: shove, sink, settle, swap resolution |
-| `src/level.js` | greedy measurement, the target policy, dealing a board |
+| `DECISIONS.md` | the standing rulings and what each one rejected — read before proposing a glyph, a rule, or a document |
+| `DECISIONS-JOURNAL.md` | the dated reasoning behind those rulings, append-only; not canon, and the only home a refusal has |
+| `src/board.js` | the rules as code, and their only home |
+| `src/level.js` | playing a board out greedily to measure it, and dealing one |
 | `src/levels.js`, `src/progress.js`, `src/picker.js` | the run, what is finished, and the level sheet |
-| `src/glyphShapes.js`, `src/render.js` | the render spec's geometry, and the canvas layers that paint it |
+| `src/glyphShapes.js`, `src/render.js` | the shapes a glyph is made of, and the canvas layers that paint them |
 | `src/animate.js` | folding a resolved settle back into phases you can watch |
 | `src/fx.js`, `src/abilityFx.js` | the beam and the ghost, and which cells an ability reaches |
-| `src/fxLayer.js` | those two joined to the compositor: beams under the pieces, ghosts over them |
+| `src/fxLayer.js` | those two joined to the compositor |
 | `src/palette.js` | one named palette resolved, and which levels it can paint |
-| `data/` | rules, palette, glyph geometry, gloss, the twelve glyphs, the run, animation timings — the tuning |
+| `data/` | rules, palette, glyph geometry, gloss, the glyph pack, the run, animation timings — the tuning |
 | `tools/` | the sweeps and studies (`swapBudget.js`, `trapBoards.js`, `boardShapes.js`, `maxCombo.js`, `contrast.js`, `studyBoard.js`), the glyph baker, and the artifact builders |
 | `docs/` | the trap write-up, the board-shape study, the teaching run — published pages, each a dated snapshot rather than a live document |
 | `artifacts/` | sources of the pages published to claude.ai; fragments, not standalone pages |
 | `dev/` | the tuning sandboxes and the fx frame harness — they drive `src/`, so what is tuned is what ships |
-
-The engine knows four kinds — push, block, wild, void — and every glyph is one of
-them. Which of the twelve a piece wears is `data/glyphs.json`, dealt once from the
-seed, so the drawing never decides what a piece does. A glyph whose effect the engine
-does not run yet is marked `"implemented": false` and plays as a plain glyph.
-
-A **piece** is colour, ability and drawing together, and all three travel with it —
-when it is swapped, and when it is shoved. The board carries an `art` layer beside
-`glyph` and `kind` for exactly that reason; the rules never read it.
-
-The engine resolves a swap to its final board in one go. To animate it, pass a
-recorder to `settle()` and it collects the ordered events; `animate.js` folds those
-into phases. Nothing else asks for a recorder, so the measurement sweeps stay fast.
 
 ## Conventions that always apply
 
@@ -99,6 +88,10 @@ into phases. Nothing else asks for a recorder, so the measurement sweeps stay fa
 - **Seeded randomness.** `mulberry32` for every draw in game logic, never
   `Math.random()`. A run reproduces from its seed, which is what makes a bug
   reportable and a measurement worth printing.
+- **The rules never read the drawing.** What a piece does comes from its own layers,
+  never from the art layer beside them. A glyph can be redrawn, turned or swapped for
+  another without a rule moving, and that separation is the reason the art layer is a
+  layer at all.
 - **Layered rendering.** Reach for a new layer before reaching into the loop. The
   contract is one object — `{ name, draw(ctx, frame) }` — added with
   `compositor.add(...)`. The board is layer zero, not the whole frame.

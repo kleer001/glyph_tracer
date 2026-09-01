@@ -1,0 +1,80 @@
+# Decisions — standing rulings
+
+<!-- The terse INDEX, not the journal. The dated reasoning — why each call was made, the
+     alternatives weighed, the evidence — lives in its companion `DECISIONS-JOURNAL.md`.
+     Split, don't kill: move reasoning there, never delete it.
+
+     JOB: anti-canon. What the game DOES is `src/`, pinned by `tests/` and tuned by
+     `data/`. This file records what was RULED and what was REJECTED, so a future
+     session never re-opens a settled call or re-proposes a killed idea. The rejected
+     alternative is the payload — restating what the code already says belongs nowhere.
+
+     ENTRY CONTRACT:
+     - Two lines per ruling: the call, plus the rejected alternative.
+     - No dates. No supersession chains. When a ruling changes, OVERWRITE it —
+       the journal and git history are the process record.
+     - Prune, don't append. Delete a ruling nobody could re-propose.
+
+     WHEN THIS FILE IS READ: before any structural proposal — a new glyph, a rule
+     change, a new document, a change to how the board is drawn or timed. -->
+
+---
+
+## Rules
+
+- **Every ability resolves the same way every time.** REJECTED: any ability that draws a
+  random number — it makes a board unauthorable and a bug unreportable from its seed.
+- **One kind per glyph, and no two alike.** REJECTED: sixteen drawings over four
+  abilities — eight shoved identically, four absorbed identically, two did nothing.
+- **A swap is a speed, not a duration.** REJECTED: one fixed duration for every swap — it
+  spans an eightfold range of distances, so short swaps amble and long ones are hurled.
+- **Six swaps a level, held fixed.** REJECTED: deriving it from the yield curve — the
+  curve keeps paying past six, so it is a choice about length, not a measured ceiling.
+
+## Drawing
+
+- **A glyph is a Roman letter or a bar, turned or mirrored.** REJECTED: the polygon
+  grammar of side count, fill state and nesting — it had to be taught before a board
+  could be read.
+- **The swap family is two authored drawings at six turns.** REJECTED: the letter `X` for
+  the diagonal pair — it never composed with the bars it is made of.
+- **The rotate glyph is lowercase `r`.** REJECTED: capital `R`, which overlapped `H` at
+  0.69 IoU, the closest pair in the set.
+- **Letterforms ship as baked paths.** REJECTED: a subset webfont — it makes the look
+  depend on the visitor's machine and leaves canvas text one silent fallback from
+  breaking the authored glyphs.
+- **Four live colours, from a six-colour palette.** REJECTED: six — a player outside the
+  project found the count intimidating.
+- **The black keyline is load-bearing.** REJECTED: thinning or dropping it for a cleaner
+  look — three of the six colour pairs sit near 1.1:1 and it is all that separates them.
+
+## Feel
+
+- **A beam is a straight stroke that never tapers and never bends.** REJECTED: a
+  tentacle of discs with a travelling wave — every flourish said something the rules
+  do not.
+- **Beams draw behind the pieces, ghosts in front.** REJECTED: one layer for both — on
+  either side, one of the two stops reading.
+- **A dying cell's turn is held under the room its shrink has made.** REJECTED: turning
+  at constant speed from full size — the corners cross into the neighbours.
+- **The activation flash stays out of the compositor.** REJECTED: additive `lighter` in
+  the cell's own colour — a sevenfold luminance spread, so it reports the tile's hue
+  rather than the event.
+- **The game does not show the future board state.** REJECTED: move preview — that a
+  deterministic cascade makes it cheap is not the argument; the player learns the
+  cascade by playing it.
+- **Consecutive steps keep their own beats.** REJECTED: segment welding — it needs the
+  timeline rebuilt as per-piece envelopes, and it pulls against hit stop and escalation.
+
+## Docs and tools
+
+- **No prose document describes what the code does.** REJECTED: keeping `SPEC.md`,
+  `RENDER_SPEC.md`, `LEVELS.md` and `docs/JUICE.md` — a second copy of the code with
+  nothing checking it.
+- **A measurement lives in the tool that produces it.** REJECTED: pasting sweep output
+  into a document — the pasted table could not reproduce itself and was quoted for days.
+- **A level's target is authored.** REJECTED: measuring a board's yield and scaling it —
+  the pipeline had no caller once the pack became the run.
+- **Published pages under `docs/` and `artifacts/` are dated snapshots.** REJECTED:
+  editing them to match the current code — that falsifies the record rather than
+  correcting it.
