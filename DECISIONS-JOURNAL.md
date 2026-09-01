@@ -314,3 +314,122 @@ lift exactly, a table of six numbers to buy an evenness the eye was not asking f
 **Threaded:** `createFlashLayer` in `src/fxLayer.js`; tuning under `flash` in
 `data/animation.json`; its place in the stack in `src/main.js`.
 
+### [2026-09-01] The flash is the cell's complement, not a light on it
+
+**Decision:** An opaque white disc composited with `difference` — the cell shows
+`255 - C` for 180 ms, hard-edged, at a radius of 0.44 of a cell.
+
+**Why:** "The difference between the cell colour and white" names an operation, and
+`difference` is that operation. Read instead as a *quantity* — the distance from the
+colour to white — it produces `screen`, which is what got built first. The two readings
+of one phrase give opposite effects: one brightens the tile, the other replaces it with
+its opposite. The second is the one that was wanted.
+
+**Rejected:** `screen` toward white, which is a brightening and reads as light landing
+on the cell rather than the cell being marked; and before it, additive `lighter` in the
+cell's own colour, whose lift ran sevenfold across the palette. Also rejected: any alpha
+on this blend. Under `difference` alpha is not loudness but distance along the line from
+a colour to its complement, and at exactly a half every colour in the palette arrives at
+the same flat grey — so a fade would drag every cell through neutral on its way in and
+out.
+
+**Threaded:** `createFlashLayer` in `src/fxLayer.js`; `flash` in `data/animation.json`,
+whose `radius` is capped at half a cell because an opaque disc wider than that inverts
+part of the tiles beside it.
+
+### [2026-09-01] The light slot goes from cream to orange
+
+**Decision:** `lively`'s second colour is `#FFB24D`, an orange, replacing the cream
+`#EFE8A7`. The live four are red, orange, green and blue.
+
+**Why:** The owner was tired of the cream. Which slot it is was never in question; what
+had to be chosen was how deep to take the orange, and that is measurable rather than a
+matter of taste.
+
+**Rejected:** Every orange darker than roughly 60% lightness. `tools/palette.js`
+simulates protanopia, deuteranopia and tritanopia, and a mid-to-dark orange collapses
+onto the green: `#D97706` measures 0.016 in OKLab for a protanope, against 0.110 for the
+palette's tightest pair as it stands. `#F58A1F` already drags protan separation from
+0.110 to 0.082. The chosen orange leaves all three deficient eyes on exactly the figures
+they had before, because in each of them the binding pair is green against blue and this
+slot does not touch it. Also rejected: adding a seventh colour and re-pointing `use`,
+which would have kept a cream nobody wanted in a palette built on six hues.
+
+**What it cost, recorded because it is not free:** the cream cleared WCAG 3:1 against all
+three of the other live colours and the orange clears none of them — 2.22 against red,
+2.54 against green, 2.40 against blue. Six pairs on the board now sit under the 3:1 floor
+where three did, so the keyline carries every pair rather than half of them. It measures
+4.62 to 11.73 against the four, so it can. Against the paper the orange is better than
+the cream was, 1.46 against 1.02.
+
+Nothing about play changed. A board names its colours by index, so every authored level
+and every seeded deal resolves exactly as before; only the paint is different.
+
+**Threaded:** `lively`'s colour list in `data/palette.json`, narrowed by its `use`;
+measured by `tools/palette.js` and `tools/contrast.js`.
+
+### [2026-09-01] One palette, and a colour is one hex
+
+**Decision:** `data/palette.json` holds a single palette: four colours, `core`, `key`.
+No `palettes` map, no `default`, no `use`. `resolvePalette` validates and returns it.
+
+**Why:** Changing a colour should be changing a colour. It had become a hex inside a
+named block inside a map, selected by a `default` key, then filtered through a `use`
+array that decided which of six were live and what index each took on a board — three
+indirections between the file and the cell.
+
+**Rejected:** Keeping the alternates as a measurement record. `trace`, `deep`, `even`
+and `legible` were candidates that lost, and their notes carried the figures that beat
+them; that belongs in the journal and in git, not in the file the game reads at boot.
+Also rejected: keeping `use` for the ability to play a six-colour set as four — the set
+is four, and a knob for a shape the game does not have is a knob that goes stale.
+
+**Threaded:** `resolvePalette` in `src/palette.js`; `paletteFileText` in
+`dev/palettePanel.js`, which now copies the whole file and is held byte-identical to it
+by a test.
+
+### [2026-09-01] Back to the soft glow
+
+**Decision:** The flash returns to a white radial bloom under `screen` — soft edges,
+half strength, reaching 0.62 of a cell.
+
+**Why:** Seen moving, the complement disc read as a cut frame rather than a light. The
+owner looked at both and took the glow.
+
+**Rejected:** The `difference` disc, tried in full and recorded on all four colours.
+Two things it cannot have: a soft edge, since alpha under that blend is distance to the
+complement rather than opacity; and any reach past half a cell, since an opaque disc
+wider than that paints its neighbours. The bloom gets both — it fades to nothing at its
+rim, so it can spill past the cell without claiming anything happened there.
+
+**Threaded:** `createFlashLayer` in `src/fxLayer.js`; `flash` in `data/animation.json`.
+
+### [2026-09-01] Three motions on the swap and the landing
+
+**Decision:** A swapped piece bows a quarter of a cell off its own line and trails five
+copies a fortieth of its travel apart; the board takes a four-pixel shove on the beat an
+ability fires, decaying over 70 ms and scaling with the chain.
+
+**Why:** A swap could cross eight cells in under a second and read as a jump, and two
+pieces trading along one row travelled the same line in opposite directions and passed
+through each other. The offset is the travel turned a quarter turn, which gives all four
+cardinal cases and the diagonals from one rule.
+
+**Rejected:** A per-direction table of four bows, which the quarter-turn makes
+unnecessary. A shake applied to the whole frame: the HUD would move with it, and
+hit-testing that followed the transform would put the tapped cell away from the finger —
+so the compositor grew a `pinned` flag and `cellAt` keeps reading the untranslated
+layout. And a canvas-level blur for the smear, which this renderer cannot have at all:
+`paint()` reassigns the backing store every frame, so nothing survives to fade.
+
+The trail is built in the sampler rather than the layer that paints it, because a copy
+has to sit on the same arc as the piece and the arc is the sampler's to know.
+
+Tuned on a page carrying the engine inlined, so the numbers were chosen against the real
+thing rather than a mock-up of it.
+
+**Threaded:** `bowOf` and `trailOf` in `src/animate.js`; the trail drawn in
+`createGlyphLayer` in `src/render.js`; `shakeAt` in `src/fx.js`, applied in `paint()` in
+`src/main.js` and honoured by `render()` in `src/compositor.js`; knobs `swapArc`, `smear`
+and `shake` in `data/animation.json`.
+

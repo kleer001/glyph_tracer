@@ -69,6 +69,7 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 | `tools/` | the sweeps and studies (`swapBudget.js`, `trapBoards.js`, `boardShapes.js`, `maxCombo.js`, `contrast.js`, `studyBoard.js`), the glyph baker, and the artifact builders |
 | `docs/` | the trap write-up, the board-shape study, the teaching run — published pages, each a dated snapshot rather than a live document |
 | `artifacts/` | sources of the pages published to claude.ai; fragments, not standalone pages |
+| `specs/` | one sketch per piece of work not yet built; each comes down when its feature plays |
 | `dev/` | the tuning sandboxes and the fx frame harness — they drive `src/`, so what is tuned is what ships |
 
 ## Conventions that always apply

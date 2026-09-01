@@ -43,6 +43,12 @@
 - **Letterforms ship as baked paths.** REJECTED: a subset webfont — it makes the look
   depend on the visitor's machine and leaves canvas text one silent fallback from
   breaking the authored glyphs.
+- **One palette, four colours, no indirection.** REJECTED: five named alternates behind
+  a `default`, and a `use` array picking live colours out of a longer list — between them
+  they made changing a colour a change in three places instead of one hex.
+- **The light slot is an orange, not a cream.** REJECTED: the cream it replaced, on the
+  owner's call; and any deeper orange — below about 60% lightness it collapses onto green
+  for protanopes, at 0.016 in OKLab against the 0.110 the palette holds now.
 - **Four live colours, from a six-colour palette.** REJECTED: six — a player outside the
   project found the count intimidating.
 - **The black keyline is load-bearing.** REJECTED: thinning or dropping it for a cleaner
@@ -50,6 +56,12 @@
 
 ## Feel
 
+- **A swapping piece bows, and leaves copies behind it.** REJECTED: the straight line
+  both pieces shared — along one row they travelled it in opposite directions and passed
+  through each other.
+- **The shake moves the board and not the readouts.** REJECTED: translating the whole
+  frame — a number that moves is a number you re-read, and hit-testing that moved with it
+  would put the tapped cell somewhere other than under the finger.
 - **A beam is a straight stroke that never tapers and never bends.** REJECTED: a
   tentacle of discs with a travelling wave — every flourish said something the rules
   do not.
@@ -57,9 +69,10 @@
   either side, one of the two stops reading.
 - **A dying cell's turn is held under the room its shrink has made.** REJECTED: turning
   at constant speed from full size — the corners cross into the neighbours.
-- **The activation flash is white under `screen` — the distance from the cell's colour
-  to white.** REJECTED: additive `lighter` in the cell's own colour — a sevenfold
-  luminance spread across the palette, so it reported the tile's hue and not the event.
+- **The activation flash is a soft white bloom under `screen`.** REJECTED: an opaque
+  hard-edged disc of the cell's complement under `difference`, which marks rather than
+  lights and reads as a cut frame; and additive `lighter` in the cell's own colour, whose
+  lift ran sevenfold across the palette and so reported the tile's hue, not the event.
 - **The game does not show the future board state.** REJECTED: move preview — that a
   deterministic cascade makes it cheap is not the argument; the player learns the
   cascade by playing it.
