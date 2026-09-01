@@ -98,6 +98,30 @@ export function grabAt(ms, reachMs, from, target) {
 }
 
 /**
+ * How far the board stands off centre this frame, in pixels.
+ *
+ * A landing shoves the whole board and it settles back. The direction is fixed per
+ * shake rather than redrawn each frame — a direction that changes every frame is a
+ * vibration, and this is a hit. It comes from the beat's own numbers rather than a
+ * generator, so a replay of a seed shakes the same way.
+ *
+ * @param {number} since - ms since the beat began.
+ * @param {object} tune - `{ px, ms, decay }`.
+ * @param {number} loud - the chain's link factor; 1 on the first link.
+ * @param {number} seed - anything stable for this beat, to pick a direction.
+ */
+export function shakeAt(since, tune, loud = 1, seed = 0) {
+  if (!tune?.px || !tune.ms) return NO_SHAKE;
+  const t = since / tune.ms;
+  if (t < 0 || t >= 1) return NO_SHAKE;
+  const away = tune.px * loud * (1 - t) ** tune.decay;
+  const angle = seed * 2.399963; // the golden angle: successive beats point elsewhere
+  return { x: Math.cos(angle) * away, y: Math.sin(angle) * away };
+}
+
+const NO_SHAKE = Object.freeze({ x: 0, y: 0 });
+
+/**
  * One beam: a stroke from root to tip over a black keyline. Both ends are cut square.
  *
  * The keyline is the same trick the glyphs use, and for the same reason: the palette

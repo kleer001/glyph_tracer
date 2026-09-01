@@ -222,7 +222,8 @@ export function staticFrame(board) {
  */
 export function buildTimeline({ before, swap, recorder, timing }) {
   const { stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs,
-    glyphFadeMs = shrinkMs, easing = null, hitStopMs = 0, escalate = null } = timing;
+    glyphFadeMs = shrinkMs, easing = null, hitStopMs = 0, escalate = null,
+    swapArc = 0, smear = null } = timing;
   const [a, z] = swap;
   const swapMs = swapDurationFor(a, z, timing);
   let cleared = 0;
@@ -238,8 +239,8 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       board: before,
       tiles: tilesOf(before),
       sprites: restingSprites(before, { moveMs: swapMs, shrinkMs, glyphFadeMs }).map((sprite) => {
-        if (key(sprite.from) === key(a)) return { ...sprite, to: z };
-        if (key(sprite.from) === key(z)) return { ...sprite, to: a };
+        if (key(sprite.from) === key(a)) return { ...sprite, to: z, swapped: true };
+        if (key(sprite.from) === key(z)) return { ...sprite, to: a, swapped: true };
         return sprite;
       }),
     }),
@@ -341,7 +342,7 @@ export function buildTimeline({ before, swap, recorder, timing }) {
   }
   // Every phase of one timeline runs on the same curves, so they are set once here
   // rather than threaded through four calls to phaseOf.
-  const eased = phases.map((phase) => ({ ...phase, easing }));
+  const eased = phases.map((phase) => ({ ...phase, easing, swapArc, smear }));
   return { phases: eased, totalMs: eased.reduce((sum, p) => sum + p.tweenMs + p.holdMs, 0) };
 }
 
@@ -373,6 +374,50 @@ function phaseOf(phase) {
 }
 
 const lerp = (from, to, t) => from + (to - from) * t;
+const NO_BOW = Object.freeze({ x: 0, y: 0 });
+const EMPTY = Object.freeze([]);
+
+/**
+ * The copies a piece leaves behind it while it crosses the board.
+ *
+ * A swap can cross eight cells in under a second, which reads as a jump. Copies strung
+ * back along the path it actually took give the eye something to follow. Only above a
+ * distance worth following: a one-cell swap has nothing to smear.
+ */
+function trailOf(sprite, phase, moved) {
+  const smear = phase.smear;
+  if (!smear?.copies) return EMPTY;
+  const [dy, dx] = [sprite.to[0] - sprite.from[0], sprite.to[1] - sprite.from[1]];
+  if (Math.hypot(dy, dx) < smear.minCells) return EMPTY;
+  const out = [];
+  for (let k = 1; k <= smear.copies; k++) {
+    const t = moved - k * smear.spacing;
+    if (t <= 0) break;
+    const bow = bowOf(sprite, phase.swapArc, t);
+    out.push({
+      x: lerp(sprite.from[1], sprite.to[1], t) + bow.x,
+      y: lerp(sprite.from[0], sprite.to[0], t) + bow.y,
+      alpha: 1 - k / (smear.copies + 1),
+    });
+  }
+  return out;
+}
+
+/**
+ * How far a swapping piece stands off its own straight line, in cells.
+ *
+ * The offset is the travel turned a quarter turn — right becomes up, down becomes right
+ * — and rises and falls over the crossing, so both ends of the arc are exactly on the
+ * cells the rules moved between.
+ */
+function bowOf(sprite, arc, t) {
+  if (!arc) return NO_BOW;
+  const [dy, dx] = [sprite.to[0] - sprite.from[0], sprite.to[1] - sprite.from[1]];
+  const span = Math.hypot(dy, dx);
+  if (!span) return NO_BOW;
+  const height = arc * Math.sin(Math.PI * t);
+  return { x: (dy / span) * height, y: (-dx / span) * height };
+}
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 /** Sample one phase at `elapsed` ms into it, in cell space. */
@@ -404,6 +449,8 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
   return {
     // how much of this swap's clearing has actually happened on screen
     cleared: phase.cleared ?? 0,
+    // how deep into the chain this beat sits, for anything that builds with it
+    escalate: phase.escalate ?? 1,
     // What fired on this beat and how long ago, for a layer drawing what an ability
     // means. `since` is not clamped to the movement: an effect may outlast it and
     // play on through the hold.
@@ -425,17 +472,26 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
       // Travel and shrink are separate clocks: a piece can slide at one speed and
       // vanish at another, which is the difference between a shove and a pop.
       const moved = easeMove(at(sprite.delay, sprite.moveMs));
+      // A swap bows. Two pieces trading along one row otherwise travel the same line in
+      // opposite directions and pass through each other; each bowing to the side its own
+      // heading turns to puts one clear of the other, and because their headings are
+      // opposite so are their bows. One rule covers the diagonals without a fifth case.
+      const bow = sprite.swapped ? bowOf(sprite, phase.swapArc, moved) : NO_BOW;
       const shrunk = easeShrink(at(sprite.delay, sprite.shrinkMs));
       // The fade stays linear: it is an opacity, and a curve on it reads as nothing.
       const faded = sprite.fades ? at(sprite.delay, sprite.glyphFadeMs) : 0;
       return {
         art: sprite.art,
         ink: sprite.ink,
-        x: lerp(sprite.from[1], sprite.to[1], moved),
-        y: lerp(sprite.from[0], sprite.to[0], moved),
+        x: lerp(sprite.from[1], sprite.to[1], moved) + bow.x,
+        y: lerp(sprite.from[0], sprite.to[0], moved) + bow.y,
         spin: sprite.spin ? spinAt(shrunk) : 0,
         scale: lerp(sprite.scaleFrom, sprite.scaleTo, shrunk),
         alpha: 1 - faded,
+        // Where this piece has just been, faintest first. Built here rather than in the
+        // layer that paints it because a copy has to sit on the same arc as the piece,
+        // and the arc is this module's to know.
+        trail: sprite.swapped ? trailOf(sprite, phase, moved) : EMPTY,
         // Where the piece is going, not just where it is. An effect layer that wants to
         // point at a moving piece — a beam that holds one while it travels — needs the
         // journey, and deriving it from a position alone is guesswork.

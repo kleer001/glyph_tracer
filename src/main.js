@@ -15,6 +15,7 @@ import { mountPicker } from './picker.js';
 import { describeSwap } from './debugLog.js';
 import { mountDebugPanel } from './debugPanel.js';
 import { createFlashLayer, createFxLayer, createGhostLayer } from './fxLayer.js';
+import { shakeAt } from './fx.js';
 import {
   VIEW,
   boardLayout,
@@ -84,7 +85,6 @@ export async function start(canvas, panels) {
     .add(createSelectionLayer())
     .add(createHudLayer());
 
-  // One of the palettes in data/palette.json, named by that file's `default`.
   const palette = resolvePalette(data.palette);
   const run = loadRun(data.levels, data.glyphs.glyphs);
   // A board holds colour indices, so a palette narrower than a level is a level that
@@ -93,7 +93,7 @@ export async function start(canvas, panels) {
     dealLevel(level, { rules: data.rules, glyphs, budget: run.budget }).board.colors);
   if (short.length) {
     throw new Error(
-      `palette "${palette.id}" has ${palette.colors.length} colours; `
+      `the palette has ${palette.colors.length} colours; `
       + `${short.length} level(s) need more, starting with level ${short[0].id} (${short[0].needs})`,
     ); // boundary
   }
@@ -152,6 +152,13 @@ export async function start(canvas, panels) {
       width: box.width,
       height: box.height,
       ...drawList,
+      // Only the board moves. The compositor leaves the pinned layers where they are,
+      // and `cellAt` reads the layout rather than the transform, so a tap during a
+      // shake still lands on the cell under the finger.
+      offset: drawList.fires?.length
+        ? shakeAt(drawList.since, data.animation.shake, drawList.escalate ?? 1,
+          drawList.fires[0].at[0] * 5 + drawList.fires[0].at[1])
+        : null,
       layout: boardLayout(level.board, box.width, box.height),
       palette,
       gloss: data.gloss,

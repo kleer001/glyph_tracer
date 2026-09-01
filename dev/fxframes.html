@@ -169,6 +169,15 @@ export const SCENES = {
   // The two already tuned, so the plate covers every glyph in the pack.
   push: () => { const b = bed(); put(b, MID, MID, byKind.get(PUSH_RIGHT)); return resolveAt(b, MID, MID); },
   rotate: () => { const b = bed(); put(b, MID, MID, byKind.get('rotate')); return resolveAt(b, MID, MID); },
+  // How far a colour can travel toward white depends on the colour. One scene per live
+  // colour under the piece that fires -- identical otherwise -- so the flash can be
+  // watched on each rather than read off a table.
+  ...Object.fromEntries(PALETTE.colors.map((colour, i) => [`flash-${colour.name}`, () => {
+    const b = bed();
+    put(b, MID, MID, byKind.get(PUSH_RIGHT));
+    b.bg[MID][MID] = i;
+    return resolveAt(b, MID, MID);
+  }])),
 };
 window.SCENES = Object.keys(SCENES);
 

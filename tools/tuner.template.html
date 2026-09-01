@@ -1,0 +1,329 @@
+<title>Glyph Tracer Motion Tuner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --paper:#EDEEF0; --surface:#F7F8F9; --ink:#16171A; --dim:#6B6F76;
+  --hair:#D3D6DA; --accent:#3B51D6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#141518; --surface:#1C1E22; --ink:#E6E7EA;
+    --dim:#969BA3; --hair:#2E3138; --accent:#93A2FF;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#141518; --surface:#1C1E22; --ink:#E6E7EA;
+  --dim:#969BA3; --hair:#2E3138; --accent:#93A2FF;
+}
+* { box-sizing:border-box; }
+body {
+  background:var(--paper); color:var(--ink); margin:0; padding:0 20px 80px;
+  font-family:Newsreader,Georgia,serif; font-size:18px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap { max-width:1080px; margin:0 auto; }
+header { padding:56px 0 26px; display:flex; flex-direction:column; gap:12px; }
+.eyebrow {
+  font-family:"Martian Mono",ui-monospace,monospace; font-size:10px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:0;
+}
+h1 { font-size:clamp(34px,6vw,50px); font-weight:300; letter-spacing:-.022em; margin:0; line-height:1.04; }
+h1 em { font-style:italic; font-weight:400; }
+.standfirst { color:var(--dim); margin:0; max-width:44em; font-size:20px; }
+hr { border:0; border-top:1px solid var(--hair); margin:0 0 26px; }
+
+.rig { display:grid; grid-template-columns:minmax(300px,460px) 1fr; gap:24px; align-items:start; }
+@media (max-width:820px) { .rig { grid-template-columns:1fr; } }
+.stage { background:var(--surface); border:1px solid var(--hair); border-radius:6px; padding:14px; }
+canvas { display:block; width:100%; height:auto; border-radius:4px; }
+.controls { display:flex; flex-direction:column; gap:16px; }
+fieldset { border:1px solid var(--hair); border-radius:6px; background:var(--surface); margin:0; padding:12px 14px 14px; }
+legend {
+  font-family:"Martian Mono",ui-monospace,monospace; font-size:10px; font-weight:600;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--dim); padding:0 6px;
+}
+.row { display:grid; grid-template-columns:1fr 130px 62px; align-items:center; gap:10px; padding:3px 0; }
+.row label { font-size:15px; }
+.row output {
+  font-family:"Martian Mono",ui-monospace,monospace; font-size:11.5px;
+  font-variant-numeric:tabular-nums; text-align:right; color:var(--dim);
+}
+input[type=range] { width:100%; accent-color:var(--accent); }
+.bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+button {
+  font:inherit; font-size:14px; padding:6px 14px; border-radius:5px; cursor:pointer;
+  background:var(--surface); color:var(--ink); border:1px solid var(--hair);
+}
+button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+pre {
+  background:var(--paper); border:1px solid var(--hair); border-radius:5px; margin:0;
+  padding:11px; overflow-x:auto; font-family:"Martian Mono",ui-monospace,monospace;
+  font-size:11px; line-height:1.6;
+}
+.notes { margin-top:44px; padding-top:22px; border-top:1px solid var(--hair); }
+.notes h2 { font-size:24px; font-weight:400; margin:0 0 10px; }
+.notes p { max-width:66ch; margin:0 0 13px; }
+code {
+  font-family:"Martian Mono",ui-monospace,monospace; font-size:.78em;
+  background:var(--paper); border:1px solid var(--hair); border-radius:3px; padding:.1em .35em;
+}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Glyph Tracer &middot; the real engine, with its knobs out</p>
+  <h1>Three motions, <em>on sliders</em></h1>
+  <p class="standfirst">A swap that bows off its own straight line, the copies it leaves
+  behind it, and the shove the board takes when an ability fires. Everything below is the
+  game's own code, inlined &mdash; not a mock-up of it &mdash; so a number that looks
+  right here is a number that goes straight into the file.</p>
+</header>
+<hr />
+
+<div class="rig">
+  <div class="stage">
+    <canvas id="screen" width="460" height="460"></canvas>
+    <div class="bar" style="margin-top:12px">
+      <button id="play" class="primary">play</button>
+      <button id="scene">next board</button>
+      <output id="clock" style="font-family:'Martian Mono',monospace;font-size:11px;color:var(--dim)"></output>
+    </div>
+  </div>
+
+  <div class="controls">
+    <fieldset>
+      <legend>swap arc</legend>
+      <div class="row"><label for="swapArc">bow, in cells</label><input type="range" id="swapArc" min="0" max="1" step="0.01"><output id="swapArc-o"></output></div>
+      <div class="row"><label for="swapMsPerCell">ms per cell</label><input type="range" id="swapMsPerCell" min="20" max="600" step="10"><output id="swapMsPerCell-o"></output></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>smear</legend>
+      <div class="row"><label for="copies">copies</label><input type="range" id="copies" min="0" max="12" step="1"><output id="copies-o"></output></div>
+      <div class="row"><label for="spacing">spacing</label><input type="range" id="spacing" min="0.01" max="0.3" step="0.005"><output id="spacing-o"></output></div>
+      <div class="row"><label for="minCells">least distance</label><input type="range" id="minCells" min="0" max="8" step="0.5"><output id="minCells-o"></output></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>board shake</legend>
+      <div class="row"><label for="px">pixels</label><input type="range" id="px" min="0" max="24" step="0.5"><output id="px-o"></output></div>
+      <div class="row"><label for="shakeMs">ms</label><input type="range" id="shakeMs" min="10" max="400" step="5"><output id="shakeMs-o"></output></div>
+      <div class="row"><label for="decay">decay</label><input type="range" id="decay" min="0.5" max="5" step="0.1"><output id="decay-o"></output></div>
+    </fieldset>
+
+    <div class="bar">
+      <button id="reset">back to shipped</button>
+      <button id="copy">copy the block</button>
+    </div>
+    <pre id="out"></pre>
+  </div>
+</div>
+
+<div class="notes">
+  <h2>What the board is doing</h2>
+  <p>A piece is swapped clear across the board onto its own colour, fires, and sets off
+  whatever the rules set off. The swap is the long travel the arc and the smear are for;
+  the firing is what shakes the board. Press <strong>next board</strong> for another deal
+  &mdash; every one is seeded, so the same board comes back in the same order.</p>
+  <h2>The three</h2>
+  <p><strong>The arc.</strong> Two pieces trading along one row travel the same line in
+  opposite directions and pass through each other. Each bows to the side its own heading
+  turns to, so their bows are opposite and one goes clear of the other. At zero they are
+  back to passing through.</p>
+  <p><strong>The smear.</strong> Copies of the piece strung back along the path it took,
+  fading out. They sit on the arc, not on the straight line, so the two knobs read
+  together. Below <em>least distance</em> a swap leaves none &mdash; a one-cell swap has
+  nothing worth following.</p>
+  <p><strong>The shake.</strong> The board is shoved on the beat an ability fires and
+  settles back. Only the board: the readouts above it are pinned and do not move, and the
+  cell under your finger is still the cell you tapped. Deeper links in a chain shake
+  harder, capped where the chain's build is capped.</p>
+  <h2>The numbers</h2>
+  <p>The block updates as you drag. Paste it over the matching keys in
+  <code>data/animation.json</code>.</p>
+</div>
+</div>
+
+<script type="module">
+/*__DATA__*/
+
+/*__ENGINE__*/
+
+// ---- the rig -------------------------------------------------------------------
+const canvas = document.getElementById('screen');
+const ctx = canvas.getContext('2d');
+const VIEW_HERE = { ...VIEW, hudHeight: 0, pad: 18, gap: 4 };
+const PALETTE = resolvePalette(DATA_PALETTE);
+const GLYPHS = DATA_GLYPHS.glyphs;
+const byId = new Map(GLYPHS.map((g) => [g.id, g]));
+const SIZE = 5;
+
+const SHIPPED = {
+  swapArc: DATA_ANIMATION.swapArc,
+  swapMsPerCell: DATA_ANIMATION.swapMsPerCell,
+  copies: DATA_ANIMATION.smear.copies,
+  spacing: DATA_ANIMATION.smear.spacing,
+  minCells: DATA_ANIMATION.smear.minCells,
+  px: DATA_ANIMATION.shake.px,
+  shakeMs: DATA_ANIMATION.shake.ms,
+  decay: DATA_ANIMATION.shake.decay,
+};
+const state = { ...SHIPPED };
+
+/** The timing the engine is handed, with the panel's numbers folded in. */
+const timing = () => ({
+  ...DATA_ANIMATION,
+  swapArc: state.swapArc,
+  swapMsPerCell: state.swapMsPerCell,
+  smear: { copies: state.copies, spacing: state.spacing, minCells: state.minCells },
+  shake: { px: state.px, ms: state.shakeMs, decay: state.decay },
+});
+
+/**
+ * A board that swaps a long way and then goes off.
+ *
+ * Dealt from a seed and settled by the real rules, so what plays is a real resolution
+ * rather than a scripted one.
+ */
+function deal(seed) {
+  const rand = mulberry32(seed);
+  const b = blankBoard({ ...DATA_RULES, width: SIZE, height: SIZE, colors: PALETTE.colors.length });
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      b.bg[r][c] = Math.floor(rand() * PALETTE.colors.length);
+      const ink = Math.floor(rand() * (PALETTE.colors.length - 1));
+      b.glyph[r][c] = ink >= b.bg[r][c] ? ink + 1 : ink;
+      b.kind[r][c] = '';
+      b.art[r][c] = 'inert';
+    }
+  }
+  // one piece with an ability, parked far from where it will land
+  const able = GLYPHS.filter((g) => g.kind && g.kind !== 'anchor');
+  const g = able[Math.floor(rand() * able.length)];
+  const a = [Math.floor(rand() * SIZE), 0];
+  const z = [Math.floor(rand() * SIZE), SIZE - 1];
+  b.kind[a[0]][a[1]] = g.kind;
+  b.art[a[0]][a[1]] = g.id;
+  b.glyph[a[0]][a[1]] = b.bg[z[0]][z[1]]; // lands on its own colour after the swap
+  return { board: b, a, z };
+}
+
+let scene = null;
+let playing = null;
+
+function build(seed) {
+  const { board, a, z } = deal(seed);
+  const before = copyBoard(board);
+  const recorder = createRecorder();
+  applySwap(board, a, z, mulberry32(seed + 1), recorder);
+  scene = { seed, before, timeline: buildTimeline({ before, swap: [a, z], recorder, timing: timing() }) };
+}
+
+function rebuild() {
+  if (scene) {
+    const { board, a, z } = deal(scene.seed);
+    const before = copyBoard(board);
+    const recorder = createRecorder();
+    applySwap(board, a, z, mulberry32(scene.seed + 1), recorder);
+    scene.timeline = buildTimeline({ before, swap: [a, z], recorder, timing: timing() });
+  }
+}
+
+const stack = createCompositor()
+  .add(createGroundLayer(VIEW_HERE))
+  .add(createFlashLayer(VIEW_HERE))
+  .add(createFxLayer(VIEW_HERE))
+  .add(createGlyphLayer(VIEW_HERE))
+  .add(createGhostLayer(VIEW_HERE));
+
+function drawAt(ms) {
+  const anim = timing();
+  const list = sampleTimeline(scene.timeline, ms, anim.spin) ?? staticFrame(scene.before);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stack.render(ctx, {
+    width: canvas.width,
+    height: canvas.height,
+    ...list,
+    offset: list.fires?.length
+      ? shakeAt(list.since, anim.shake, list.escalate ?? 1, list.fires[0].at[0] * 5 + list.fires[0].at[1])
+      : null,
+    layout: boardLayout(scene.before, canvas.width, canvas.height, VIEW_HERE),
+    palette: PALETTE,
+    gloss: DATA_GLOSS,
+    geometry: DATA_GEOMETRY,
+    glyphPaths: DATA_GLYPHPATHS.paths,
+    glyphsById: byId,
+    animation: anim,
+  });
+  document.getElementById('clock').textContent =
+    `${Math.round(ms)} / ${Math.round(scene.timeline.totalMs)} ms`;
+}
+
+function play() {
+  const started = performance.now();
+  playing = true;
+  const step = (now) => {
+    if (!playing) return;
+    const ms = now - started;
+    if (ms > scene.timeline.totalMs + 400) { playing = false; drawAt(scene.timeline.totalMs); return; }
+    drawAt(Math.min(ms, scene.timeline.totalMs));
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// ---- panel ---------------------------------------------------------------------
+const KEYS = Object.keys(SHIPPED);
+const OUT = { swapMsPerCell: 'swapMsPerCell', shakeMs: 'shakeMs' };
+const round = (k, v) => (k === 'spacing' ? v.toFixed(3) : k === 'swapArc' || k === 'decay' ? v.toFixed(2) : String(v));
+
+function paint() {
+  for (const k of KEYS) {
+    document.getElementById(k).value = state[k];
+    document.getElementById(`${k}-o`).textContent = round(k, state[k]);
+  }
+  document.getElementById('out').textContent = JSON.stringify({
+    swapMsPerCell: state.swapMsPerCell,
+    swapArc: Number(state.swapArc),
+    smear: { copies: state.copies, spacing: Number(state.spacing), minCells: state.minCells },
+    shake: { px: Number(state.px), ms: state.shakeMs, decay: Number(state.decay) },
+  }, null, 2);
+}
+
+for (const k of KEYS) {
+  document.getElementById(k).addEventListener('input', (e) => {
+    state[k] = Number(e.target.value);
+    paint();
+    rebuild();
+    if (!playing) drawAt(0);
+  });
+}
+document.getElementById('play').addEventListener('click', play);
+document.getElementById('scene').addEventListener('click', () => {
+  playing = false;
+  build((scene?.seed ?? 700) + 1);
+  play();
+});
+document.getElementById('reset').addEventListener('click', () => {
+  Object.assign(state, SHIPPED);
+  paint();
+  rebuild();
+  drawAt(0);
+});
+document.getElementById('copy').addEventListener('click', async () => {
+  const b = document.getElementById('copy');
+  try {
+    await navigator.clipboard.writeText(document.getElementById('out').textContent);
+    b.textContent = 'copied';
+  } catch { b.textContent = 'select it instead'; }
+  setTimeout(() => { b.textContent = 'copy the block'; }, 1400);
+});
+
+build(701);
+paint();
+play();
+</script>

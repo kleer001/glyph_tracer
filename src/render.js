@@ -399,6 +399,27 @@ export function createGlyphLayer(view = VIEW) {
       for (const sprite of sprites) {
         const box = placed(layout, sprite, view);
         if (box.size <= 0) continue;
+        // Where it has been, behind where it is. Same drawing, fainter — a smear made of
+        // the piece itself rather than a blur, which is the only kind this canvas can
+        // have: the backing store is reassigned every frame, so nothing survives to
+        // fade.
+        for (const ghost of sprite.trail ?? []) {
+          const back = placed(layout, { ...sprite, x: ghost.x, y: ghost.y }, view);
+          ctx.save();
+          ctx.globalAlpha = (sprite.alpha ?? 1) * ghost.alpha;
+          ctx.translate(back.x, back.y);
+          ctx.scale(back.size / CELL, back.size / CELL);
+          drawGlyph(
+            ctx,
+            glyphsById.get(sprite.art),
+            { ink: palette.colors[sprite.ink].hex, core: palette.core, key: palette.key },
+            { ...frame.gloss, glyphShadowA: 0 }, // a copy casts nothing
+            frame.geometry,
+            back.size,
+            frame.glyphPaths,
+          );
+          ctx.restore();
+        }
         spun(ctx, box, sprite.spin, () => {
           ctx.save();
           // The piece fades on its own clock while the ground it sat on goes on turning
@@ -451,6 +472,8 @@ export function createSelectionLayer(view = VIEW) {
 export function createHudLayer(view = VIEW) {
   return {
     name: 'hud',
+    // Readouts do not ride the shake: a number that moves is a number you re-read.
+    pinned: true,
     draw(ctx, frame) {
       const { level } = frame;
       ctx.font = view.hudFont;

@@ -6,7 +6,10 @@
 // contract, added to the compositor without editing the loop (open/closed).
 //
 // Layer contract:
-//   { name: string, draw(ctx, frame): void, enabled?: boolean }
+//   { name: string, draw(ctx, frame): void, enabled?: boolean, pinned?: boolean }
+//
+// `frame.offset` shifts every layer except the pinned ones, which is how something can
+// move the world without moving the readouts over it.
 //
 // draw() receives the 2D context (the boundary) and a plain `frame` data object
 // (dims, seed, tick — whatever the game threads through). Layers stay pure with
@@ -37,8 +40,10 @@ export function createCompositor(layers = []) {
       if (!ctx || typeof ctx.save !== 'function' || typeof ctx.restore !== 'function') {
         throw new Error('compositor.render() requires a 2D canvas context'); // boundary
       }
+      const { x = 0, y = 0 } = frame.offset ?? {};
       for (const layer of activeLayers(stack)) {
         ctx.save();
+        if (!layer.pinned && (x || y)) ctx.translate(x, y);
         layer.draw(ctx, frame);
         ctx.restore();
       }

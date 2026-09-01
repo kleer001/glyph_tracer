@@ -1,5 +1,5 @@
 {
-  "note": "Linear tweens, in milliseconds. A swap is a SPEED — `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `glyphFadeMs` is how long the piece takes to go, which is shorter than the cell it sat on: the glyph leaves as the ability fires and the ground keeps turning without it. `fx` is what an ability throws: a `throw` beam leaves and dissipates over `reachCells`, a `grab` beam reaches out over `reachMs` and then holds whatever it caught. `ghost` is the outline a glyph with no beam swells out of itself: a small pulse when it swallows something and holds its place, a big one when it matches and goes. `grow` is how much a plain piece swells as it fades. `spin` is how many full turns a cell being destroyed makes as it shrinks away. `easing` names the curve each tween runs on: `move` for a piece travelling, `shrink` for a cell being destroyed — the parameter is what bends, so the turn stays inside the footprint the shrink has made for it. `hitStopMs` lengthens the beat that ends where an ability fires, so a landing registers as an event rather than a frame. `escalate` builds the chain: `per` is how much louder each further link plays and `cap` is the link past which it stops growing. `flash` is the bloom a landing throws, white under screen so every colour lifts the same fraction of the headroom it has left: `spread` in cell widths, `falloff` how sharply it goes. Tune in dev/timing.html.",
+  "note": "Linear tweens, in milliseconds. A swap is a SPEED — `swapMsPerCell` times the straight-line distance the pieces travel, floored at `swapMinMs` so a one-cell swap is still visible; any two cells can be swapped, so that distance runs from 1 to about 8. `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how far it sits from whatever fired, so a shoved run reads as a wave rather than a block; `splitBeats` plays a step's movement and its destruction as two beats. `glyphFadeMs` is how long the piece takes to go, which is shorter than the cell it sat on: the glyph leaves as the ability fires and the ground keeps turning without it. `fx` is what an ability throws: a `throw` beam leaves and dissipates over `reachCells`, a `grab` beam reaches out over `reachMs` and then holds whatever it caught. `ghost` is the outline a glyph with no beam swells out of itself: a small pulse when it swallows something and holds its place, a big one when it matches and goes. `grow` is how much a plain piece swells as it fades. `spin` is how many full turns a cell being destroyed makes as it shrinks away. `easing` names the curve each tween runs on: `move` for a piece travelling, `shrink` for a cell being destroyed — the parameter is what bends, so the turn stays inside the footprint the shrink has made for it. `hitStopMs` lengthens the beat that ends where an ability fires, so a landing registers as an event rather than a frame. `escalate` builds the chain: `per` is how much louder each further link plays and `cap` is the link past which it stops growing. `flash` is the bloom a landing throws, white under screen so every colour lifts the same fraction of the headroom it has left: `spread` in cell widths, `falloff` how sharply it goes. `swapArc` bows a swapped piece off its straight line, in cells, so the two pass either side of each other. `smear` is the copies a swapping piece leaves behind it: `copies` of them, `spacing` of its travel apart, and only above `minCells` of distance. `shake` moves the board on a landing: `px` at the first link, over `ms`, decaying by `decay`. Tune in dev/timing.html.",
   "swapMsPerCell": 100,
   "swapMinMs": 150,
   "stepMs": 200,
@@ -8,6 +8,17 @@
   "easing": {
     "move": "outCubic",
     "shrink": "inOutCubic"
+  },
+  "swapArc": 0.25,
+  "smear": {
+    "copies": 5,
+    "spacing": 0.025,
+    "minCells": 1
+  },
+  "shake": {
+    "px": 4,
+    "ms": 70,
+    "decay": 2
   },
   "fx": {
     "throw": {
