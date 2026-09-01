@@ -1,69 +1,11 @@
 {
-  "note": "Every palette is six colours a piece and a cell can both be drawn in, so what matters is that no two are confusable — including for the roughly one man in twelve with a red-green colour deficiency. Deficiencies flatten hue and leave lightness alone, so separation is bought by spreading the six in lightness rather than by spacing them evenly in hue. `core` and `key` are the glyph interior and its keyline, shared by every palette. Switch palette by changing `default`. Measured by tools/palette.js, which simulates each deficiency and reports the closest pair.",
-  "default": "lively",
+  "note": "Four colours, each the ground of some cells and the ink of others, so the palette has to survive every ordered pair rather than each colour on the paper. Measured by `tools/palette.js` for perceptual distance under normal and colour-deficient vision, and by `tools/contrast.js` for WCAG contrast. The closest pair is green against blue, which a tritanope can barely separate; the keyline is what carries the six pairs that sit under the 3:1 floor.",
+  "colors": [
+    { "name": "red", "hex": "#F33122" },
+    { "name": "orange", "hex": "#FFB24D" },
+    { "name": "green", "hex": "#298800" },
+    { "name": "blue", "hex": "#536CF9" }
+  ],
   "core": "#101216",
-  "key": "#000000",
-  "palettes": {
-    "trace": {
-      "name": "Trace",
-      "note": "Six hues evenly spaced and close in weight. The most colourful of the set and the least separable: its closest pair is green against cyan.",
-      "colors": [
-        { "name": "red", "hex": "#EC3334" },
-        { "name": "yellow", "hex": "#FFF627" },
-        { "name": "green", "hex": "#52DE52" },
-        { "name": "cyan", "hex": "#00E0DF" },
-        { "name": "blue", "hex": "#6482FF" },
-        { "name": "magenta", "hex": "#B82CBB" }
-      ]
-    },
-    "deep": {
-      "name": "Deep",
-      "note": "Muted, and free to spread in lightness — which is where its separation comes from. The widest margin of any palette here, at the cost of green reading pale and magenta dark.",
-      "colors": [
-        { "name": "red", "hex": "#BE5034" },
-        { "name": "yellow", "hex": "#C2A702" },
-        { "name": "green", "hex": "#B9E997" },
-        { "name": "cyan", "hex": "#0AC5D3" },
-        { "name": "blue", "hex": "#4F7ED5" },
-        { "name": "magenta", "hex": "#70407B" }
-      ]
-    },
-    "even": {
-      "name": "Even",
-      "note": "Muted, but held to a narrow lightness range so the six read as one set. Buys less separation than Deep and looks closer to Trace.",
-      "colors": [
-        { "name": "red", "hex": "#C15544" },
-        { "name": "yellow", "hex": "#BB9F00" },
-        { "name": "green", "hex": "#9EC683" },
-        { "name": "cyan", "hex": "#00CFDF" },
-        { "name": "blue", "hex": "#6598F6" },
-        { "name": "magenta", "hex": "#9D70AB" }
-      ]
-    },
-    "legible": {
-      "name": "Legible",
-      "note": "The Okabe-Ito palette (jfly.uni-koeln.de/color), chosen and verified by its authors to stay distinguishable under every colour deficiency. Keeps the six slot names, but they are orange, sky, blue-green, yellow, blue and vermilion.",
-      "colors": [
-        { "name": "red", "hex": "#D55E00" },
-        { "name": "yellow", "hex": "#F0E442" },
-        { "name": "green", "hex": "#009E73" },
-        { "name": "cyan", "hex": "#56B4E9" },
-        { "name": "blue", "hex": "#0072B2" },
-        { "name": "magenta", "hex": "#E69F00" }
-      ]
-    },
-    "lively": {
-      "name": "Lively",
-      "note": "Colourful without glare: the yellow stays light but softens to cream, and the green goes deep enough to stop competing with the cyan. Its closest pair is 0.236 against Trace's 0.171 — further apart and calmer at once. Of its six, red, yellow, green and blue stand furthest apart at 0.342, which is the set `use` would name for a four-colour run.",
-      "colors": [
-        { "name": "red", "hex": "#F33122" },
-        { "name": "yellow", "hex": "#EFE8A7" },
-        { "name": "green", "hex": "#298800" },
-        { "name": "cyan", "hex": "#57B8C2" },
-        { "name": "blue", "hex": "#536CF9" },
-        { "name": "magenta", "hex": "#C201B8" }
-      ],
-      "use": [0, 1, 2, 4]
-    }
-  }
+  "key": "#000000"
 }

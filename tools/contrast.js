@@ -13,18 +13,16 @@
 //
 // Usage:
 //   node tools/contrast.js                 # the palette the game ships
-//   node tools/contrast.js --palette deep  # any named palette in the file
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { paletteNames, resolvePalette } from '../src/palette.js';
+import { resolvePalette } from '../src/palette.js';
 import { VIEW } from '../src/render.js';
 import { parseArgs } from './args.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
 
 const SPEC = {
-  palette: { type: 'string', default: null },
   floor: { type: 'number', default: 3 },
 };
 
@@ -44,11 +42,9 @@ export function contrast(a, b) {
 function main() {
   const args = parseArgs(process.argv.slice(2), SPEC);
   const pack = read('../data/palette.json');
-  const palette = resolvePalette(pack, args.palette ?? undefined);
-  const { colors, key } = palette;
+  const { colors, key } = resolvePalette(pack);
 
-  console.log(`\npalette "${palette.id}" — ${colors.map((c) => `${c.name} ${c.hex}`).join('  ')}`);
-  console.log(`(others in the file: ${paletteNames(pack).map((p) => p.id).filter((id) => id !== palette.id).join(', ')})\n`);
+  console.log(`\npalette — ${colors.map((c) => `${c.name} ${c.hex}`).join('  ')}\n`);
 
   const w = Math.max(8, ...colors.map((c) => c.name.length + 2));
   const cell = (s) => String(s).padStart(8);

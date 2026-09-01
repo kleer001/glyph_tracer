@@ -122,7 +122,7 @@ import { resolvePalette } from '../src/palette.js';
 import { mulberry32 } from '../src/rng.js';
 import { boardLayout, createGlyphLayer, createGroundLayer, VIEW } from '../src/render.js';
 
-// The file holds several named palettes; resolvePalette flattens the live one,
+// resolvePalette validates the file before anything draws with it,
 // which is what every other page here draws from.
 const PALETTE = resolvePalette(await (await fetch('../data/palette.json')).json());
 const GLOSS = await (await fetch('../data/gloss.json')).json();

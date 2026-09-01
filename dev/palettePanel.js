@@ -23,32 +23,27 @@ export function rgbToHex({ r, g, b }) {
 }
 
 /**
- * One palette as the block it occupies inside data/palette.json's `palettes`, so what
- * you copy off the panel is what you paste back over it. `core` and `key` are shared by
- * every palette and sit at the top level of that file, so they are not part of a block.
+ * The palette as the file holds it, for pasting back over data/palette.json.
  *
- * Every colour the palette DEFINES is written, not only the live ones — a palette that
- * plays four of its six still has six, and copying back the four would throw the other
- * two away along with any `use` that named them.
+ * The whole file, not a fragment: there is one palette, so a partial copy would be a
+ * file that no longer parses rather than a block that slots back into place.
  *
- * @param {{id: string, name: string, note: string, colors: Array, defined?: Array,
- *   use?: Array<number>}} palette - resolved.
+ * @param {{note: string, colors: Array, core: string, key: string}} palette - resolved.
  * @returns {string}
  */
 export function paletteFileText(palette) {
-  const defined = palette.defined ?? palette.colors;
-  const colors = defined.map((c) => `        { "name": ${JSON.stringify(c.name)}, "hex": "${c.hex}" }`);
-  const live = palette.use ?? defined.map((_, i) => i);
-  const usesAll = live.length === defined.length && live.every((v, i) => v === i);
+  const colors = palette.colors.map(
+    (c) => `    { "name": ${JSON.stringify(c.name)}, "hex": "${c.hex}" }`,
+  );
   return [
-    `    ${JSON.stringify(palette.id)}: {`,
-    `      "name": ${JSON.stringify(palette.name)},`,
-    `      "note": ${JSON.stringify(palette.note)},`,
-    '      "colors": [',
+    '{',
+    `  "note": ${JSON.stringify(palette.note)},`,
+    '  "colors": [',
     colors.join(',\n'),
-    usesAll ? '      ]' : '      ],',
-    ...(usesAll ? [] : [`      "use": [${live.join(', ')}]`]),
-    '    }',
+    '  ],',
+    `  "core": "${palette.core}",`,
+    `  "key": "${palette.key}"`,
+    '}',
     '',
   ].join('\n');
 }

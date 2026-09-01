@@ -7,8 +7,7 @@
 // separate is a rule they cannot read.
 //
 // Usage:
-//   node tools/palette.js                       # every palette in data/palette.json
-//   node tools/palette.js --palette deep
+//   node tools/palette.js                       # the palette the game ships
 //   node tools/palette.js --hex "#EC3334 #FFF627 #52DE52 #00E0DF #6482FF #B82CBB"
 //
 // Colour-vision-deficiency simulation and perceptual distance.
@@ -115,7 +114,7 @@ export function separation(hexes) {
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { paletteNames, resolvePalette } from '../src/palette.js';
+import { resolvePalette } from '../src/palette.js';
 import { parseArgs } from './args.js';
 
 /** A rough reading of the numbers, so the table says what it means. */
@@ -142,7 +141,6 @@ function report(label, hexes) {
 
 function main() {
   const args = parseArgs(process.argv.slice(2), {
-    palette: { type: 'string', default: null },
     hex: { type: 'string', default: null },
   });
 
@@ -155,11 +153,7 @@ function main() {
     return;
   }
   const pack = JSON.parse(readFileSync(new URL('../data/palette.json', import.meta.url), 'utf8'));
-  const wanted = args.palette ? [{ id: args.palette }] : paletteNames(pack);
-  for (const { id } of wanted) {
-    const p = resolvePalette(pack, id);
-    report(`${p.name}${id === pack.default ? '   (default)' : ''}`, p.colors.map((c) => c.hex));
-  }
+  report('the shipped palette', resolvePalette(pack).colors.map((c) => c.hex));
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) main();

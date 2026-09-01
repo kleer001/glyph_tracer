@@ -122,7 +122,7 @@ import { resolvePalette } from '../src/palette.js';
 import { drawGlyph, drawTile } from '../src/render.js';
 import { CELL } from '../src/glyphShapes.js';
 
-// The file holds several named palettes; resolvePalette flattens the live one,
+// resolvePalette validates the file before anything draws with it,
 // which is what every other page here draws from.
 const PALETTE = resolvePalette(await (await fetch('../data/palette.json')).json());
 const GLYPHS = (await (await fetch('../data/glyphs.json')).json()).glyphs;
