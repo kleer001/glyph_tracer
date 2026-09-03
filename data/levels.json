@@ -38,12 +38,13 @@
           "teaches": "Read both ends of a swap: what lands, and what it lands on",
           "budget": 1,
           "target": 2,
-          "note": "Four pieces and three swaps that land something. One of them lands twice.",
+          "note": "The frame opens to five across, and nine pieces on a cross. Fifteen swaps land a match; one lands two.",
           "board": [
-            "bC. bA. ... ...",
-            "aB. aD. ... ...",
-            "... ... ... ...",
-            "... ... ... ..."
+            "... ... aB. ... ...",
+            "... ... bC. ... ...",
+            "bC. bD. aD. cA. bC.",
+            "... ... dC. ... ...",
+            "... ... dA. ... ..."
           ]
         },
         {
@@ -51,12 +52,13 @@
           "teaches": "Most swaps pay once",
           "budget": 1,
           "target": 2,
-          "note": "Ten pieces. Twenty-two swaps land a match and exactly one of them lands two.",
+          "note": "The cross opened into a diamond. Twenty-nine swaps land a match and the answer is still a single pair.",
           "board": [
-            "bA. cB. cB. aD.",
-            "bD. aC. cD. aC.",
-            "dC. aC. ... ...",
-            "... ... ... ..."
+            "... ... bC. ... ...",
+            "... bC. aB. aC. ...",
+            "bC. bD. cA. bD. dC.",
+            "... dC. dA. bD. ...",
+            "... ... dA. ... ..."
           ]
         },
         {
@@ -64,12 +66,13 @@
           "teaches": "The whole board is in reach, and one pair is the answer",
           "budget": 1,
           "target": 2,
-          "note": "The frame full. Fifty-one swaps land a match; the pair that pays twice is the only one.",
+          "note": "The frame full. A hundred and eighteen swaps land a match, and one pair pays twice.",
           "board": [
-            "dB. dA. cA. cD.",
-            "aC. dA. bC. dB.",
-            "bC. dB. aB. bC.",
-            "bC. dA. dB. bC."
+            "bD. cB. cA. dA. bC.",
+            "cA. dA. aB. dC. aB.",
+            "aB. dC. aB. dC. aB.",
+            "aB. cA. aB. aB. dC.",
+            "aB. aB. dA. dC. dC."
           ]
         }
       ]
@@ -109,39 +112,42 @@
           "id": 8,
           "teaches": "Two aims on one board, and only one of them pays",
           "budget": 1,
-          "target": 3,
-          "note": "Thirteen swaps land a match. One of them fires the A whose line is grounded.",
+          "target": 4,
+          "note": "Two A's facing apart down one column. No swap on this board shows two matches; eighteen show one, and one of those clears four.",
           "board": [
-            "cD. dB^ dA. dA.",
-            "... bC. bD. ...",
-            "... bCv bD. ...",
-            "... ... ... ..."
+            "... ... aB. ... ...",
+            "... ... dB^ ... ...",
+            "dA. bC. bC. dA. cD.",
+            "... ... cAv ... ...",
+            "... ... bC. ... ..."
           ]
         },
         {
           "id": 9,
           "teaches": "On its side it works across",
           "budget": 1,
-          "target": 4,
-          "note": "The sideways letter is never demonstrated. By here the turn is read rather than taught.",
+          "target": 5,
+          "note": "The sideways letter is never demonstrated. Forty-two swaps land a match; the ones showing two clear two, and the answer clears five.",
           "board": [
-            "bD. aC^ aB. bD.",
-            "bD. aB. cA. cA.",
-            "... dA. cA> ...",
-            "... ... bA. ..."
+            "... ... bC. ... ...",
+            "... dB. cB^ bA. ...",
+            "bC. cB> cB. bC. cD.",
+            "... dB. aBv cD. ...",
+            "... ... bC. ... ..."
           ]
         },
         {
           "id": 10,
           "teaches": "Which one you fire is the choice",
           "budget": 1,
-          "target": 5,
-          "note": "Four A's, all four facings, and fifty-one swaps that land a match. The answer shows one match and clears five; the swaps showing two clear two.",
+          "target": 8,
+          "note": "Four A's over a full frame, and a hundred and thirty-four swaps that land a match. The ones showing two clear two; the answer clears eight.",
           "board": [
-            "dC. dA^ dC. cB.",
-            "aD. dC^ bC. cD.",
-            "bA. cD> dB. bD.",
-            "cA. cA< dA. dB."
+            "cD. aC^ cA. dA. bC.",
+            "bC. aB. dC. dBv cB.",
+            "aB. aB. bD. dA. dB.",
+            "bC. aC< cB. bC. bC.",
+            "bA. dB. cD. aC^ cA."
           ]
         }
       ]

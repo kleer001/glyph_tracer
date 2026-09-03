@@ -12,17 +12,17 @@ which is a separate piece of work.
 
 Nine lessons, one per glyph family, five levels each — forty-five levels.
 
-| # | Lesson | Family | Frame | Allowance |
-|---|---|---|---|---|
-| 1 | the match, and total reach | inert | 4x4 | 1 |
-| 2 | the pushes | `A` at four turns | 4x4 | 1 |
-| 3 | the pulse | `O` | 4x4 | 1 |
-| 4 | the anchor | `H` | 4x5 | 1 |
-| 5 | the bars | `\|` `-` | 4x5 | 1 |
-| 6 | the cross | `+` | 4x5 | 2 |
-| 7 | the corners | `/` `\` `X` | 5x5 | 2 |
-| 8 | the ring | `r` and its mirror | 5x5 | 2 |
-| 9 | the sink | `S` | 5x5 | 3 |
+| # | Lesson | Family | Allowance |
+|---|---|---|---|
+| 1 | the match, and total reach | inert | 1 |
+| 2 | the pushes | `A` at four turns | 1 |
+| 3 | the pulse | `O` | 1 |
+| 4 | the anchor | `H` | 1 |
+| 5 | the bars | `\|` `-` | 1 |
+| 6 | the cross | `+` | 2 |
+| 7 | the corners | `/` `\` `X` | 2 |
+| 8 | the ring | `r` and its mirror | 2 |
+| 9 | the sink | `S` | 3 |
 
 The four pushes are one lesson, not four: they differ only in the turn of one drawing.
 The ring pair and the three corner swaps collapse the same way. The bars have no diagram
@@ -31,16 +31,16 @@ that act appears when its first board does.
 
 Five slots inside a lesson, in order:
 
-1. **the diagram** — one legal move, the ability and nothing else
-2. **a puzzle** — the family alone, on a board that can be read
-3. **a puzzle** — the family alone, on a board that misleads
-4. **a combination** — this family and one learned earlier
-5. **a combination** — this family and two learned earlier
+1. **the teaching level, on 4x4** — the ability and little else
+2. **the teaching level, on 4x4** — the half of the rule the first could not show
+3. **a puzzle, on 5x5** — the family, and one family learned earlier
+4. **a puzzle, on 5x5** — and one more
+5. **a puzzle, on 5x5** — and one more again
 
-The early lessons have nothing to combine with — inert is on every board — so their five
-run diagram, diagram, puzzle, puzzle, puzzle instead, with the second diagram spent on the
-half of the rule the first could not show. The combination slots open once two families
-have been taught.
+The frame grows inside every lesson rather than across the run: small enough to read while
+the rule is new, open by the time it is being used. The early lessons have nothing to
+combine with — inert is on every board — so until two families have been taught their
+last three levels ramp on live cells and count alone.
 
 A level may carry any glyph from its own lesson or an earlier one, and carries only what
 its puzzle needs. Combinations across the whole set, with no whitelist at all, are a
@@ -50,16 +50,21 @@ later act rather than the tail of this one.
 
 A frame is the grid a puzzle is drawn in; dead cells carve the shape out of it. What
 governs how readable a board is, and how large its search is, is the live-cell count —
-a 5x5 frame holding eleven live cells offers 55 pairs against the full grid's 300.
+a 5x5 frame holding nine live cells offers a fraction of the full grid's 300 pairs.
 
 | Slot | Live cells |
 |---|---|
-| diagram | 2–6 |
-| solo puzzle | 6–10 |
-| combination | 10–16 |
+| teaching | 2–8 |
+| first puzzle | 9–13 |
+| second puzzle | 13–18 |
+| third puzzle | up to the full frame |
 
-The frame grows for reach: a pulse, a ring or a sink needs its glyph at least one cell
-from every edge, and a 4x4 has only four such cells.
+Two frames, and no third: 5x5 has a true centre, which a pulse, a ring or a sink needs to
+show all four of its arms, and 4x4 has only four cells with every arm on the board.
+
+The frame is also what the chain needs. On 4x4 a single swap through the pushes clears
+four or five cells and does not move with more search — a push advances one line by one,
+and there is no runway. The same layout on 5x5 clears eight.
 
 ## What a level is
 
