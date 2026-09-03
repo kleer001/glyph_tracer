@@ -17,7 +17,6 @@ Serve the game root and open them — never as `file://`, since they import from
 | `cell.html` | All twelve glyphs at once, each on a random ground with a different random ink, and every length on a slider. Writes `data/geometry.json`, and `data/gloss.json` from the same page. Carries the palette editor. |
 | `gloss.html` | Highlight and shadow on one cell and one glyph. Drives `drawTile()` and `drawGlyph()` from `src/render.js`, so what is tuned is what ships. Writes `data/gloss.json`. |
 | `timing.html` | Animation timing across eight canned cascades, each a real board resolved by `src/board.js` and played back by `src/animate.js`. Writes `data/animation.json`. |
-| `burst.html` | A cleared cell's particle throw, every term on a slider. Radial about the cell that threw it, because this board has no gravity to borrow. |
 | `silhouette.html` | Every glyph as a solid shape, compared pairwise by overlap. Says which two pieces are hardest to tell apart, and how much of the cell each one inks. |
 | `fxframes.html` | Not a sandbox: a harness. It draws one named ability effect at an elapsed time it is handed and runs no clock of its own, so a capture is the same frame every run. Drive it a frame at a time from a browser and encode the stills with `tools/framesToGif.sh`. |
 

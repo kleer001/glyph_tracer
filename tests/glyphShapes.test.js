@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { AUTHORED, CELL, GEOMETRY_KEYS, glyphDrawing, keylineUnits } from '../src/glyphShapes.js';
+import { WELL_KEYS } from '../src/render.js';
 
 const GEOM = JSON.parse(readFileSync(new URL('../data/geometry.json', import.meta.url), 'utf8'));
 const GLYPHS = JSON.parse(readFileSync(new URL('../data/glyphs.json', import.meta.url), 'utf8')).glyphs;
@@ -104,12 +105,14 @@ test('data/gloss.json carries every knob the renderer asks for', () => {
   for (const key of ['cellShadowA', 'sheen', 'sheenStop', 'bevel', 'glyphShadowA']) {
     assert.ok(gloss[key] <= 100, `${key} is a percentage and must not exceed 100`);
   }
-  // The well is the board's tray, not a knob on one cell, so it is its own group.
-  for (const key of ['pad', 'radius', 'tintA', 'shadowY', 'shadowBlur', 'shadowA']) {
+  // The well is the board's tray, not a knob on one cell, so it is its own group. The
+  // list comes from the renderer rather than being retyped here, or the constant that
+  // exists to stop drift is the thing that drifts.
+  for (const key of WELL_KEYS) {
     assert.equal(typeof gloss.well[key], 'number', `gloss.well is missing "${key}"`);
     assert.ok(gloss.well[key] >= 0, `well.${key} is negative`);
   }
-  for (const key of ['tintA', 'shadowA']) {
+  for (const key of ['tintA', 'shadowA', 'divotA']) {
     assert.ok(gloss.well[key] <= 100, `well.${key} is a percentage and must not exceed 100`);
   }
 });

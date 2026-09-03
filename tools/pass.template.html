@@ -1,0 +1,108 @@
+<title>Glyph Tracer Motion Pass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Martian+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --paper:#EDEEF0; --surface:#F7F8F9; --ink:#16171A; --dim:#6B6F76;
+  --hair:#D3D6DA; --accent:#3B51D6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#141518; --surface:#1C1E22; --ink:#E6E7EA;
+    --dim:#969BA3; --hair:#2E3138; --accent:#93A2FF;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#141518; --surface:#1C1E22; --ink:#E6E7EA;
+  --dim:#969BA3; --hair:#2E3138; --accent:#93A2FF;
+}
+* { box-sizing:border-box; }
+body {
+  background:var(--paper); color:var(--ink); margin:0; padding:0 20px 90px;
+  font-family:Newsreader,Georgia,"Times New Roman",serif; font-size:18px; line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap { max-width:1080px; margin:0 auto; }
+header { padding:66px 0 34px; display:flex; flex-direction:column; gap:14px; }
+.eyebrow {
+  font-family:"Martian Mono",ui-monospace,monospace; font-size:10px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:0;
+}
+h1 { font-size:clamp(38px,7vw,58px); font-weight:300; letter-spacing:-.022em; margin:0; line-height:1.02; text-wrap:balance; }
+h1 em { font-style:italic; font-weight:400; }
+.standfirst { font-size:21px; line-height:1.5; color:var(--dim); margin:0; max-width:42em; }
+hr { border:0; border-top:1px solid var(--hair); margin:0 0 32px; }
+
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+.card {
+  margin:0; background:var(--surface); border:1px solid var(--hair); border-radius:5px;
+  overflow:hidden; display:flex; flex-direction:column;
+}
+.card img { display:block; width:100%; height:auto; border-bottom:1px solid var(--hair); }
+figcaption { padding:15px 16px 18px; display:flex; flex-direction:column; gap:7px; }
+.card h3 {
+  font-family:"Martian Mono",ui-monospace,monospace; font-size:10px; font-weight:600;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--dim); margin:0;
+}
+.does { margin:0; font-size:16.5px; line-height:1.5; }
+.how { margin:0; font-size:16.5px; line-height:1.5; color:var(--dim); }
+
+section { margin:52px 0 0; }
+h2 { font-size:26px; font-weight:400; letter-spacing:-.015em; margin:0 0 12px; }
+p { max-width:66ch; margin:0 0 15px; }
+code {
+  font-family:"Martian Mono",ui-monospace,monospace; font-size:.78em;
+  background:var(--paper); border:1px solid var(--hair); border-radius:3px; padding:.1em .35em;
+}
+strong { font-weight:600; }
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Glyph Tracer &middot; everything from one pass</p>
+  <h1>Five motions, <em>recorded</em></h1>
+  <p class="standfirst">A won level clearing itself away, a piece squashing as it is
+  shoved, the tray reporting how far the board has drained, what a cleared cell throws,
+  and the answer to a swap that achieved nothing. Every one is the real engine resolving
+  the real rules.</p>
+</header>
+<hr />
+
+<div class="grid"><!--__CARDS__--></div>
+
+<section>
+  <h2>What changed underneath</h2>
+  <p><strong>A dying cell's turn stopped being derived.</strong> It used to run on a
+  curve worked out at each frame from how much room the shrink had made, which guaranteed
+  a corner never crossed into the cell beside it. The squash needs those corners &mdash;
+  narrowing to 60% along the travel means stretching to 1.667 across, which is wider than
+  a cell &mdash; so the guarantee went and the curve became a number in the data file.
+  Pieces bulge over their neighbours now, on purpose.</p>
+  <p><strong>The finale commits the level itself.</strong> Growing the next board in and
+  then waiting for a tap does not work: the moment playback ends, the board being held is
+  still the spent one, and it paints straight over the arrival. So the level advances when
+  the finale ends rather than when you next touch it.</p>
+  <p><strong>A burst is a closed form, not a simulation.</strong> Every particle's whole
+  life is a function of how long ago its beat began. Nothing is stepped, so nothing has to
+  be reset when playback is cut short, and one seed throws the same burst every time.</p>
+</section>
+
+<section>
+  <h2>One thing still wrong</h2>
+  <p>A burst cannot outlive the beat its cell dies on, because that beat is where its
+  clock starts. At the shipped timings that beat is 300&nbsp;ms, so the burst is capped
+  there rather than finishing &mdash; at 620 it was being cut off at less than half its
+  life, while still bright. Letting it run longer needs a clock that survives a phase
+  boundary, which is a change to what a frame carries rather than a number to turn.</p>
+</section>
+
+<section>
+  <h2>How these were made</h2>
+  <p>The frame harness draws one named effect at an elapsed time it is handed and runs no
+  clock of its own, so a capture is the same frame every run. That matters more than it
+  sounds: a canvas screenshot costs seconds here, so anything timed against a wall clock
+  finishes before the first frame is taken.</p>
+</section>
+</div>

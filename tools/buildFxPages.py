@@ -74,6 +74,37 @@ PREVIEW = {
 
 MIME = {'.gif': 'image/gif', '.png': 'image/png'}
 
+# The motion pass: one recording per effect from a single round of work. Unlike the
+# plate, which is every ability, this is a page that stops being true the next time the
+# motion changes -- so it writes to tmp/ rather than artifacts/.
+PASS = [
+    ('pass-finale', 'level complete',
+     'Everything left shrinks away together, the board holds empty half a second, and '
+     'the next one grows in.',
+     'Every cell turns on the way out, whether the rules killed it or it was still '
+     'standing. The turn is the exit, not a mark of having activated.'),
+    ('pass-push', 'squash and stretch',
+     'A shoved piece narrows along the way it is going and widens across.',
+     'Down to 60% along, and out to whatever holds its area, which is wider than the '
+     'cell it is passing through. Square at both ends of the trip, most compressed in '
+     'the middle.'),
+    ('pass-pulse', 'the burst',
+     'A cleared cell throws thirty dots outward, one to three pixels each.',
+     'Radial, with no gravity: this board has no down, and a burst that falls would '
+     'imply one. Timed off the cell that threw it, so a staggered run bursts as the '
+     'same wave it shrinks in.'),
+    ('pass-drained', 'the drain, made legible',
+     'A board already half gone: a socket where each cell used to sit, and a tray that '
+     'sinks as it empties.',
+     'Two readings of one thing. The sockets say which cells went; the rim says how far '
+     'along. The board draining is the score, and it used to be legible only from the '
+     'counter.'),
+    ('pass-dud', 'a swap that achieved nothing',
+     'The two cells shake where they landed, at one amplitude, for half a second.',
+     'It has to read as pointless rather than refused: the pieces really did trade and '
+     'the budget really did go down, so nothing snaps back.'),
+]
+
 
 def inline(path: pathlib.Path) -> str:
     if not path.exists():
@@ -114,6 +145,20 @@ def build_pair() -> None:
     write(page, 'fx-pair.html')
 
 
+def build_pass() -> None:
+    cards = ''.join(f'''
+  <figure class="card">
+    <img src="{inline(GIFS / f'{name}.gif')}" alt="{title} playing on a board" loading="lazy" />
+    <figcaption>
+      <h3>{title}</h3>
+      <p class="does">{does}</p>
+      <p class="how">{how}</p>
+    </figcaption>
+  </figure>''' for name, title, does, how in PASS)
+    page = (ROOT / 'tools/pass.template.html').read_text(encoding='utf-8')
+    write(page.replace('<!--__CARDS__-->', cards), 'pass.html', ROOT / 'tmp')
+
+
 def build_preview() -> None:
     page = (ROOT / 'tools/juice-preview.template.html').read_text(encoding='utf-8')
     for slot, filename in PREVIEW.items():
@@ -124,18 +169,21 @@ def build_preview() -> None:
     write(page, 'juice-preview.html')
 
 
-def write(page: str, name: str) -> None:
+def write(page: str, name: str, into: pathlib.Path = None) -> None:
     # The page carries its own gifs, so it has to survive a host that guesses at the
     # encoding. Pure ASCII is the cheapest way to make that impossible to get wrong.
     non_ascii = sorted({c for c in page if ord(c) > 127})
     if non_ascii:
         raise SystemExit(f'{name} must be pure ASCII; found {non_ascii}')
-    target = ROOT / 'artifacts' / name
+    home = into or (ROOT / 'artifacts')
+    home.mkdir(exist_ok=True)
+    target = home / name
     target.write_text(page, encoding='ascii')
     print(f'wrote {target.relative_to(ROOT)}  ({len(page) / 1e6:.2f} MB)')
 
 
-BUILDERS = {'plate': build_plate, 'pair': build_pair, 'preview': build_preview}
+BUILDERS = {'plate': build_plate, 'pair': build_pair, 'preview': build_preview,
+            'pass': build_pass}
 
 
 def main() -> None:

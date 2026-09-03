@@ -29,7 +29,7 @@ import { beamReach, beamStyleFor, targetsFor } from '../src/abilityFx.js';
 import { buildTimeline, sampleTimeline, staticFrame } from '../src/animate.js';
 import { createCompositor } from '../src/compositor.js';
 import { beamSpan, drawBeam, ghostAt, grabAt, swellAt } from '../src/fx.js';
-import { createFlashLayer } from '../src/fxLayer.js';
+import { createBurstLayer, createFlashLayer } from '../src/fxLayer.js';
 import { CELL } from '../src/glyphShapes.js';
 import { resolvePalette } from '../src/palette.js';
 import { mulberry32 } from '../src/rng.js';
@@ -169,6 +169,45 @@ export const SCENES = {
   // The two already tuned, so the plate covers every glyph in the pack.
   push: () => { const b = bed(); put(b, MID, MID, byKind.get(PUSH_RIGHT)); return resolveAt(b, MID, MID); },
   rotate: () => { const b = bed(); put(b, MID, MID, byKind.get('rotate')); return resolveAt(b, MID, MID); },
+  // A swap that sets nothing off. Nothing fires, so nothing throws a beam or a ghost.
+  dud: () => {
+    const b = bed();
+    mark(b, MID, 0, 'push-right', 0, 2);
+    mark(b, MID, SIZE - 1, 'sink', 3, 1);
+    const before = copyBoard(b);
+    const recorder = createRecorder();
+    applySwap(b, [MID, 0], [MID, SIZE - 1], mulberry32(9), recorder);
+    return {
+      before, recorder, noFx: true, at: [MID, 0], firedAt: 0,
+      timeline: buildTimeline({ before, swap: [[MID, 0], [MID, SIZE - 1]], recorder, timing: ANIM }),
+    };
+  },
+  // A level won: everything left goes, the board holds empty, the next one grows in.
+  finale: () => {
+    const b = bed();
+    put(b, MID, MID, byKind.get('pulse'));
+    b.glyph[MID][MID] = b.bg[MID][MID];
+    const before = copyBoard(b);
+    const recorder = createRecorder();
+    settle(b, mulberry32(9), recorder);
+    const next = bed();
+    return {
+      before, recorder, noFx: true, at: [MID, MID], firedAt: 0,
+      timeline: buildTimeline({
+        before, swap: [[MID, MID], [MID, MID]], recorder, timing: ANIM,
+        finale: { from: copyBoard(b), to: next },
+      }),
+    };
+  },
+  // A board already half gone, so the tray's sockets and its deepening rim are visible.
+  drained: () => {
+    const b = bed();
+    for (const [r, c] of [[0, 1], [1, 3], [2, 0], [3, 2], [4, 4], [1, 1], [3, 4]]) {
+      b.alive[r][c] = false; b.glyph[r][c] = null; b.kind[r][c] = ''; b.art[r][c] = null;
+    }
+    put(b, MID, MID, byKind.get('pulse'));
+    return resolveAt(b, MID, MID);
+  },
   // How far a colour can travel toward white depends on the colour. One scene per live
   // colour under the piece that fires -- identical otherwise -- so the flash can be
   // watched on each rather than read off a table.
@@ -194,6 +233,7 @@ window.load = (name) => {
 const fxLayer = {
   name: 'fx',
   draw(c2, frame) {
+    if (scene.noFx) return;
     const { layout, elapsed } = frame;
     c2.beginPath();
     c2.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
@@ -264,6 +304,7 @@ const fxLayer = {
 const ghostLayer = {
   name: 'ghost',
   draw(c2, frame) {
+    if (scene.noFx) return;
     const { layout, elapsed } = frame;
     const [r, c] = scene.at;
     const glyph = byId.get(scene.before.art[r][c]);
@@ -321,7 +362,8 @@ const scene3 = createCompositor()
   .add(createFlashLayer(VIEW_HERE))
   .add(fxLayer)
   .add(createGlyphLayer(VIEW_HERE))
-  .add(ghostLayer);
+  .add(ghostLayer)
+  .add(createBurstLayer(VIEW_HERE));
 
 window.renderAt = (ms) => {
   const drawList = sampleTimeline(scene.timeline, ms, ANIM.spin) ?? staticFrame(scene.before);

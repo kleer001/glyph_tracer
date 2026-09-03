@@ -150,6 +150,15 @@ function delayFor(cell, activated, staggerMs) {
   return Math.max(0, reach - 1) * staggerMs;
 }
 
+/** Every live cell on a board, for a phase that acts on all of them at once. */
+function allCells(board) {
+  const out = [];
+  for (let r = 0; r < board.height; r++) {
+    for (let c = 0; c < board.width; c++) if (board.alive[r][c]) out.push([r, c]);
+  }
+  return out;
+}
+
 /** Every piece standing on a board, as a sprite that does not move. */
 function restingSprites(board, timing) {
   const sprites = [];
@@ -198,6 +207,7 @@ export function staticFrame(board) {
   const phase = {
     tweenMs: 1,
     holdMs: 0,
+    board,
     tiles: tilesOf(board),
     sprites: restingSprites(board, at_rest),
   };
@@ -210,6 +220,9 @@ export function staticFrame(board) {
  * @param {object} args.before - the board as it stood before the swap.
  * @param {Array} args.swap - the two cells the player exchanged.
  * @param {{steps: Array}} args.recorder - what settle() collected.
+ * @param {object} [args.finale] - `{ from, to }`: the board a won level ends on, and the
+ *   one that grows in after it. `to` may be null at the end of a run, and then the board
+ *   clears itself away and nothing replaces it.
  * @param {object} args.timing - swapMs, stepMs, holdMs, staggerMs, splitBeats,
  *   easing, hitStopMs.
  *   `holdMs` is a still beat after each phase; `staggerMs` delays each piece by how
@@ -220,10 +233,10 @@ export function staticFrame(board) {
  *   link sits.
  * @returns {{phases: Array, totalMs: number}}
  */
-export function buildTimeline({ before, swap, recorder, timing }) {
+export function buildTimeline({ before, swap, recorder, timing, finale = null }) {
   const { stepMs, holdMs = 0, staggerMs = 0, splitBeats = false, shrinkMs = stepMs,
     glyphFadeMs = shrinkMs, easing = null, hitStopMs = 0, escalate = null,
-    swapArc = 0, smear = null } = timing;
+    swapArc = 0, smear = null, squash = null, jiggle = null, finaleHoldMs = 0 } = timing;
   const [a, z] = swap;
   const swapMs = swapDurationFor(a, z, timing);
   let cleared = 0;
@@ -340,9 +353,62 @@ export function buildTimeline({ before, swap, recorder, timing }) {
       })),
     }));
   }
+  // What every phase after the last step is timed by: nothing travels, so only the
+  // shrink and the fade have anything to spend.
+  const still = { moveMs: 1, shrinkMs, glyphFadeMs };
+
+  // The level is won. Everything left goes at once, the board sits empty a beat, and the
+  // next one grows into it. The only moment the game is allowed to be loud.
+  if (finale) {
+    phases.push(phaseOf({
+      cleared,
+      holdMs: finale.to ? finaleHoldMs : 0,
+      fires: [],
+      eats: [],
+      board: finale.from,
+      tiles: tilesOf(finale.from, allCells(finale.from), [], 0, shrinkMs),
+      sprites: restingSprites(finale.from, still)
+        .map((s) => ({ ...s, scaleTo: 0, spin: true, fades: true })),
+    }));
+    if (finale.to) {
+      phases.push(phaseOf({
+        cleared,
+        holdMs: 0,
+        fires: [],
+        eats: [],
+        board: finale.to,
+        rising: true,
+        tiles: tilesOf(finale.to, allCells(finale.to), [], 0, shrinkMs),
+        sprites: restingSprites(finale.to, still)
+          .map((s) => ({ ...s, scaleFrom: 0, spin: true })),
+      }));
+    }
+  }
+
+  // A swap that set nothing off still happened: the pieces traded and the budget went
+  // down. So it is answered rather than undone — the two cells shake where they landed,
+  // and nothing snaps back.
+  if (jiggle?.ms && !recorder.steps.length) {
+    phases.push(phaseOf({
+      cleared,
+      holdMs: 0,
+      floorMs: jiggle.ms,
+      fires: [],
+      eats: [],
+      board: before,
+      jiggle: { cells: [a, z], ...jiggle },
+      tiles: tilesOf(before),
+      sprites: restingSprites(before, still).map((sprite) => {
+        if (key(sprite.from) === key(a)) return { ...sprite, from: z, to: z };
+        if (key(sprite.from) === key(z)) return { ...sprite, from: a, to: a };
+        return sprite;
+      }),
+    }));
+  }
+
   // Every phase of one timeline runs on the same curves, so they are set once here
   // rather than threaded through four calls to phaseOf.
-  const eased = phases.map((phase) => ({ ...phase, easing, swapArc, smear }));
+  const eased = phases.map((phase) => ({ ...phase, easing, swapArc, smear, squash }));
   return { phases: eased, totalMs: eased.reduce((sum, p) => sum + p.tweenMs + p.holdMs, 0) };
 }
 
@@ -376,6 +442,29 @@ function phaseOf(phase) {
 const lerp = (from, to, t) => from + (to - from) * t;
 const NO_BOW = Object.freeze({ x: 0, y: 0 });
 const EMPTY = Object.freeze([]);
+const NO_SQUASH = Object.freeze({ x: 1, y: 1 });
+
+/**
+ * How a travelling piece is compressed, as a scale on each axis.
+ *
+ * It narrows along the way it is going and widens across, by whatever holds its area, so
+ * it stays the same piece rather than becoming a smaller or larger one. Square at both
+ * ends of the trip and most compressed in the middle. A diagonal splits the effect
+ * between the axes by how much of the travel each one carries.
+ */
+function squashOf(sprite, squash, t) {
+  if (!squash?.floor) return NO_SQUASH;
+  const [dy, dx] = [sprite.to[0] - sprite.from[0], sprite.to[1] - sprite.from[1]];
+  const span = Math.abs(dy) + Math.abs(dx);
+  if (!span) return NO_SQUASH;
+  const along = 1 - (1 - squash.floor) * Math.sin(Math.PI * t);
+  const across = 1 / along;
+  const sideways = Math.abs(dx) / span;
+  return {
+    x: along * sideways + across * (1 - sideways),
+    y: along * (1 - sideways) + across * sideways,
+  };
+}
 
 /**
  * The copies a piece leaves behind it while it crosses the board.
@@ -425,27 +514,20 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
   const at = (delay, duration) => clamp01((elapsed - delay) / Math.max(1, duration));
   // Arriving and leaving are different motions: a piece decelerates into its cell,
   // and a cell being destroyed gathers pace before easing out of existence.
+  // The answer to a pointless swap: the two cells shake where they landed, at one
+  // amplitude the whole way. A shake that decays reads as a hit landing; this one has to
+  // read as the board saying no.
+  const jig = phase.jiggle;
+  const jigTurn = jig
+    ? Math.sin((elapsed / jig.ms) * jig.cycles * 2 * Math.PI) * (jig.deg * Math.PI) / 180
+    : 0;
+  const shaken = ([r, c]) => jig?.cells.some(([jr, jc]) => jr === r && jc === c) ?? false;
   const easeMove = curveNamed(phase.easing?.move);
   const easeShrink = curveNamed(phase.easing?.shrink);
-  // A cell being destroyed turns as it collapses. The angle is in radians; the
-  // renderer turns tile and piece together about the cell's own centre.
-  //
-  // The turn has to wait for the shrink to make room for it. A square of side s
-  // at angle a is s(|cos a| + |sin a|) wide, so at full size any angle at all
-  // throws its corners over the cells beside it. The most a cell at scale u may
-  // turn is asin(1 / (u * sqrt 2)) - PI/4: nothing at u = 1, opening to 45 degrees
-  // at u = 1/sqrt 2, past which a shrunk square fits inside the cell it is leaving
-  // whichever way it faces. That envelope's own speed runs away to infinity at the
-  // release point, so the spin takes a power curve under it instead. The exponent
-  // is what holds the corners in at any number of turns, and comes out a plain
-  // square law for the one turn the game plays.
-  //
-  // The turns are the phase's own, not the timeline's: a link deeper into a chain
-  // turns further in the same room, so the exponent is taken from what is actually
-  // being spun rather than from what the data file asked for.
+  // The angle is in radians; the renderer turns tile and piece together about the
+  // cell's own centre. Turns build with the chain, the curve does not.
   const turns = (spin?.turns ?? 1) * (phase.escalate ?? 1);
-  const ease = 2 + Math.log2(turns) / 2;
-  const spinAt = (t) => (spin ? turns * t ** ease * 2 * Math.PI : 0);
+  const spinAt = (t) => (spin ? turns * t ** spin.ease * 2 * Math.PI : 0);
   return {
     // how much of this swap's clearing has actually happened on screen
     cleared: phase.cleared ?? 0,
@@ -460,12 +542,22 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
     since,
     tiles: phase.tiles.map((tile) => {
       const t = easeShrink(at(tile.delay, tile.shrinkMs));
+      // A cell growing in is a cell going out, played backwards. One relation, stated
+      // here, rather than two branches that have to be checked against each other.
+      const u = phase.rising ? 1 - t : t;
+      const jiggling = jig && shaken([tile.r, tile.c]);
+      // Unclamped and counted from this tile's own start, so an effect thrown by a cell
+      // keeps that cell's place in the stagger wave rather than the beat's.
+      const age = since - tile.delay;
       return {
         bg: tile.bg,
         x: tile.c,
         y: tile.r,
-        spin: tile.dying ? spinAt(t) : 0,
-        scale: tile.dying ? 1 - t : 1,
+        // a layer drawing what a cell threw needs to know it is going, and when it went
+        dying: tile.dying,
+        age,
+        spin: tile.dying ? spinAt(u) : jiggling ? jigTurn : 0,
+        scale: tile.dying ? 1 - u : jiggling ? jig.scale : 1,
       };
     }),
     sprites: phase.sprites.map((sprite) => {
@@ -477,7 +569,12 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
       // heading turns to puts one clear of the other, and because their headings are
       // opposite so are their bows. One rule covers the diagonals without a fifth case.
       const bow = sprite.swapped ? bowOf(sprite, phase.swapArc, moved) : NO_BOW;
+      // A piece being carried squashes; a piece being destroyed does not. Its shrink is
+      // uniform, and a second non-uniform scale under the turn is two things pulling the
+      // same corners in different directions.
+      const squash = sprite.fades ? NO_SQUASH : squashOf(sprite, phase.squash, moved);
       const shrunk = easeShrink(at(sprite.delay, sprite.shrinkMs));
+      const grown = lerp(sprite.scaleFrom, sprite.scaleTo, shrunk);
       // The fade stays linear: it is an opacity, and a curve on it reads as nothing.
       const faded = sprite.fades ? at(sprite.delay, sprite.glyphFadeMs) : 0;
       return {
@@ -485,8 +582,10 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
         ink: sprite.ink,
         x: lerp(sprite.from[1], sprite.to[1], moved) + bow.x,
         y: lerp(sprite.from[0], sprite.to[0], moved) + bow.y,
-        spin: sprite.spin ? spinAt(shrunk) : 0,
-        scale: lerp(sprite.scaleFrom, sprite.scaleTo, shrunk),
+        spin: sprite.spin ? spinAt(shrunk) : (jig && shaken(sprite.from) ? jigTurn : 0),
+        scale: grown,
+        scaleX: grown * squash.x,
+        scaleY: grown * squash.y,
         alpha: 1 - faded,
         // Where this piece has just been, faintest first. Built here rather than in the
         // layer that paints it because a copy has to sit on the same arc as the piece,
@@ -508,6 +607,9 @@ function sampleFrame(phase, elapsed, spin, since = elapsed) {
  *   go back to drawing the board itself.
  */
 export function sampleTimeline(timeline, elapsed, spin) {
+  if (spin && typeof spin.ease !== 'number') {
+    throw new Error('spin needs an "ease"; without it every angle is NaN, which reads as no turn at all'); // boundary
+  }
   let remaining = elapsed;
   for (const phase of timeline.phases) {
     const span = phase.tweenMs + phase.holdMs;

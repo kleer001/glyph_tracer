@@ -136,10 +136,15 @@ const rand = mulberry32(7);
 
 const KEYS = ['swapMsPerCell', 'swapMinMs', 'stepMs', 'shrinkMs', 'holdMs', 'staggerMs'];
 const PRESETS = {
-  shipped: { ...pick(SHIPPED), splitBeats: !!SHIPPED.splitBeats, turns: SHIPPED.spin.turns },
-  slower:  { swapMsPerCell: 66, swapMinMs: 130, stepMs: 240, shrinkMs: 240, holdMs: 0,   staggerMs: 0,  splitBeats: false, turns: 1 },
-  breath:  { swapMsPerCell: 66, swapMinMs: 130, stepMs: 240, shrinkMs: 280, holdMs: 110, staggerMs: 35, splitBeats: false, turns: 1 },
-  beats:   { swapMsPerCell: 60, swapMinMs: 120, stepMs: 220, shrinkMs: 200, holdMs: 90,  staggerMs: 30, splitBeats: true,  turns: 1 },
+  shipped: {
+    ...pick(SHIPPED),
+    splitBeats: !!SHIPPED.splitBeats,
+    turns: SHIPPED.spin.turns,
+    ease: SHIPPED.spin.ease,
+  },
+  slower:  { swapMsPerCell: 66, swapMinMs: 130, stepMs: 240, shrinkMs: 240, holdMs: 0,   staggerMs: 0,  splitBeats: false, turns: 1, ease: 2 },
+  breath:  { swapMsPerCell: 66, swapMinMs: 130, stepMs: 240, shrinkMs: 280, holdMs: 110, staggerMs: 35, splitBeats: false, turns: 1, ease: 2 },
+  beats:   { swapMsPerCell: 60, swapMinMs: 120, stepMs: 220, shrinkMs: 200, holdMs: 90,  staggerMs: 30, splitBeats: true,  turns: 1, ease: 2 },
 };
 function pick(o) { return Object.fromEntries(KEYS.map((k) => [k, o[k] ?? 0])); }
 
@@ -242,7 +247,7 @@ const timing = () => ({
   stepMs: state.stepMs, shrinkMs: state.shrinkMs,
   holdMs: state.holdMs, staggerMs: state.staggerMs, splitBeats: state.splitBeats,
 });
-const spin = () => ({ turns: state.turns });
+const spin = () => ({ turns: state.turns, ease: state.ease });
 
 function paint(drawList) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -347,7 +352,7 @@ function writeControls() {
     swapMsPerCell: state.swapMsPerCell, swapMinMs: state.swapMinMs,
     stepMs: state.stepMs, shrinkMs: state.shrinkMs,
     holdMs: state.holdMs, staggerMs: state.staggerMs, splitBeats: state.splitBeats,
-    spin: { turns: state.turns },
+    spin: { turns: state.turns, ease: state.ease },
   }, null, 2);
 }
 // Controls never start the animation — they rebuild it and leave it at the start.

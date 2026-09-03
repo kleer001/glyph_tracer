@@ -14,7 +14,7 @@ import { createProgress } from './progress.js';
 import { mountPicker } from './picker.js';
 import { describeSwap } from './debugLog.js';
 import { mountDebugPanel } from './debugPanel.js';
-import { createFlashLayer, createFxLayer, createGhostLayer } from './fxLayer.js';
+import { createBurstLayer, createFlashLayer, createFxLayer, createGhostLayer } from './fxLayer.js';
 import { shakeAt } from './fx.js';
 import {
   VIEW,
@@ -82,15 +82,18 @@ export async function start(canvas, panels) {
     .add(createFxLayer())
     .add(createGlyphLayer())
     .add(createGhostLayer())
+    .add(createBurstLayer())
     .add(createSelectionLayer())
     .add(createHudLayer());
 
   const palette = resolvePalette(data.palette);
   const run = loadRun(data.levels, data.glyphs.glyphs);
+  // What a level is dealt from, in one place: three callers were spelling it out.
+  const deck = { rules: data.rules, glyphs, budget: run.budget };
   // A board holds colour indices, so a palette narrower than a level is a level that
   // cannot be painted. Say so here rather than drawing part of it.
   const short = uncovered(palette, run.levels, (level) =>
-    dealLevel(level, { rules: data.rules, glyphs, budget: run.budget }).board.colors);
+    dealLevel(level, deck).board.colors);
   if (short.length) {
     throw new Error(
       `the palette has ${palette.colors.length} colours; `
@@ -106,7 +109,7 @@ export async function start(canvas, panels) {
   const log = panels ? mountDebugPanel(panels.debug) : null;
 
   const deal = (spec) => {
-    level = dealLevel(spec, { rules: data.rules, glyphs, budget: run.budget });
+    level = dealLevel(spec, deck);
     rand = level.rand;
     selected = null;
     picker?.repaint(spec.id);
@@ -142,10 +145,19 @@ export async function start(canvas, panels) {
     // The canvas backing store is sized in device pixels; everything below works
     // in CSS pixels, so the transform is set once per frame rather than threaded
     // through the layers.
+    //
+    // Only when it actually changes. Assigning either dimension — even the value it
+    // already holds — reallocates the backing store, clears it, and resets every context
+    // property the spec lists. That is a multi-megabyte wipe sixty times a second for a
+    // size that changes when the window does and never otherwise. Nothing needed the
+    // clear: the ground layer paints over the whole frame first.
     const dpr = window.devicePixelRatio || 1;
     const box = canvas.getBoundingClientRect();
-    canvas.width = Math.round(box.width * dpr);
-    canvas.height = Math.round(box.height * dpr);
+    const [w, h] = [Math.round(box.width * dpr), Math.round(box.height * dpr)];
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const shown = asShown(drawList);
     scene.render(ctx, {
@@ -177,12 +189,27 @@ export async function start(canvas, panels) {
 
   const drawBoard = () => paint(staticFrame(level.board));
 
+  /**
+   * End playback, however it ended.
+   *
+   * A finale grows the next board in during its last phase, and `drawBoard()` paints
+   * whichever level is being held — so until the level advances, the last thing on
+   * screen is the spent one painting over the arrival. Cutting the finale short with a
+   * tap has to land in the same place as letting it run, or the two disagree about what
+   * the player is looking at.
+   */
+  const finish = () => {
+    const grewInto = playing?.grewInto;
+    playing = null;
+    if (grewInto) advance();
+    drawBoard();
+  };
+
   const tick = (now) => {
     if (!playing) return; // a tap cut the playback short and already drew the settled board
     const drawList = sampleTimeline(playing.timeline, now - playing.startedAt, data.animation.spin);
     if (!drawList) {
-      playing = null;
-      drawBoard();
+      finish();
       return;
     }
     paint(drawList);
@@ -210,8 +237,18 @@ export async function start(canvas, panels) {
         cleared: activated,
       }),
     );
+    // If this swap won the level, the next board has to exist while the finale plays.
+    // Dealing it here does not commit to it: a level deals from its own seed, so the
+    // board advance() deals afterwards is this same board again. At the end of a run
+    // there is nothing to grow in, and the board simply clears itself away.
+    const won = outcome(level) === 'won';
+    const nextSpec = won ? nextAfter(run, level.spec.id) : null;
+    const finale = won
+      ? { from: copyBoard(level.board), to: nextSpec ? dealLevel(nextSpec, deck).board : null }
+      : null;
     playing = {
-      timeline: buildTimeline({ before, swap: [a, z], recorder, timing: data.animation }),
+      grewInto: nextSpec,
+      timeline: buildTimeline({ before, swap: [a, z], recorder, timing: data.animation, finale }),
       startedAt: performance.now(),
       // The rules resolved the whole cascade before any of it was drawn. The counter
       // follows what the player can see instead, or it reads the level won while the
@@ -225,8 +262,7 @@ export async function start(canvas, panels) {
     // The rules already ran: applySwap settled the board before the timeline started,
     // so cutting playback short jumps to the finished board rather than skipping a move.
     if (playing) {
-      playing = null;
-      drawBoard();
+      finish();
       return;
     }
     if (isOver(level)) {

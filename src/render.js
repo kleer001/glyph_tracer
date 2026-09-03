@@ -101,7 +101,40 @@ const GLOSS_KEYS = [
   'glyphShadowY', 'glyphShadowBlur', 'glyphShadowA',
 ];
 
-const WELL_KEYS = ['pad', 'radius', 'tintA', 'shadowY', 'shadowBlur', 'shadowA'];
+/**
+ * The shadow a hole casts into itself.
+ *
+ * Canvas has no inset shadow, so this is the shadow of a shape with the hole punched out
+ * of it: everything but the blur creeping over the rim lands outside whatever is
+ * clipping, and only the rim survives. The caller owns the clip, because what it clips to
+ * is what decides whether the ring shows.
+ */
+function insetShadow(ctx, shapes, { alpha, offsetY, blur }, bleed) {
+  if (!shapes.length) return;
+  const left = Math.min(...shapes.map((s) => s.x)) - bleed;
+  const top = Math.min(...shapes.map((s) => s.y)) - bleed;
+  const right = Math.max(...shapes.map((s) => s.x + s.w)) + bleed;
+  const bottom = Math.max(...shapes.map((s) => s.y + s.h)) + bleed;
+
+  ctx.beginPath();
+  ctx.rect(left, top, right - left, bottom - top);
+  for (const { x, y, w, h, radius } of shapes) traceRoundRect(ctx, x, y, w, h, radius);
+  ctx.shadowColor = `rgba(0,0,0,${alpha / 100})`;
+  ctx.shadowOffsetY = offsetY;
+  ctx.shadowBlur = blur;
+  ctx.fillStyle = '#000';
+  ctx.fill('evenodd');
+}
+
+/** Clip to the union of some rounded rects, so only what falls inside any of them draws. */
+function clipToAll(ctx, shapes) {
+  ctx.beginPath();
+  for (const { x, y, w, h, radius } of shapes) traceRoundRect(ctx, x, y, w, h, radius);
+  ctx.clip();
+}
+
+export const WELL_KEYS = ['pad', 'radius', 'tintA', 'shadowY', 'shadowBlur', 'shadowA',
+  'drained', 'divotRadius', 'divotA'];
 
 /**
  * The tray the board sits in, drawn under every tile.
@@ -116,11 +149,17 @@ const WELL_KEYS = ['pad', 'radius', 'tintA', 'shadowY', 'shadowBlur', 'shadowA']
  * then cast a shadow from a rectangle with the tray punched out. Everything but the
  * blur creeping over the rim lands outside the clip.
  */
-function drawWell(ctx, layout, well) {
+function drawWell(ctx, layout, well, board) {
   for (const key of WELL_KEYS) {
     if (typeof well?.[key] !== 'number') throw new Error(`gloss.well is missing "${key}"`); // boundary
   }
   const scale = layout.cell / CELL;
+  // The board draining is the score, so the tray reports it twice over: it sinks by how
+  // much has gone, and each hole keeps a socket where its cell used to sit. One says how
+  // far along, the other says which cells.
+  const gone = holesIn(board);
+  const drained = board ? gone.length / (board.width * board.height) : 0;
+  const deeper = 1 + drained * well.drained;
   const pad = well.pad * scale;
   const [x, y] = [layout.originX - pad, layout.originY - pad];
   const [w, h] = [layout.spanW + pad * 2, layout.spanH + pad * 2];
@@ -133,16 +172,42 @@ function drawWell(ctx, layout, well) {
   ctx.fill();
   ctx.clip();
 
-  const bleed = well.shadowBlur * scale * 3 + pad;
-  ctx.beginPath();
-  ctx.rect(x - bleed, y - bleed, w + bleed * 2, h + bleed * 2);
-  traceRoundRect(ctx, x, y, w, h, radius);
-  ctx.shadowColor = `rgba(0,0,0,${well.shadowA / 100})`;
-  ctx.shadowOffsetY = well.shadowY * scale;
-  ctx.shadowBlur = well.shadowBlur * scale;
-  ctx.fillStyle = '#000';
-  ctx.fill('evenodd');
+  const bleed = well.shadowBlur * scale * 3 * deeper + pad;
+  insetShadow(ctx, [{ x, y, w, h, radius }], {
+    alpha: Math.min(100, well.shadowA * deeper),
+    offsetY: well.shadowY * scale * deeper,
+    blur: well.shadowBlur * scale * deeper,
+  }, bleed);
+
+  // Every socket at once: clip to all the holes together and cast one shadow through a
+  // sheet with all of them punched out. Per hole it would be a clip and a blurred fill
+  // each, and `shadowBlur` is the most expensive thing in the frame — a drained board
+  // would pay it forty times over. The ring still has to fall OUTSIDE the clip or it
+  // paints rather than casting; the union of the holes is what it falls outside of.
+  if (well.divotA > 0 && gone.length) {
+    const r = well.divotRadius * scale;
+    const sockets = gone.map(([row, col]) => {
+      const o = cellOrigin(layout, row, col, VIEW);
+      return { x: o.x, y: o.y, w: layout.cell, h: layout.cell, radius: r };
+    });
+    const blur = well.shadowBlur * scale;
+    ctx.save();
+    clipToAll(ctx, sockets);
+    insetShadow(ctx, sockets, { alpha: well.divotA, offsetY: well.shadowY * scale, blur },
+      blur * 3);
+    ctx.restore();
+  }
   ctx.restore();
+}
+
+/** Every cell the board has lost, which is where a divot goes. */
+function holesIn(board) {
+  if (!board) return [];
+  const out = [];
+  for (let r = 0; r < board.height; r++) {
+    for (let c = 0; c < board.width; c++) if (!board.alive[r][c]) out.push([r, c]);
+  }
+  return out;
 }
 
 /** Gloss is data; a missing knob is a broken data file, not a default to invent. */
@@ -340,11 +405,15 @@ function paintGlyph(ctx, d, geom, fill, key, keyWidth) {
  * Where a tile or a sprite lands on the canvas. A scale below 1 shrinks it about
  * its own centre, which is what makes a dying cell collapse in place.
  */
+// `size` is the piece's own scale and stays square — it is what a length measured in
+// screen pixels, like the keyline, is converted against. `w` and `h` are what it is
+// actually drawn at, which come apart when a travelling piece squashes.
 function placed(layout, item, view) {
   const { x, y } = cellOrigin(layout, item.y, item.x, view);
   const size = layout.cell * item.scale;
-  const inset = (layout.cell - size) / 2;
-  return { x: x + inset, y: y + inset, size };
+  const w = layout.cell * (item.scaleX ?? item.scale);
+  const h = layout.cell * (item.scaleY ?? item.scale);
+  return { x: x + (layout.cell - w) / 2, y: y + (layout.cell - h) / 2, size, w, h };
 }
 
 /**
@@ -356,8 +425,8 @@ function spun(ctx, box, angle, paint) {
     paint();
     return;
   }
-  const cx = box.x + box.size / 2;
-  const cy = box.y + box.size / 2;
+  const cx = box.x + box.w / 2;
+  const cy = box.y + box.h / 2;
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(angle);
@@ -372,9 +441,15 @@ export function createGroundLayer(view = VIEW) {
     name: 'ground',
     draw(ctx, frame) {
       const { tiles, layout, palette } = frame;
+      // The paper covers wherever the board has been shoved, not just where it sits.
+      // This layer draws inside the shake, and the canvas is not cleared between frames,
+      // so a fill of exactly the frame would let a stale sliver show at the trailing
+      // edge of every shaken frame.
+      const { x = 0, y = 0 } = frame.offset ?? {};
+      const [ox, oy] = [Math.abs(x), Math.abs(y)];
       ctx.fillStyle = view.paper;
-      ctx.fillRect(0, 0, frame.width, frame.height);
-      drawWell(ctx, layout, frame.gloss.well);
+      ctx.fillRect(-ox, -oy, frame.width + ox * 2, frame.height + oy * 2);
+      drawWell(ctx, layout, frame.gloss.well, frame.board);
       for (const tile of tiles) {
         const box = placed(layout, tile, view);
         if (box.size <= 0) continue;
@@ -426,7 +501,7 @@ export function createGlyphLayer(view = VIEW) {
           // and shrinking, so the two read as separate things coming apart.
           ctx.globalAlpha = sprite.alpha ?? 1;
           ctx.translate(box.x, box.y);
-          ctx.scale(box.size / CELL, box.size / CELL);
+          ctx.scale(box.w / CELL, box.h / CELL);
           drawGlyph(
             ctx,
             glyphsById.get(sprite.art),

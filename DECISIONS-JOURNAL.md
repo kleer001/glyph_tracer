@@ -433,3 +433,34 @@ thing rather than a mock-up of it.
 `src/main.js` and honoured by `render()` in `src/compositor.js`; knobs `swapArc`, `smear`
 and `shake` in `data/animation.json`.
 
+### [2026-09-01] Six more motions, and the geometry that was holding one back
+
+**Decision:** A dying cell's turn now runs on a number in the data file. A travelling
+piece squashes to 60% along its heading and stretches to hold its area. A won level
+shrinks everything away, holds 500 ms and grows the next board in, committing to it
+itself. A swap that sets nothing off is answered by a constant 500 ms shake of the two
+cells. The tray keeps a socket where each cell was and sinks as the board empties. A
+cleared cell throws thirty 1-to-3 pixel dots outward.
+
+**Why:** The squash needed the corners, and the spin's curve was derived at runtime to
+guarantee they never crossed into a neighbour. Two non-uniform scales and a turn cannot
+all respect that bound, and the bulge is wanted, so the guarantee went and the exponent
+became an authored number.
+
+**Rejected:** The derived curve, with the two tests that pinned it — they asserted a rule
+the game no longer has. Clamping the stretch to a cell. Waiting for a tap after a won
+level, which repainted the spent board over the one the finale had just grown in. A
+rewind on a dud swap, which would claim the move did not happen. Per-frame particle
+state, which cannot survive playback being cut short and would differ between replays of
+one seed.
+
+**What is still wrong:** a burst cannot outlive the beat its cell dies on, because
+`since` is measured from the beat. At the shipped timings that beat is 300 ms, so the
+burst is capped there. Letting it run longer needs a clock that survives a phase
+boundary.
+
+**Threaded:** `squashOf`, `bowOf`, `trailOf`, `allCells` and the finale and jiggle
+phases in `src/animate.js`; `placed` carrying `w` and `h`, `drawWell` and `holesIn` in
+`src/render.js`; `createBurstLayer` in `src/fxLayer.js`; the finale committed in `tick`
+in `src/main.js`; knobs in `data/animation.json` and `well` in `data/gloss.json`.
+

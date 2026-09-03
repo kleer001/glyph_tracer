@@ -26,7 +26,7 @@ const TIMING = { swapMsPerCell: 55, swapMinMs: 110, stepMs: 200 };
 // Most of these build their timeline from a self-swap, whose travel is nothing, so
 // the swap beat lands on its floor.
 const FLOOR = TIMING.swapMinMs;
-const SPIN = { turns: 1 };
+const SPIN = { turns: 1, ease: 2 };
 const rand = mulberry32(20260825);
 
 // Backgrounds are all color 5 and no cell holds a piece, so only what a test puts
@@ -255,13 +255,16 @@ test('a hold adds still time after each phase without moving anything', () => {
   assert.equal(held.phases.length, plain.phases.length);
   assert.equal(held.totalMs, plain.totalMs + 100 * plain.phases.length);
   // Through the hold nothing moves: every piece and every cell is where the phase
-  // left it. The beat's own clock does keep running, because an effect thrown on this
-  // beat may still be playing — so the comparison is of positions, not of the frame.
+  // left it. The clocks do keep running, because an effect thrown on this beat may
+  // still be playing — so the comparison is of positions, not of the whole frame.
   const atEnd = sampleTimeline(held, FLOOR, SPIN);
   const inHold = sampleTimeline(held, FLOOR + 60, SPIN);
+  const placed = ({ age, ...rest }) => rest;
   assert.deepEqual(inHold.sprites, atEnd.sprites, 'no piece moves during a hold');
-  assert.deepEqual(inHold.tiles, atEnd.tiles, 'no cell moves during a hold');
+  assert.deepEqual(inHold.tiles.map(placed), atEnd.tiles.map(placed),
+    'no cell moves during a hold');
   assert.ok(inHold.since > atEnd.since, 'but the beat is still getting older');
+  assert.ok(inHold.tiles[0].age > atEnd.tiles[0].age, 'and so is each cell that is going');
 });
 
 test('stagger delays pieces by how far they sit from what fired', () => {
@@ -317,43 +320,6 @@ test('the knobs are no-ops at zero, so the timeline is what it always was', () =
   assert.deepEqual(zeroed.phases.map((p) => p.tweenMs), bare.phases.map((p) => p.tweenMs));
 });
 
-// A turning square is wider than a still one, so the corners of a cell that spun too
-// early would sweep over the cells beside it. The turn is held under what the shrink
-// has made room for: at scale u a square may turn asin(1 / (u * sqrt 2)) - PI/4 and no
-// further, which is nothing at all until it has begun to shrink.
-const envelope = (scale) => {
-  const room = 1 / (Math.SQRT2 * scale);
-  return room > 1 ? Infinity : Math.asin(room) - Math.PI / 4;
-};
-
-/** Every cell of every frame of a timeline, held to the envelope. */
-function assertInsideFootprint(timeline, spin, what) {
-  for (let ms = 0; ms <= timeline.totalMs; ms += 2) {
-    const frame = sampleTimeline(timeline, ms, spin);
-    if (!frame) break;
-    for (const tile of frame.tiles) {
-      if (tile.scale >= 1) {
-        assert.equal(tile.spin, 0, `${what}: a full-size cell turned at ${ms}ms`);
-        continue;
-      }
-      assert.ok(tile.spin <= envelope(tile.scale),
-        `${what}: at ${ms}ms a cell at scale ${tile.scale} turned ${tile.spin} rad`);
-    }
-  }
-}
-
-test('a dying cell never turns further than its own shrinking footprint allows', () => {
-  for (const turns of [0.5, 1, 2, 4]) {
-    const b = bareBoard();
-    b.bg[3][2] = 1;
-    place(b, 3, 2, { glyph: 1 });
-    const recorder = createRecorder();
-    settle(b, rand, recorder);
-    const timeline = buildTimeline({ before: b, swap: [[3, 2], [3, 2]], recorder, timing: TIMING });
-    assertInsideFootprint(timeline, { turns }, `turns ${turns}`);
-  }
-});
-
 test('data/animation.json carries every knob the timeline reads', async () => {
   const { readFileSync } = await import('node:fs');
   const anim = JSON.parse(readFileSync(new URL('../data/animation.json', import.meta.url), 'utf8'));
@@ -363,10 +329,37 @@ test('data/animation.json carries every knob the timeline reads', async () => {
     assert.ok(anim[key] >= 0);
   }
   assert.equal(typeof anim.splitBeats, 'boolean');
-  assert.equal(typeof anim.spin.turns, 'number');
   for (const key of ['move', 'shrink']) assert.equal(typeof anim.easing[key], 'string');
   assert.equal(typeof anim.escalate.per, 'number');
   assert.ok(anim.escalate.cap >= 0, 'a chain builds up to a cap, not past one');
+  // Every nested knob the timeline reads. `spin.ease` earns its own line below: it is
+  // an exponent, so its absence is NaN rather than an error.
+  for (const [group, keys] of [
+    ['spin', ['turns', 'ease']],
+    ['squash', ['floor']],
+    ['jiggle', ['ms', 'cycles', 'deg', 'scale']],
+    ['burst', ['count', 'speed', 'settle', 'ms', 'fade', 'scatter']],
+    ['smear', ['copies', 'spacing', 'minCells']],
+    ['shake', ['px', 'ms', 'decay']],
+  ]) {
+    for (const key of keys) {
+      assert.equal(typeof anim[group]?.[key], 'number', `animation.${group}.${key}`);
+    }
+  }
+  assert.equal(anim.burst.sizePx.length, 2, 'a particle size is a range');
+});
+
+// An exponent that is not a number turns every angle into NaN, and NaN is falsy — so a
+// missing `spin.ease` used to read as "no rotation" and draw a still cell rather than
+// fail. The sampler refuses it instead.
+test('a spin with no curve fails loudly rather than turning nothing', () => {
+  const b = bareBoard();
+  b.bg[3][2] = 1;
+  place(b, 3, 2, { glyph: 1 });
+  const recorder = createRecorder();
+  settle(b, rand, recorder);
+  const timeline = buildTimeline({ before: b, swap: [[3, 2], [3, 2]], recorder, timing: TIMING });
+  assert.throws(() => sampleTimeline(timeline, FLOOR + 50, { turns: 1 }), /ease/);
 });
 
 test('shrink runs on its own clock, not the movement clock', () => {
@@ -711,12 +704,3 @@ test('escalation stops at its cap rather than running away with the chain', () =
   assert.equal(capped.totalMs, flat.totalMs, 'a cap of nothing is no escalation at all');
 });
 
-// The turn is held under the room the shrink has made for it, and both the curve and
-// the chain's build now bend that shrink. The bound is a relation between the scale and
-// the angle, so it survives any curve that drives them together and any number of turns
-// whose exponent is taken from those same turns — which is what this asserts.
-test('the shipped curves and the chain build still hold a cell inside its footprint', () => {
-  const anim = JSON.parse(readFileSync(new URL('../data/animation.json', import.meta.url), 'utf8'));
-  const { timeline } = chainTimelineFor({ ...anim, escalate: { per: 3, cap: 4 } });
-  assertInsideFootprint(timeline, anim.spin, 'shipped');
-});

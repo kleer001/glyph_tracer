@@ -67,8 +67,20 @@
   do not.
 - **Beams draw behind the pieces, ghosts in front.** REJECTED: one layer for both — on
   either side, one of the two stops reading.
-- **A dying cell's turn is held under the room its shrink has made.** REJECTED: turning
-  at constant speed from full size — the corners cross into the neighbours.
+- **A dying cell turns on an authored curve.** REJECTED: deriving the curve at runtime
+  from the room the shrink has made — it guaranteed a corner never crossed into a
+  neighbour, and overlap is wanted.
+- **A travelling piece squashes along its heading and stretches across.** REJECTED:
+  clamping the stretch to the cell — it bulges over its neighbours and is meant to.
+- **A won level clears itself away and grows the next one in.** REJECTED: waiting for a
+  tap to change the board — the finale is the transition, so it commits the level itself.
+- **A pointless swap is answered where it landed.** REJECTED: a rewind or a snap-back —
+  the pieces really traded and the budget really went down.
+- **The tray reports the drain twice: a socket per hole, and a rim that deepens.**
+  REJECTED: one or the other — they answer different questions, which cells and how far.
+- **A cleared cell throws particles alongside the shrink.** REJECTED: replacing the
+  shrink with them, and any per-frame particle state — a burst is a closed form of how
+  long ago its beat began, so it cannot drift between replays of one seed.
 - **The activation flash is a soft white bloom under `screen`.** REJECTED: an opaque
   hard-edged disc of the cell's complement under `difference`, which marks rather than
   lights and reads as a cut frame; and additive `lighter` in the cell's own colour, whose

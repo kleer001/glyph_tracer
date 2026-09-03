@@ -15,7 +15,65 @@
 import { beamReach, beamStyleFor, targetsFor } from './abilityFx.js';
 import { beamSpan, drawBeam, ghostAt, grabAt, swellAt } from './fx.js';
 import { CELL } from './glyphShapes.js';
+import { mulberry32 } from './rng.js';
 import { VIEW, cellCenter, drawGlyph } from './render.js';
+
+/**
+ * What a cleared cell throws, drawn over the pieces.
+ *
+ * Alongside the shrink and the turn rather than instead of them. Radial and closed
+ * form: a particle's whole life is a function of how long ago its beat began, so there
+ * is no per-frame state to keep, nothing to reset when playback is cut short, and the
+ * same seed throws the same burst every time. No gravity — this board has no down.
+ */
+export function createBurstLayer(view = VIEW) {
+  return {
+    name: 'burst',
+    draw(ctx, frame) {
+      const { tiles, layout, palette, animation, board } = frame;
+      const tune = animation.burst;
+      if (!tune?.count || !board) return;
+      // Most frames have nothing dying on them. Setting up a clip for those is three
+      // canvas calls and a clip-stack push to draw nothing.
+      if (!tiles.some((tile) => tile.dying)) return;
+
+      ctx.beginPath();
+      ctx.rect(layout.originX, layout.originY, layout.spanW, layout.spanH);
+      ctx.clip();
+      const [small, large] = tune.sizePx;
+
+      for (const tile of tiles) {
+        if (!tile.dying) continue;
+        // Each cell's own clock: a staggered run shrinks as a wave, and a burst timed
+        // off the beat instead would have every cell throw at once against it.
+        const u = tile.age / tune.ms;
+        if (u <= 0 || u >= 1) continue;
+        // Speed falls away as it goes, so the ring pops and then creeps.
+        const reach = tune.speed * layout.cell * (1 - Math.exp(-u / tune.settle));
+        ctx.globalAlpha = (1 - u) ** tune.fade;
+        const mid = cellCenter(layout, tile.y, tile.x, view);
+        const ink = board.glyph[tile.y][tile.x];
+        ctx.fillStyle = palette.colors[ink === null ? tile.bg : ink].hex;
+        // One path for the whole ring, not one per dot: a `moveTo` starts each arc as
+        // its own subpath, so a cell costs one fill however many particles it throws.
+        // The seed and the order of draws are untouched, so a replay is unchanged.
+        const rand = mulberry32(tile.y * 31 + tile.x + 1);
+        ctx.beginPath();
+        for (let i = 0; i < tune.count; i++) {
+          const even = ((i + 0.5) / tune.count) * Math.PI * 2;
+          const angle = even + (rand() - 0.5) * tune.scatter;
+          const away = reach * (0.7 + rand() * 0.6);
+          const px = mid.x + Math.cos(angle) * away;
+          const py = mid.y + Math.sin(angle) * away;
+          const size = small + rand() * (large - small);
+          ctx.moveTo(px + size, py);
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+        }
+        ctx.fill();
+      }
+    },
+  };
+}
 
 /**
  * The bloom a landing throws, drawn over the ground and under everything else.

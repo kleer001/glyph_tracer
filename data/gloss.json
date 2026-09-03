@@ -1,5 +1,5 @@
 {
-  "note": "Highlight and shadow, tuned in dev/gloss.html. Lengths are in the render spec's 100-unit cell and scale with the board; alphas and sheen are percentages. `well` is the tray the whole board sits in rather than a knob on one cell, so it is not on the sandbox's panel: `pad` is how far the tray reaches past the outermost cells, `tintA` how much darker than the paper it is, and the shadow is cast inward from its rim.",
+  "note": "Highlight and shadow, tuned in dev/gloss.html. Lengths are in the render spec's 100-unit cell and scale with the board; alphas and sheen are percentages. `well` is the tray the whole board sits in rather than a knob on one cell, so it is not on the sandbox's panel: `pad` is how far the tray reaches past the outermost cells, `tintA` how much darker than the paper it is, and the shadow is cast inward from its rim. `drained` is how much deeper that shadow goes on an empty board than a full one, and `divotRadius` and `divotA` are the socket left where a cell used to be.",
   "radius": 6,
   "cellShadowY": 6,
   "cellShadowBlur": 4,
@@ -16,6 +16,9 @@
     "tintA": 12,
     "shadowY": 3,
     "shadowBlur": 12,
-    "shadowA": 30
+    "shadowA": 30,
+    "drained": 1.2,
+    "divotRadius": 6,
+    "divotA": 26
   }
 }
