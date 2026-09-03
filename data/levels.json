@@ -161,14 +161,68 @@
           "id": 11,
           "teaches": "O advances all four lines at once",
           "budget": 1,
-          "target": 5,
-          "note": "Each arm is grounded to land its inner piece matched, so the O pays four times over. Other swaps score one and fall short.",
+          "target": 3,
+          "note": "The O has to be carried onto its colour, and only an inner cell has all four arms on the board. Two of them run off the edge; two land home.",
           "board": [
-            "... ... aB. ... ...",
-            "... ... cA. ... ...",
-            "bA. cB. dA. cA. aB.",
-            "... ... cB. ... ...",
-            "... ... bDO ... ..."
+            "... aB. ... ...",
+            "aB. cA. bA. a--",
+            "... bD. dCO ...",
+            "... d-- ... ..."
+          ]
+        },
+        {
+          "id": 12,
+          "teaches": "A shoved glyph can land on its own colour — the chain",
+          "budget": 1,
+          "target": 4,
+          "note": "Two O's. The first fires four arms and shoves the second onto its own colour, which fires in turn. Thirty-one swaps land a match.",
+          "board": [
+            "... dB. dC. ...",
+            "cD. cBO bC. bD.",
+            "aB. cD. aBO aC.",
+            "... bC. bC. ..."
+          ]
+        },
+        {
+          "id": 13,
+          "teaches": "A pulse can shove an A onto its colour, and the A fires on",
+          "budget": 1,
+          "target": 6,
+          "note": "The frame opens, and the O sits on the true centre a 4x4 has no room for. The answer empties the board.",
+          "board": [
+            "... ... dC. ... ...",
+            "... ... dBO ... ...",
+            "bD. dB. bD. bC. cB.",
+            "... ... cD^ ... ...",
+            "... ... dB. ... ..."
+          ]
+        },
+        {
+          "id": 14,
+          "teaches": "More board, and more swaps that look right",
+          "budget": 1,
+          "target": 6,
+          "note": "The same chain on a diamond. Thirty-five swaps land a match; the ones showing two clear two.",
+          "board": [
+            "... ... dB. ... ...",
+            "... cD. dCO bA. ...",
+            "cB. bC. cD. cD. dA.",
+            "... aB. bD^ cD. ...",
+            "... ... dA. ... ..."
+          ]
+        },
+        {
+          "id": 15,
+          "teaches": "Three abilities in one swap",
+          "budget": 1,
+          "target": 8,
+          "note": "A full frame, two O's and two A's. A hundred and thirty-two swaps land a match, and the answer runs pulse, push, pulse.",
+          "board": [
+            "dB. cD^ cB. bD. dB.",
+            "cB. aB. aDO bC. dA.",
+            "aB. dA. dB. aD. dC.",
+            "cD. aC. bCO aB. dA.",
+            "dA. bD. bC. bAv bA."
           ]
         }
       ]
@@ -179,7 +233,7 @@
       "name": "The anchor",
       "levels": [
         {
-          "id": 12,
+          "id": 16,
           "teaches": "A line stops at H, and what it stops behind lands home",
           "budget": 1,
           "target": 3,
@@ -196,7 +250,7 @@
       "name": "The cross",
       "levels": [
         {
-          "id": 13,
+          "id": 17,
           "teaches": "+ trades above with below, and left with right",
           "budget": 1,
           "target": 5,
@@ -215,7 +269,7 @@
       "name": "The corners",
       "levels": [
         {
-          "id": 14,
+          "id": 18,
           "teaches": "X trades the corners instead",
           "budget": 1,
           "target": 5,
@@ -234,7 +288,7 @@
       "name": "The ring",
       "levels": [
         {
-          "id": 15,
+          "id": 19,
           "teaches": "r turns the four around it one step clockwise",
           "budget": 1,
           "target": 5,
@@ -246,7 +300,7 @@
           ]
         },
         {
-          "id": 16,
+          "id": 20,
           "teaches": "Its mirror turns them back",
           "budget": 1,
           "target": 5,
@@ -265,7 +319,7 @@
       "name": "The sink",
       "levels": [
         {
-          "id": 17,
+          "id": 21,
           "teaches": "S opens a hole and everything falls inward",
           "budget": 1,
           "target": 5,

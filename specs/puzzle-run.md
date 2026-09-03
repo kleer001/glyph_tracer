@@ -62,6 +62,12 @@ a 5x5 frame holding nine live cells offers a fraction of the full grid's 300 pai
 Two frames, and no third: 5x5 has a true centre, which a pulse, a ring or a sink needs to
 show all four of its arms, and 4x4 has only four cells with every arm on the board.
 
+A glyph that reaches in four directions cannot be taught on 4x4 by search alone. It has to
+be carried onto its colour by the swap, and every colouring the annealer likes best lands
+it in a corner, where two of its arms are off the board and do nothing. The first teaching
+level of such a lesson is authored by hand: the answer is chosen, and the board is written
+around it.
+
 The frame is also what the chain needs. On 4x4 a single swap through the pushes clears
 four or five cells and does not move with more search — a push advances one line by one,
 and there is no runway. The same layout on 5x5 clears eight.
