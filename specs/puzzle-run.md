@@ -37,6 +37,11 @@ Five slots inside a lesson, in order:
 4. **a combination** — this family and one learned earlier
 5. **a combination** — this family and two learned earlier
 
+The early lessons have nothing to combine with — inert is on every board — so their five
+run diagram, diagram, puzzle, puzzle, puzzle instead, with the second diagram spent on the
+half of the rule the first could not show. The combination slots open once two families
+have been taught.
+
 A level may carry any glyph from its own lesson or an earlier one, and carries only what
 its puzzle needs. Combinations across the whole set, with no whitelist at all, are a
 later act rather than the tail of this one.

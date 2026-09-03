@@ -81,16 +81,15 @@
       "levels": [
         {
           "id": 6,
-          "teaches": "A advances the line it points at, and what it pushes lands home",
+          "teaches": "A points the way it pushes, and what it pushes lands home",
           "budget": 1,
           "target": 3,
-          "note": "The column above the A is grounded so both pieces it moves land matched. The one visible match on the board clears one and loses the level.",
+          "note": "The column above the A is grounded so every piece it moves lands matched. The visible match clears one and loses the level.",
           "board": [
-            "bA.",
-            "aB.",
-            "cA.",
-            "dB.",
-            "cD^"
+            "... dA. ... ...",
+            "... aD. ... ...",
+            "... aC. ... ...",
+            "... cA^ ... ..."
           ]
         },
         {
@@ -98,33 +97,51 @@
           "teaches": "Turned over, it points the other way",
           "budget": 1,
           "target": 3,
-          "note": "The same column and the same swap; only the letter is turned.",
+          "note": "The same column and the same swap, with only the letter turned. Nothing else on the board changed.",
           "board": [
-            "cDv",
-            "dB.",
-            "cA.",
-            "aB.",
-            "bA."
+            "... ... bDv ...",
+            "... ... dB. ...",
+            "... ... cD. ...",
+            "... ... dB. ..."
           ]
         },
         {
           "id": 8,
-          "teaches": "On its side it works across",
+          "teaches": "Two aims on one board, and only one of them pays",
           "budget": 1,
           "target": 3,
-          "note": "Turned again, and the board with it.",
+          "note": "Thirteen swaps land a match. One of them fires the A whose line is grounded.",
           "board": [
-            "cD> dB. cA. aB. bA."
+            "cD. dB^ dA. dA.",
+            "... bC. bD. ...",
+            "... bCv bD. ...",
+            "... ... ... ..."
           ]
         },
         {
           "id": 9,
-          "teaches": "And the other way across",
+          "teaches": "On its side it works across",
           "budget": 1,
-          "target": 3,
-          "note": "The last of the four. By here the rotation should be read without counting.",
+          "target": 4,
+          "note": "The sideways letter is never demonstrated. By here the turn is read rather than taught.",
           "board": [
-            "bA. aB. cA. dB. cD<"
+            "bD. aC^ aB. bD.",
+            "bD. aB. cA. cA.",
+            "... dA. cA> ...",
+            "... ... bA. ..."
+          ]
+        },
+        {
+          "id": 10,
+          "teaches": "Which one you fire is the choice",
+          "budget": 1,
+          "target": 5,
+          "note": "Four A's, all four facings, and fifty-one swaps that land a match. The answer shows one match and clears five; the swaps showing two clear two.",
+          "board": [
+            "dC. dA^ dC. cB.",
+            "aD. dC^ bC. cD.",
+            "bA. cD> dB. bD.",
+            "cA. cA< dA. dB."
           ]
         }
       ]
@@ -135,7 +152,7 @@
       "name": "The pulse",
       "levels": [
         {
-          "id": 10,
+          "id": 11,
           "teaches": "O advances all four lines at once",
           "budget": 1,
           "target": 5,
@@ -156,7 +173,7 @@
       "name": "The anchor",
       "levels": [
         {
-          "id": 11,
+          "id": 12,
           "teaches": "A line stops at H, and what it stops behind lands home",
           "budget": 1,
           "target": 3,
@@ -173,7 +190,7 @@
       "name": "The cross",
       "levels": [
         {
-          "id": 12,
+          "id": 13,
           "teaches": "+ trades above with below, and left with right",
           "budget": 1,
           "target": 5,
@@ -192,7 +209,7 @@
       "name": "The corners",
       "levels": [
         {
-          "id": 13,
+          "id": 14,
           "teaches": "X trades the corners instead",
           "budget": 1,
           "target": 5,
@@ -211,7 +228,7 @@
       "name": "The ring",
       "levels": [
         {
-          "id": 14,
+          "id": 15,
           "teaches": "r turns the four around it one step clockwise",
           "budget": 1,
           "target": 5,
@@ -223,7 +240,7 @@
           ]
         },
         {
-          "id": 15,
+          "id": 16,
           "teaches": "Its mirror turns them back",
           "budget": 1,
           "target": 5,
@@ -242,7 +259,7 @@
       "name": "The sink",
       "levels": [
         {
-          "id": 16,
+          "id": 17,
           "teaches": "S opens a hole and everything falls inward",
           "budget": 1,
           "target": 5,
