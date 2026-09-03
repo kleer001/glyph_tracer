@@ -28,8 +28,15 @@
   abilities — eight shoved identically, four absorbed identically, two did nothing.
 - **A swap is a speed, not a duration.** REJECTED: one fixed duration for every swap — it
   spans an eightfold range of distances, so short swaps amble and long ones are hurled.
-- **Six swaps a level, held fixed.** REJECTED: deriving it from the yield curve — the
-  curve keeps paying past six, so it is a choice about length, not a measured ceiling.
+- **A level states its own swap allowance.** REJECTED: one budget across the run — six
+  was a length chosen for a board dealt at random, and a puzzle with a right answer has
+  an allowance its answer sets.
+- **A level has a right answer: the most any line can clear, reached by exactly one.**
+  REJECTED: clearing the board — with no ability on it a swap clears at most two pieces,
+  which would cap the first lesson at a two-piece board forever.
+- **The run is authored puzzles, one act per glyph family.** REJECTED: dealt boards as
+  numbered levels — a board nobody chose cannot be aimed at a lesson, and a target it
+  can meet several ways is a score, not an answer. Dealing stays, as a mode.
 
 ## Drawing
 
@@ -100,6 +107,9 @@
   into a document — the pasted table could not reproduce itself and was quoted for days.
 - **A level's target is authored.** REJECTED: measuring a board's yield and scaling it —
   the pipeline had no caller once the pack became the run.
+- **A puzzle's layout is the author's; the search only paints it.** REJECTED: annealing
+  over which glyph sits where — it finds correct boards that state nothing, and where the
+  pieces sit is the whole of what a lesson says.
 - **Published pages under `docs/` and `artifacts/` are dated snapshots.** REJECTED:
   editing them to match the current code — that falsifies the record rather than
   correcting it.

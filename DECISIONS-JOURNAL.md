@@ -464,3 +464,53 @@ phases in `src/animate.js`; `placed` carrying `w` and `h`, `drawWell` and `holes
 `src/render.js`; `createBurstLayer` in `src/fxLayer.js`; the finale committed in `tick`
 in `src/main.js`; knobs in `data/animation.json` and `well` in `data/gloss.json`.
 
+### [2026-09-02] The run becomes authored puzzles, and the target is what the answer clears
+
+The teaching run had a seam at level 14. Levels 1–13 were authored boards with one legal
+move each; 14 dealt a 4x4 with a six-swap budget and no authored structure, and 16 opened
+onto 5x8, where 780 pairs are in front of the player and around twenty-six tie for the
+best payoff anyone can see. Slow, then abruptly unreadable.
+
+**The call.** Every numbered level carries a board and has a right answer. Acts become one
+per glyph family, taught in dependency order, five levels each: a diagram, two puzzles on
+the family alone, then two combining it with families already learned. The frames grow
+4x4, 4x5, 5x5, and what governs how readable a board is is not the frame but how many of
+its cells are live — a 5x5 holding eleven pieces offers 55 pairs against a full grid's 300.
+The dealt boards leave the run and become a mode; nothing in `src/` is deleted for it.
+
+**What "a right answer" turned out to mean.** The first attempt was "clear the board", and
+the tool killed it in one run. `#.#/.O./#.#` — a pulse with four arms — cannot be cleared
+in one swap, because the pulse has to stay centred to sweep all four and no swap can land
+it on its own colour without moving it. Worse, a lesson with no ability on the board can
+clear at most two pieces per swap, so lesson one would have been capped at two-piece boards
+forever. The rule that survived is the one the engine already implements: the target is the
+most any line within the allowance can activate, and exactly one line reaches it. A piece
+shoved into a sink leaves without activating and the counter never sees it, so the target
+counts what lights up rather than how much of the board went away.
+
+**The 4x4 objection, answered.** `docs/board-size.html` rejected small boards on measured
+numbers — a 1.37 deepest cascade, a 1.19 shove runway, 0.66 wasted turns a level. Every one
+of those is a property of four hundred boards dealt at random. An annealed board is not
+drawn from that distribution, which is the whole reason `tools/maxCombo.js` exists. The
+study stands as an argument against dealing small boards, which the endless mode still does.
+
+**The tool.** `tools/puzzleBoards.js` takes a hand-placed layout and finds the colouring
+that makes it a puzzle. It never moves a glyph: where the pieces sit is the statement of
+what the lesson is about, and it is also the whitelist, since a lesson can only be taught
+with what it has placed. The objective is the answer's size, then uniqueness, then the gap
+between what the answer clears and what the swap showing the biggest visible payoff clears
+— that last is where difficulty comes from on a board small enough to brute-force, and it
+is the measure `tools/trapBoards.js` already called deception.
+
+The search is exact. Only the last swap of a line is restricted to swaps that score, since
+one that lands nothing adds nothing; every earlier swap is unrestricted, because setting a
+piece up before firing it is a move. On a sixteen-cell board a one-swap search is a few
+hundred settles per candidate colouring and three thousand iterations take under a second;
+two swaps costs about seventeen milliseconds an iteration.
+
+**What shipped.** Lesson one, five levels on a 4x4 frame ramping from two live pieces to
+sixteen — one, one, three, twenty-two and fifty-one swaps that land a match, and in every
+case exactly one that pays twice. The eleven surviving diagrams follow in their own acts.
+`tests/levels.test.js` already checked that a one-swap level has exactly one answer; it
+now checks it for every shipped level.
+

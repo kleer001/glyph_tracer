@@ -63,11 +63,11 @@ test('every shipped level can be won', () => {
 });
 
 test('a level opens the same board every time', () => {
-  // both ways of naming a board have to be stable, so take one of each
-  const dealt = RUN.levels.find((l) => !l.board);
-  const carried = RUN.levels.find((l) => l.board);
-  assert.ok(dealt && carried, 'the run has both a dealt level and an authored one');
-  for (const spec of [dealt, carried]) {
+  // Whichever way a level names its board, opening it twice has to give the same one.
+  const specs = [RUN.levels.find((l) => l.board), RUN.levels.find((l) => !l.board)]
+    .filter(Boolean);
+  assert.ok(specs.length, 'the run has no levels');
+  for (const spec of specs) {
     const opts = { rules: RULES, glyphs: GLYPHS, budget: RUN.budget };
     const a = dealLevel(spec, opts);
     assert.deepEqual(a.board, dealLevel(spec, opts).board, `level ${spec.id}`);
@@ -99,10 +99,10 @@ test('the run ends rather than running off its end', () => {
 test('every act says what its boards are made of, in kinds the engine runs', () => {
   const kinds = new Set(read('../data/glyphs.json').glyphs.map((g) => g.kind));
   for (const act of RUN.acts) {
-    const named = Object.keys(act.mix);
     // An act whose levels all carry their boards has no mix to state — there is
     // nothing to deal, so a proportion of kinds would describe nothing.
     if (act.levels.every((l) => l.board)) continue;
+    const named = Object.keys(act.mix);
     assert.ok(named.length, `${act.name} says nothing about its boards`);
     for (const kind of named) {
       assert.ok(kinds.has(kind), `${act.name} asks for "${kind}", which no glyph is drawn for`);

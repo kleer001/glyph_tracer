@@ -74,6 +74,10 @@ are developer-machine tools; nothing in CI and no player ever needs them.
 
 ## Conventions that always apply
 
+- **The game is allowed to beat the player.** Losing is a designed outcome, not a
+  defect. A level may be hard enough that most attempts fail, and the answer to
+  frustration is a fast retry — never a softer rule, a wider budget, a hint or a
+  rewind. Do not propose softening the basic gameplay.
 - `camelCase` functions and variables, `PascalCase` classes, `UPPER_SNAKE` constants.
 - Validate at boundaries; trust internal functions; **fail loudly** — one path, no
   silent fallbacks.
