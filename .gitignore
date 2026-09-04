@@ -5,3 +5,4 @@ dist/
 clips/
 tmp/
 .playwright-mcp/
+answers-tmp.json
