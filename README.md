@@ -45,17 +45,19 @@ node tools/swapBudget.js --colors 4 6 8 --trials 300
 node tools/trapBoards.js --target 12     # generate a board where the obvious swap is wrong
 node tools/trapBoards.js --json out.json
 node tools/boardShapes.js --curve     # what board size and palette size trade off
+node tools/puzzleBoards.js --layout '....,.O..,....,....'   # colour a layout into a puzzle
+node tools/makeLevels.js              # check every shipped level has exactly one answer
 ```
 
 ## Layout
 
 - `index.html` / `styles.css` — the page and the look.
-- `src/` — `board.js` is the rules, `levels.js` the shipped run, `level.js` the target
-  policy, `glyphShapes.js` and `render.js` the drawing, `animate.js` the playback,
-  `progress.js` and `picker.js` the run's chrome, `main.js` the only module that
-  touches a browser.
-- `data/` — rules, palette, the sixteen glyphs, stage factors, the example board.
-- `tools/` — the measurement sweeps and the trap generator.
+- `src/` — `board.js` is the rules, `levels.js` the shipped run, `level.js` the greedy
+  measuring stick and the drawing a piece wears, `glyphShapes.js` and `render.js` the
+  drawing, `animate.js` the playback, `progress.js` and `picker.js` the run's chrome,
+  `main.js` the only module that touches a browser.
+- `data/` — rules, palette, the sixteen glyphs, the run, the example board.
+- `tools/` — the measurement sweeps, the trap generator and the puzzle builder.
 - `dev/` — browser pages for tuning the look and the animation timing.
 - `tests/` — `node --test`, no framework.
 - `docs/` — the specimen plate, the trap write-up, the level structure, and why the
@@ -66,10 +68,11 @@ node tools/boardShapes.js --curve     # what board size and palette size trade o
 
 ## Where it is
 
-Prototype, and playable end to end: twenty-five levels in four acts, a picker that
-remembers what you have finished, and a star per level for the swaps you had left over.
+Prototype, and playable end to end: forty-five levels in nine acts, one act per glyph
+family, a picker that remembers what you have finished, and a star per level for the
+swaps you had left over.
 
-The slice plays: a dealt board, a measured target, six swaps, and the
-sink rules resolving underneath. The palette is placeholder, two of the sixteen
-abilities are drawn but not yet run, and the level run in `docs/teaching.html` is
-structure rather than content.
+Every level is authored and has a right answer — inside its allowance of one swap or
+two, one line clears more than any other and exactly one opening reaches it. A lesson
+teaches on a 4x4 frame twice and applies it on 5x5 three times. The palette is still
+placeholder.
