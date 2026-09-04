@@ -514,3 +514,42 @@ case exactly one that pays twice. The eleven surviving diagrams follow in their 
 `tests/levels.test.js` already checked that a one-swap level has exactly one answer; it
 now checks it for every shipped level.
 
+### [2026-09-03] The nine lessons, and what the search could not author
+
+The run is forty-five levels: nine lessons, five each, teaching on 4x4 and applying on 5x5.
+Four things were learned building it that no amount of search would have told us.
+
+**Three passive or four-armed glyphs had to be authored by hand.** A glyph that reaches in
+four directions has to be carried onto its colour by the swap, and every colouring the
+annealer prefers lands it in a corner, where two of its arms are off the board and do
+nothing. Five seeds put the pulse in a corner; four put the sink there. A glyph with no
+ability of its own is worse: an anchor does nothing on its turn, so the search ignores it
+and finds a plain double instead. The first teaching level of the pulse, the anchor and
+the sink is written by choosing the answer and building the board around it.
+
+**An anchor can never make a line clear more.** It eats the front of a line exactly as the
+board edge does, only earlier, so a line meeting one always clears less than the same line
+on a clear row. Six seeds on a diamond all relocated the push off the wall. An anchor's
+value is denial, not yield, and the boards that teach it are the ones with no alternative:
+one push with a wall at the end of its only line, and five anchors on the diagonal so that
+nothing escapes one.
+
+**Three swaps is not reachable.** The search is exact, and costs pairs to the power of the
+allowance: four hundred milliseconds an evaluation on thirteen live cells, seven seconds on
+a full frame. Uniqueness fails before cost does — with three swaps on a board small enough
+to search, five to twenty-two openings reach the same maximum, because that many swaps
+clear nearly everything by more than one route. Lesson nine runs at two swaps like the
+three before it.
+
+**Greedy play cannot validate a puzzle.** `tools/makeLevels.js` refused level 28 for
+clearing five greedily against a target of six — which is the level working, since it was
+built so that the swap showing the biggest payoff falls short. Both the tool and
+`tests/levels.test.js` now try every opening and follow every line beneath it, for any
+level of two swaps or fewer. The whole suite still runs in under a second.
+
+Two bugs the run surfaced. The layout separator was `/`, which is also the mark of the
+rising bar, so the corner glyphs could not be written down until it became a comma. And
+`parseLayout` hands back a board with every piece on ground zero in ink zero — a match —
+which the annealer's warm-up repainted by random scatter and could miss, shipping two
+boards that opened already fired. The warm-up now paints every live cell exactly once.
+

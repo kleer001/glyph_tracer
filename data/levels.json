@@ -303,91 +303,376 @@
       ]
     },
     {
-      "id": "cross",
+      "id": "bars",
       "no": "V",
-      "name": "The cross",
+      "name": "The bars",
       "levels": [
         {
           "id": 21,
+          "teaches": "The upright bar trades the piece above with the piece below",
+          "budget": 1,
+          "target": 3,
+          "note": "Thirteen swaps land a match. Nothing is shoved and nothing leaves; two pieces change places and one of them is home.",
+          "board": [
+            "... aD. ... ...",
+            "... cA| dC. bC.",
+            "... aD. ... ...",
+            "bC. dC. bC. bD."
+          ]
+        },
+        {
+          "id": 22,
+          "teaches": "On its side it trades left with right",
+          "budget": 1,
+          "target": 3,
+          "note": "The same glyph turned, and the same exchange across instead of down.",
+          "board": [
+            "... cA. bC. ...",
+            "aB. dB- bC. cD.",
+            "... bC. aB. ...",
+            "... ... ... ..."
+          ]
+        },
+        {
+          "id": 23,
+          "teaches": "One bar can land another on its colour",
+          "budget": 1,
+          "target": 4,
+          "note": "Both bars on a cross. The first trade puts the second bar home, and it trades in turn.",
+          "board": [
+            "... ... aB. ... ...",
+            "... ... cD| ... ...",
+            "dB. cA. cA- dC. cD.",
+            "... ... dC. ... ...",
+            "... ... aC. ... ..."
+          ]
+        },
+        {
+          "id": 24,
+          "teaches": "A trade can set up a shove",
+          "budget": 1,
+          "target": 7,
+          "note": "Thirty-six swaps land a match. The answer fires both bars at once and a third on the step after.",
+          "board": [
+            "... ... aB. ... ...",
+            "... dA. cD| aD. ...",
+            "dB. dA. dC- cB. bD.",
+            "... cA. cD^ aC. ...",
+            "... ... bD. ... ..."
+          ]
+        },
+        {
+          "id": 25,
+          "teaches": "Shove first, trade second",
+          "budget": 1,
+          "target": 9,
+          "note": "A full frame. A hundred and twenty-seven swaps land a match; the answer fires a pulse whose arms carry two bars home.",
+          "board": [
+            "dC. bD. dB| dA. bC.",
+            "cD. cD. aB. aB. bD^",
+            "cD. cA- aC. bD- bA.",
+            "aDO aD. aB. dA. bA.",
+            "cD. bA. aB| aC. dB."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cross",
+      "no": "VI",
+      "name": "The cross",
+      "levels": [
+        {
+          "id": 26,
           "teaches": "+ trades above with below, and left with right",
           "budget": 1,
-          "target": 5,
-          "note": "Every cell in the diamond is grounded for the piece the + sends to it.",
+          "target": 6,
+          "note": "Fifty-four swaps land a match. The cross has to be carried to a cell with all four neighbours on the board, and only one swap does it.",
           "board": [
-            "cD+ bA^ ...",
-            "aB< d-- bA>",
-            "... aBv ..."
+            "aB. cB. cA. bC.",
+            "dC. cA+ dC. aB.",
+            "bA. dB. aC. bD.",
+            "cD. bC. cD. bD."
+          ]
+        },
+        {
+          "id": 27,
+          "teaches": "The cross does what both bars do at once",
+          "budget": 1,
+          "target": 8,
+          "note": "Both bars and the cross on ten pieces. The answer fires all three and leaves two standing.",
+          "board": [
+            "... dA. ... ...",
+            "bC. aC+ cB. cB|",
+            "... bC. ... ...",
+            "dA. cA- aD. bC."
+          ]
+        },
+        {
+          "id": 28,
+          "teaches": "Two swaps to spend, and one pair of them pays",
+          "budget": 2,
+          "target": 6,
+          "note": "The allowance opens to two. Thirty-two swaps land a match and one opening begins the line.",
+          "board": [
+            "... ... aB. ... ...",
+            "... ... dB+ ... ...",
+            "dB. dA. bD. bC. dA.",
+            "... ... dA. ... ...",
+            "... ... cD| ... ..."
+          ]
+        },
+        {
+          "id": 29,
+          "teaches": "More board to hide the pair in",
+          "budget": 2,
+          "target": 8,
+          "note": "Sixty-five swaps land a match, against thirty-two on the level before.",
+          "board": [
+            "... ... aD. ... ...",
+            "... aB. aC+ bD. ...",
+            "cD. aD. cA| dA. dA.",
+            "... cA. aB^ aC. ...",
+            "... ... bD. ... ..."
+          ]
+        },
+        {
+          "id": 30,
+          "teaches": "The whole frame, and two moves",
+          "budget": 2,
+          "target": 15,
+          "note": "Two hundred and sixty-three swaps land a match. The answer clears fifteen of the twenty-five pieces.",
+          "board": [
+            "bA. dC. aB+ bA. aD.",
+            "aB. dC. cD. dA. bD^",
+            "aD. cB| dA. bA- bC.",
+            "cDO aB. dC. aD. cD.",
+            "dB. bD. aD+ dC. cB."
           ]
         }
       ]
     },
     {
       "id": "corner",
-      "no": "VI",
+      "no": "VII",
       "name": "The corners",
       "levels": [
         {
-          "id": 22,
-          "teaches": "X trades the corners instead",
+          "id": 31,
+          "teaches": "The rising bar trades upper right with lower left",
           "budget": 1,
-          "target": 5,
-          "note": "The mirror of the + board, on the corners.",
+          "target": 4,
+          "note": "The first glyph that reaches diagonally. Forty-six swaps land a match.",
           "board": [
-            "bA^ cDX bA>",
-            "... d-- ...",
-            "aB< ... aBv"
+            "dB. bC. aD. aD.",
+            "aC. cB/ bC. bC.",
+            "dC. dA. aB. aC.",
+            "bA. cA. bC. dA."
+          ]
+        },
+        {
+          "id": 32,
+          "teaches": "X trades both corner pairs at once",
+          "budget": 1,
+          "target": 6,
+          "note": "The same reach doubled, and the falling bar is never demonstrated — by here the turn is read.",
+          "board": [
+            "cD. aC. aD. cD.",
+            "cB. bAX aB. aD.",
+            "bC. aB. bC. aB.",
+            "bA. dA. bC. bC."
+          ]
+        },
+        {
+          "id": 33,
+          "teaches": "Two swaps on the diagonals",
+          "budget": 2,
+          "target": 4,
+          "note": "A block with the corners cut away, so every diagonal the X reaches for is on the board.",
+          "board": [
+            "... ... ... ... cD.",
+            "... aC. aB. aB. ...",
+            "... aB. dAX aC. ...",
+            "... aC. dB. cB. ...",
+            "dA. ... ... ... ..."
+          ]
+        },
+        {
+          "id": 34,
+          "teaches": "More board, and the corners still decide",
+          "budget": 2,
+          "target": 7,
+          "note": "Sixty-seven swaps land a match. The answer clears seven.",
+          "board": [
+            "... ... aD. ... ...",
+            "... aD. cA. cB. ...",
+            "dB. dB. dAX cB. bD.",
+            "... bC. cB\\ dC. ...",
+            "... ... bA. ... ..."
+          ]
+        },
+        {
+          "id": 35,
+          "teaches": "Four glyphs, two moves",
+          "budget": 2,
+          "target": 12,
+          "note": "Two hundred and fifty-five swaps land a match. The answer clears twelve of twenty-five.",
+          "board": [
+            "aC. aC. dCX bC. bD.",
+            "bD. dA. bC. dB. cA^",
+            "aC. cD\\ cA. cD/ aC.",
+            "dBO bD. aD. dB. cA.",
+            "cD. bC. bA. cAX dC."
           ]
         }
       ]
     },
     {
       "id": "ring",
-      "no": "VII",
+      "no": "VIII",
       "name": "The ring",
       "levels": [
         {
-          "id": 23,
+          "id": 36,
           "teaches": "r turns the four around it one step clockwise",
           "budget": 1,
-          "target": 5,
-          "note": "Four cells, each grounded for the piece the turn brings it. The letters say which way it went.",
+          "target": 6,
+          "note": "Nothing is shoved and nothing leaves. Four pieces move round one place and the letters say which way.",
           "board": [
-            "cD@ bA^ ...",
-            "aB< d-- aB>",
-            "... bAv ..."
+            "bC. cD. bD. bA.",
+            "dA. dA@ aB. aD.",
+            "aB. cA. aD. bA.",
+            "bA. cA. aC. cD."
           ]
         },
         {
-          "id": 24,
+          "id": 37,
           "teaches": "Its mirror turns them back",
           "budget": 1,
-          "target": 5,
+          "target": 6,
           "note": "The same board the other way, so only the letter decides where each piece lands.",
           "board": [
-            "cD% bA^ ...",
-            "aB< d-- aB>",
-            "... bAv ..."
+            "aB. dB. bA. aB.",
+            "bD. aD% dB. aB.",
+            "aC. bC. dA. bD.",
+            "aD. cD. cB. bC."
+          ]
+        },
+        {
+          "id": 38,
+          "teaches": "Two swaps, and the ring turns twice",
+          "budget": 2,
+          "target": 5,
+          "note": "Twenty-nine swaps land a match, and the greedy read cannot see past three.",
+          "board": [
+            "... ... ... ... ...",
+            "... bC. cA. cA. ...",
+            "... cA. bC@ aB. ...",
+            "... cB. cA. aD. ...",
+            "... ... ... ... ..."
+          ]
+        },
+        {
+          "id": 39,
+          "teaches": "Both turns on one board",
+          "budget": 2,
+          "target": 9,
+          "note": "Sixty-eight swaps land a match. The answer clears nine of thirteen pieces.",
+          "board": [
+            "... ... bC. ... ...",
+            "... dB. bA. dB. ...",
+            "aD. bD. cB@ dA. bC.",
+            "... bA. aB% bD. ...",
+            "... ... dC. ... ..."
+          ]
+        },
+        {
+          "id": 40,
+          "teaches": "The whole frame, turning",
+          "budget": 2,
+          "target": 15,
+          "note": "Four rings on a full frame and two hundred and forty-four swaps that land a match.",
+          "board": [
+            "cA. aB. cA@ dA. bA.",
+            "bC. cD. bD. bC. aB.",
+            "aC. aC% cB. bD@ aB.",
+            "aB. bA. aC. dA. cB.",
+            "aB. cA. dB% cA. aB."
           ]
         }
       ]
     },
     {
       "id": "sink",
-      "no": "VIII",
+      "no": "IX",
       "name": "The sink",
       "levels": [
         {
-          "id": 25,
-          "teaches": "S opens a hole and everything falls inward",
+          "id": 41,
+          "teaches": "S draws all four lines inward and takes its own cell",
           "budget": 1,
-          "target": 5,
-          "note": "Each arm is grounded for the piece the pull brings in.",
+          "target": 3,
+          "note": "Authored rather than searched: every colouring a search prefers puts the sink in a corner, where two of its four arms are off the board.",
           "board": [
-            "... ... cA. ... ...",
-            "... ... aB. ... ...",
-            "cB. bA. dB. aB. cA.",
+            "... aB. ... ...",
+            "aB. cA. dA. cD.",
+            "... dB. ... ...",
+            "... bD. ... bCS"
+          ]
+        },
+        {
+          "id": 42,
+          "teaches": "What the sink pulls in can land on its colour",
+          "budget": 1,
+          "target": 7,
+          "note": "Fifty-one swaps land a match. The sink fires, and a piece it drew in lands home and shoves again.",
+          "board": [
+            "bA. cA. dC. bD.",
+            "aB. aBS bC. bD.",
+            "bA. cA. cD. bC.",
+            "bC. cA. dC^ aD."
+          ]
+        },
+        {
+          "id": 43,
+          "teaches": "The hole stays, and the board is smaller now",
+          "budget": 2,
+          "target": 5,
+          "note": "Twenty-three swaps land a match, and no swap on this board shows two.",
+          "board": [
+            "... ... ... ... ...",
+            "... dB. dB. aB. ...",
+            "... bC. cAS aB. ...",
+            "... aB. bC. bC. ...",
+            "... ... ... ... ..."
+          ]
+        },
+        {
+          "id": 44,
+          "teaches": "Two moves, and the second falls into the first",
+          "budget": 2,
+          "target": 8,
+          "note": "Sixty-seven swaps land a match. The answer clears eight of thirteen.",
+          "board": [
             "... ... bA. ... ...",
-            "... ... cDS ... ..."
+            "... cA. cB. aD. ...",
+            "dC. bC. cDS dC. aD.",
+            "... dC. bC^ bA. ...",
+            "... ... cB. ... ..."
+          ]
+        },
+        {
+          "id": 45,
+          "teaches": "The last board",
+          "budget": 2,
+          "target": 15,
+          "note": "Two hundred and fifty swaps land a match. The answer clears fifteen of twenty-five and leaves four standing.",
+          "board": [
+            "dA. dB. dBS cA. cB.",
+            "dA. bC. bD. aD. bC^",
+            "cD. dA. cD. bD. aB.",
+            "bDO aC. bC. cA. bA.",
+            "dB. bD. aBS bA. dB."
           ]
         }
       ]

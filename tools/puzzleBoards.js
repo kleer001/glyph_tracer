@@ -22,11 +22,13 @@
 // settles per candidate colouring, three is thousands. `--iters` is the knob.
 //
 // Usage:
-//   node tools/puzzleBoards.js --layout "._./^O^/._."
-//   node tools/puzzleBoards.js --layout ".^./_H_" --colors 4 --swaps 2 --iters 4000
+//   node tools/puzzleBoards.js --layout "._.,^O^,._."
+//   node tools/puzzleBoards.js --layout ".^.,_H_" --colors 4 --swaps 2 --iters 4000
 //
 // A layout row is one character per cell: any glyph's `mark` from data/glyphs.json,
 // `_` for a live cell with nothing on it, `#` for a cell that is not part of the board.
+// Rows are separated by commas, which no glyph is marked with -- `/` and `|` are both
+// taken by the swap family.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -64,7 +66,7 @@ const SPEC = {
 
 /** A layout into an uncoloured board: alive, kind and art set, colours still to find. */
 export function parseLayout(text, colors) {
-  const rows = String(text).split('/').map((row) => row.trim()).filter(Boolean);
+  const rows = String(text).split(',').map((row) => row.trim()).filter(Boolean);
   if (!rows.length) throw new Error('a layout needs rows'); // boundary
   const width = rows[0].length;
   rows.forEach((row, r) => {
@@ -230,7 +232,18 @@ function repaint(b, rand) {
 export function anneal(layout, { swaps, iters, seed }) {
   const rand = mulberry32(seed);
   let cur = copyBoard(layout);
-  for (let n = 0; n < cur.height * cur.width * 4; n++) repaint(cur, rand);
+  // Every live cell, not a random scatter of them: a layout arrives with each piece on
+  // ground zero in ink zero, which is a match, and a cell the scatter missed would ship
+  // a board that opens already fired.
+  for (let r = 0; r < cur.height; r++) {
+    for (let c = 0; c < cur.width; c++) {
+      if (!cur.alive[r][c]) continue;
+      cur.bg[r][c] = Math.floor(rand() * cur.colors);
+      if (cur.glyph[r][c] === null) continue;
+      const g = Math.floor(rand() * (cur.colors - 1));
+      cur.glyph[r][c] = g >= cur.bg[r][c] ? g + 1 : g;
+    }
+  }
   let m = analyse(cur, swaps);
   let s = score(m);
   let best = { board: copyBoard(cur), m, s };
@@ -338,4 +351,5 @@ function main() {
   }
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main();
+// argv[1] is absent when this module is imported by an evaluated script, not run.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

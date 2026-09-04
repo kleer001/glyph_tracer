@@ -107,6 +107,8 @@
   into a document — the pasted table could not reproduce itself and was quoted for days.
 - **A level's target is authored.** REJECTED: measuring a board's yield and scaling it —
   the pipeline had no caller once the pack became the run.
+- **A level is checked exactly, never greedily.** REJECTED: greedy play as the validator —
+  it is a lower bound, and a puzzle built to punish a greedy read fails it by working.
 - **A puzzle's layout is the author's; the search only paints it.** REJECTED: annealing
   over which glyph sits where — it finds correct boards that state nothing, and where the
   pieces sit is the whole of what a lesson says.

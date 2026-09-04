@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { applySwap, copyBoard, gain, swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
+import { maxLine, movePairs } from '../tools/puzzleBoards.js';
 import { dealLevel, loadRun, nextAfter, outcome } from '../src/levels.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
@@ -42,17 +43,18 @@ test('every shipped level can be won', () => {
     const { width, height } = dealt.board;
     const pairs = swapPairs({ ...RULES, width, height });
 
-    if (dealt.budget === 1) {
-      // One swap is the whole level, so every swap can be tried and the answer is
-      // exact. Greedy is the wrong instrument here: a level built to reward reading a
-      // glyph offers a visible match that falls short, and greedy takes it.
-      const answers = pairs.filter(([a, z]) => {
-        if (!gain(dealt.board, a, z)) return false;
+    if (dealt.budget <= 2) {
+      // Small enough to try every opening and follow every line under it, so the count
+      // is exact. Greedy is the wrong instrument here: a level built to reward reading a
+      // glyph offers a visible match that falls short, and greedy takes it — which on
+      // these levels is the level working rather than the level broken.
+      const answers = movePairs(dealt.board).filter(([a, z]) => {
         const probe = copyBoard(dealt.board);
-        return applySwap(probe, a, z, dealt.rand).activated >= level.target;
+        const { activated } = applySwap(probe, a, z, dealt.rand);
+        return activated + maxLine(probe, dealt.budget - 1) >= level.target;
       });
       assert.equal(answers.length, 1,
-        `level ${level.id}: ${answers.length} swaps reach a target of ${level.target}, on a budget of 1`);
+        `level ${level.id}: ${answers.length} openings reach a target of ${level.target} on ${dealt.budget} swap(s)`);
       continue;
     }
 

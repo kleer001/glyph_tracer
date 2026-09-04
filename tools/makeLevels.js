@@ -19,6 +19,7 @@ import { pathToFileURL } from 'node:url';
 import { applySwap, copyBoard, gain, swapPairs } from '../src/board.js';
 import { greedyPlay } from '../src/level.js';
 import { dealLevel, loadRun } from '../src/levels.js';
+import { maxLine, movePairs } from './puzzleBoards.js';
 import { parseArgs } from './args.js';
 
 const PACK = new URL('../data/levels.json', import.meta.url);
@@ -50,17 +51,21 @@ function greedyClears(spec, budget) {
  * Swaps that score but fall short are not a problem — they are the level asking whether
  * the player has understood, rather than counted.
  */
-function answers(spec, budget, resolve) {
+function answers(spec, budget, swaps) {
   const { board, rand } = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
   const pairs = swapPairs({ ...RULES, width: board.width, height: board.height });
   let scores = 0;
-  let reach = 0;
   for (const [a, z] of pairs) {
-    if (!gain(board, a, z)) continue;
-    scores += 1;
-    if (!resolve) continue; // a level with swaps to spare is not asking this question
+    if (gain(board, a, z)) scores += 1;
+  }
+  // How many openings begin a line that reaches the target. Every opening is tried and
+  // every line under it is followed, so this is the answer rather than a lower bound —
+  // which greedy play is not, and cannot be on a level built to punish a greedy read.
+  let reach = 0;
+  for (const [a, z] of movePairs(board)) {
     const probe = copyBoard(board);
-    if (applySwap(probe, a, z, rand).activated >= spec.target) reach += 1;
+    const { activated } = applySwap(probe, a, z, rand);
+    if (activated + maxLine(probe, swaps - 1) >= spec.target) reach += 1;
   }
   return { scores, reach };
 }
@@ -102,20 +107,16 @@ function main() {
   for (const act of pack.acts) {
     for (const level of act.levels) {
       const spec = { ...level, act };
-      const single = (level.budget ?? budget) === 1;
+      const swaps = level.budget ?? budget;
+      // An exact search costs pairs to the power of the allowance. Two is affordable on
+      // these board sizes; past that the count below would be the slowest thing here.
+      const exact = Boolean(level.board) && swaps <= 2;
       let source = 'authored';
       let greedy;
-      if (level.board && single) {
-        // One swap is the whole level, so every swap can be tried. That is a complete
-        // answer rather than a lower bound, and it is checked below against `reach`.
+      if (level.board) {
+        // Greedy is reported, never trusted: a puzzle exists to punish a greedy read, so
+        // greedy falling short is the level working. `reach` below is what decides.
         greedy = greedyClears(spec, budget);
-      } else if (level.board) {
-        greedy = greedyClears(spec, budget);
-        if (greedy < level.target) {
-          throw new Error(
-            `level ${level.id}: its board clears ${greedy} greedily, target is ${level.target}`,
-          ); // boundary
-        }
       } else if (Number.isInteger(level.seed) && greedyClears(spec, budget) >= level.target) {
         source = 'dealt';
         greedy = greedyClears(spec, budget);
@@ -127,21 +128,21 @@ function main() {
         changed += 1;
       }
       const dealt = dealLevel(spec, { rules: RULES, glyphs: GLYPHS, budget });
-      const { scores, reach } = answers(spec, budget, single);
+      const { scores, reach } = answers(spec, budget, exact ? swaps : 0);
       console.log(
         `${String(level.id).padStart(5)}  ${act.name.padEnd(11)}`
         + `${`${dealt.board.width}x${dealt.board.height}`.padStart(5)}  ${source.padEnd(8)}  `
         + `${String(level.target).padStart(6)}  ${String(greedy).padStart(6)}  `
-        + `${String(scores).padStart(5)}  ${String(single ? reach : '—').padStart(6)}  ${level.seed ?? '—'}`
-        + (single && greedy < level.target ? '   greedy misses' : ''),
+        + `${String(scores).padStart(5)}  ${String(exact ? reach : '—').padStart(6)}  ${level.seed ?? '—'}`
+        + (exact && greedy < level.target ? '   greedy misses' : ''),
       );
       // Winnable, and winnable one way. A second answer means the level can be finished
       // without the character it exists to teach; none at all means it cannot be
       // finished. Greedy falling short is not a fault here — on a level built to reward
       // reading the glyph, it is the level working.
-      if (single && reach !== 1) {
+      if (exact && reach !== 1) {
         throw new Error(
-          `level ${level.id}: the budget is 1 and ${reach} swaps reach the target`,
+          `level ${level.id}: ${reach} openings reach the target on ${swaps} swap(s)`,
         ); // boundary
       }
     }

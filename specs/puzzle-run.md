@@ -22,7 +22,19 @@ Nine lessons, one per glyph family, five levels each — forty-five levels.
 | 6 | the cross | `+` | 2 |
 | 7 | the corners | `/` `\` `X` | 2 |
 | 8 | the ring | `r` and its mirror | 2 |
-| 9 | the sink | `S` | 3 |
+| 9 | the sink | `S` | 2 |
+
+The allowance applies to a lesson's three puzzles. Its two teaching levels stay at one
+swap however far into the run they are: a level that exists to show what a glyph does is
+muddier, not harder, for having a second move in it.
+
+Three swaps is not reachable. The search is exact and costs pairs to the power of the
+allowance — on a thirteen-cell board a three-swap evaluation is four hundred milliseconds,
+which is an hour of annealing, and on a full frame it is seven seconds. Uniqueness fails
+first anyway: with three swaps on a board small enough to search, five to twenty-two
+openings reach the same maximum, because that many swaps clear nearly everything by
+several routes. A three-swap tier needs either a bigger board than can be annealed exactly
+or a weaker definition of the answer.
 
 The four pushes are one lesson, not four: they differ only in the turn of one drawing.
 The ring pair and the three corner swaps collapse the same way. The bars have no diagram
@@ -100,6 +112,7 @@ turns it into a puzzle.
 
 **Input**: `--layout`, one character per cell — a glyph's `mark`, `_` for a live cell with
 nothing on it, `#` for a cell off the board — plus `--colors`, `--swaps` and `--iters`.
+Rows are separated by commas: `/` and `|` are both taken by the swap family's marks.
 There is no whitelist flag: the layout is the whitelist, since a lesson can only be taught
 with the glyphs it has placed.
 
@@ -134,7 +147,10 @@ seventeen milliseconds an iteration. `--iters` is the knob.
 - `node tools/makeLevels.js` reports every level winnable, and for every puzzle exactly
   one swap that reaches the target
 - one lesson plays end to end in the browser, diagram through both combinations
-- `tests/levels.test.js` holds every shipped level to exactly one answer
+- `tests/levels.test.js` holds every shipped level to exactly one opening, by trying every
+  opening and following every line beneath it. Greedy play cannot do this job: a puzzle
+  exists to punish a greedy read, so greedy falling short of the target is the level
+  working rather than the level broken.
 
 ## Rulings this touches
 
