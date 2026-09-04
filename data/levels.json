@@ -236,10 +236,68 @@
           "id": 16,
           "teaches": "A line stops at H, and what it stops behind lands home",
           "budget": 1,
-          "target": 3,
-          "note": "The line is three long and ends at the anchor, so two pieces slide and both land matched.",
+          "target": 2,
+          "note": "The shortest demonstration a 4x4 has room for: the front of the line is eaten at the wall, the piece behind it advances one and lands matched.",
           "board": [
-            "cD> dB. cA. aB. bA. cAH cB."
+            "bC> ... ... ...",
+            "... ... ... ...",
+            "cA. bD. dA. dCH",
+            "... ... ... ..."
+          ]
+        },
+        {
+          "id": 17,
+          "teaches": "H will not be shoved, and the arm that points at it does nothing",
+          "budget": 1,
+          "target": 3,
+          "note": "A pulse with an anchor for one of its four neighbours. Three arms move; the fourth is refused before it starts.",
+          "board": [
+            "... aB. ... ...",
+            "aBH cA. bA. a--",
+            "... bD. dCO ...",
+            "... d-- ... ..."
+          ]
+        },
+        {
+          "id": 18,
+          "teaches": "Aim into the wall on purpose",
+          "budget": 1,
+          "target": 3,
+          "note": "One A and one H at the far end of its line. Seventeen swaps land a match and only the one that fires the A reaches the target.",
+          "board": [
+            "... ... aD. ... ...",
+            "... ... cD. ... ...",
+            "aDH cD. aC. dC. cD<",
+            "... ... cA. ... ...",
+            "... ... dB. ... ..."
+          ]
+        },
+        {
+          "id": 19,
+          "teaches": "The wall is at the end of the only line that pays",
+          "budget": 1,
+          "target": 3,
+          "note": "The same line on a diamond, with thirty-one swaps landing a match instead of seventeen.",
+          "board": [
+            "... ... cA. ... ...",
+            "... bA. cD. bD. ...",
+            "bCH dC. bD. aC. cA<",
+            "... dA. dB. bC. ...",
+            "... ... cD. ... ..."
+          ]
+        },
+        {
+          "id": 20,
+          "teaches": "A wall on every row, and one of them dies",
+          "budget": 1,
+          "target": 6,
+          "note": "Five anchors on the diagonal, so no line escapes one. A hundred and thirty swaps land a match; the answer moves an anchor onto its own colour and fires a pulse into the gap.",
+          "board": [
+            "dBH dC. cA. bDO dC.",
+            "dA. bDH bA. cB. bC.",
+            "aB. cB. cDH aC. aB.",
+            "bD. bC. cD. aDH aB.",
+            "dB^ aD. cD. dC. bDH"
           ]
         }
       ]
@@ -250,7 +308,7 @@
       "name": "The cross",
       "levels": [
         {
-          "id": 17,
+          "id": 21,
           "teaches": "+ trades above with below, and left with right",
           "budget": 1,
           "target": 5,
@@ -269,7 +327,7 @@
       "name": "The corners",
       "levels": [
         {
-          "id": 18,
+          "id": 22,
           "teaches": "X trades the corners instead",
           "budget": 1,
           "target": 5,
@@ -288,7 +346,7 @@
       "name": "The ring",
       "levels": [
         {
-          "id": 19,
+          "id": 23,
           "teaches": "r turns the four around it one step clockwise",
           "budget": 1,
           "target": 5,
@@ -300,7 +358,7 @@
           ]
         },
         {
-          "id": 20,
+          "id": 24,
           "teaches": "Its mirror turns them back",
           "budget": 1,
           "target": 5,
@@ -319,7 +377,7 @@
       "name": "The sink",
       "levels": [
         {
-          "id": 21,
+          "id": 25,
           "teaches": "S opens a hole and everything falls inward",
           "budget": 1,
           "target": 5,

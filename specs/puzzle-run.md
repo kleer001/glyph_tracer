@@ -62,6 +62,13 @@ a 5x5 frame holding nine live cells offers a fraction of the full grid's 300 pai
 Two frames, and no third: 5x5 has a true centre, which a pulse, a ring or a sink needs to
 show all four of its arms, and 4x4 has only four cells with every arm on the board.
 
+A glyph whose whole ability is passive cannot be taught by search at all. An anchor is the
+board edge placed mid-board: it eats the front of a line exactly as the edge does, only
+earlier, so a line that meets one always clears less than the same line on a clear row. A
+search maximising clears relocates the push away from every anchor it is given. Such a
+lesson's boards have to leave no alternative — one push and a wall at the end of its only
+line, or walls on every row.
+
 A glyph that reaches in four directions cannot be taught on 4x4 by search alone. It has to
 be carried onto its colour by the swap, and every colouring the annealer likes best lands
 it in a corner, where two of its arms are off the board and do nothing. The first teaching
